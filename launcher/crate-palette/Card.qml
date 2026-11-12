@@ -12,7 +12,9 @@ Rectangle {
     width: Tokens.px(640)
     implicitHeight: layout.implicitHeight
     radius: Tokens.radius
-    color: Tokens.paperLift
+    // translucent like the shell's other panels; Hyprland frosts the launcher
+    // layer behind it (ignore_alpha keeps the frost inside the card)
+    color: Qt.rgba(Tokens.paperLift.r, Tokens.paperLift.g, Tokens.paperLift.b, 0.82)
     border.width: Tokens.border
     border.color: Tokens.line
     clip: true
