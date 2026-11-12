@@ -72,7 +72,13 @@ def test_prefixes_do_not_match_inside_a_name():
     assert app_glyphs.brand_for("electron", "electron.desktop") == ("simple-icons", "electron")
 
 
-@pytest.mark.parametrize("icon", ["antigravity", "nvim"])
+@pytest.mark.parametrize("icon", ["nvim", "neovim", "io.neovim.nvim"])
+def test_neovim_wears_the_vim_mark(icon):
+    assert app_glyphs.brand_for(icon, icon + ".desktop") == ("simple-icons", "vim")
+    assert app_glyphs.icon_for(icon, icon + ".desktop", []) == ("brand", "simple-icons/vim")
+
+
+@pytest.mark.parametrize("icon", ["antigravity"])
 def test_brands_without_a_free_mark_keep_their_recoloured_icon(icon):
     assert app_glyphs.brand_for(icon, icon + ".desktop") == ("recolor", None)
     assert app_glyphs.icon_for(icon, icon + ".desktop", []) == ("recolor", None)
@@ -134,7 +140,7 @@ def test_crateize_recolours_when_the_brand_has_no_free_mark():
 
 
 def test_crateize_recolour_falls_back_to_solar_without_a_source_icon():
-    assert crateize.pick("nvim", "nvim.desktop", ["TextEditor"], None) == ("solar", "code")
+    assert crateize.pick("antigravity", "antigravity.desktop", [], None) == ("solar", "code-square")
 
 
 def test_crateize_graded_style_recolours_brands_too():
@@ -244,6 +250,6 @@ def test_the_theme_ships_brand_icons_but_not_recoloured_ones(tmp_path):
     assert (apps / "firefox.svg").read_text() == build_icons.brand_svg("tabler/brand-firefox", "scalable")
     assert (apps / "claude-desktop.svg").exists()
     assert not (apps / "antigravity.svg").exists()
-    assert not (apps / "nvim.svg").exists()
+    assert (apps / "nvim.svg").read_text() == build_icons.brand_svg("simple-icons/vim", "scalable")
     credits = (tmp_path / "CREDITS").read_text()
     assert "Tabler" in credits and "Simple Icons" in credits and "trademarks" in credits

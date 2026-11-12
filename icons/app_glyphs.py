@@ -127,6 +127,9 @@ BRANDS = {
     "onlyoffice-desktopeditors": _si("onlyoffice"), "org.onlyoffice.desktopeditors": _si("onlyoffice"),
     "mpv": _si("mpv"), "io.mpv.Mpv": _si("mpv"),
     "gvim": _si("vim"), "vim": _si("vim"),
+    # Neovim wears Vim's mark: its own (CC BY-SA 3.0) would put share-alike art
+    # in the theme, and Vim's is the family it comes from
+    "nvim": _si("vim"), "neovim": _si("vim"), "io.neovim.nvim": _si("vim"),
     "wine": _si("wine"), "winetricks": _si("wine"),
     "nvidia-settings": _si("nvidia"),
     "qemu": _si("qemu"),
@@ -134,9 +137,8 @@ BRANDS = {
     "localsend": _si("localsend"), "org.localsend.localsend_app": _si("localsend"),
     # the welcome app is CachyOS itself; its other tools keep their Solar glyphs
     "org.cachyos.hello": _si("cachyos"),
-    # no free mark: Antigravity has none; Neovim's is CC BY-SA, so its own icon
-    # is recoloured on the machine instead of a share-alike mark shipping here
-    "antigravity": RECOLOR, "nvim": RECOLOR, "neovim": RECOLOR, "io.neovim.nvim": RECOLOR,
+    # no free mark: Antigravity has none, so its own icon is recoloured on the machine
+    "antigravity": RECOLOR,
 }
 
 # name patterns matched from the start, most specific first: JetBrains Toolbox
