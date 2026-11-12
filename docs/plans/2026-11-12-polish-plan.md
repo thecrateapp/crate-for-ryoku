@@ -1,6 +1,6 @@
 # Crate for Ryoku: plan de pulido antes del lanzamiento
 
-Fecha: 2026-11-12. Estado: propuesta para revisar.
+Fecha: 2026-11-12. Estado: decisiones de diseño cerradas (fase 0); pendiente de tu revisión antes del plan de implementación.
 
 ## Objetivo
 
@@ -32,13 +32,36 @@ Criterio de "terminado" por superficie:
 
 | # | Decisión | Opciones | Afecta a |
 |---|---|---|---|
-| D1 | Selección en controles pequeños (pestañas, segmentos, chips) | (a) relleno cian como los chips de Crate; (b) texto cian + barra/subrayado 2 px como la navegación del admin; (c) mixto: pestañas con subrayado, segmentos/chips con relleno | ui/Tabs, Seg, Chips, Multi; todo el Hub, QS Bar Settings, Stage, Kit, Ryostore |
-| D2 | Tipografía de navegación | JetBrains Mono en mayúsculas (como el admin) vs la fuente de UI en mayúsculas (hoy) | Tokens (nuevo token navFont), raíles del Hub, apps, QS Bar Settings, Kit |
-| D3 | Launcher | Rediseño: cómo te lo imaginas (Spotlight/Raycast, paleta de comandos tipo admin de Crate, el hero actual afinado...) | launcher hero y main, alt-tab |
-| D4 | Botón primario | relleno cian (como "Open Crate" con borde) vs contorno cian | ui/Btn y diálogos |
-| D5 | Pestañas de Kit y botón de cerrar | se dejó la deriva; decidir ahora con D1 | Kit |
-| D6 | Pantalla de bloqueo | piel qylock Crate propia vs dejar la de Ryoku | lockscreen |
-| D7 | Cursor | Bibata blanco (hoy) vs un cursor con acento cian | rice |
+| D1 | Selección en controles pequeños (pestañas, segmentos, chips) | **Decidido (c), mixto:** pestañas con texto cian y subrayado de 2 px (como la navegación del admin); segmentos y chips de opción con relleno cian (como los chips de Crate) | ui/Tabs, Seg, Chips, Multi; todo el Hub, QS Bar Settings, Stage, Kit, Ryostore |
+| D2 | Tipografía de navegación | **Decidido (a):** JetBrains Mono en mayúsculas espaciadas, como el admin (token nuevo `navFont`, que el tema fija a la mono) | Tokens, raíles del Hub y las apps, QS Bar Settings, Kit, pestañas |
+| D3 | Launcher | **Decidido: paleta de comandos** (maqueta v2 en .superpowers/brainstorm). Ver "Especificación del launcher" abajo | launcher hero y main, alt-tab, app Crate (caché de imágenes), proveedor de Crate |
+| D4 | Botón primario | **Decidido (c), mixto:** relleno cian con texto oscuro para la acción que confirma o cambia algo (Install, Apply, Save, Play); contorno cian para la de navegación (Open, Browse) | ui/Btn y diálogos |
+| D5 | Pestañas de Kit y botón de cerrar | **Decidido:** siguen D1 (subrayadas, como el resto de pestañas) | Kit |
+| D6 | Pantalla de bloqueo | **Decidido:** piel de bloqueo (qylock) propia de Crate, incluida en Crate for Ryoku | lockscreen |
+| D7 | Cursor | **Decidido:** se queda Bibata Modern Ice (blanco) | rice |
+
+### Especificación del launcher (D3)
+
+- Paleta de comandos centrada y compacta (como la del admin de Crate): campo con
+  subrayado cian, pestañas ALL / APPS / FILES / CRATE / REC subrayadas (D1) en
+  JetBrains Mono (D2), resultados por secciones con caption cian, fila activa en
+  velo + barra cian de 2 px, pie con atajos (↵ open, ⇥ mode, ⌥↵ actions) y
+  recuento.
+- Búsqueda normal: primero APPS y FILES (y el resto de proveedores locales),
+  después CRATE limitado a 1 artista, 1 álbum y 1 pista, en el orden de la app
+  (Artista → Álbum → Pista), con la pista "cr ⇥ for more".
+- `cr <búsqueda>`: directo a Crate (etiqueta CRATE en el campo, pestaña CRATE):
+  ARTISTS (fotos redondas), ALBUMS en rejilla con portada grande, TRACKS (portada
+  pequeña y duración). ↵ reproduce, ⌥↵ añade a la cola, ⇧↵ abre en Crate.
+- Imágenes: la app Crate guarda portadas y fotos en una caché local
+  (`$XDG_CACHE_HOME/crate/launcher-art/`) y el resultado de `search` lleva la ruta
+  del archivo; nunca una URL (llevan el ticket de acceso).
+- Crate en la búsqueda normal: el launcher de Ryoku tiene que consultar al
+  proveedor de Crate en cada búsqueda (hoy solo con la palabra clave `cr`): un
+  proveedor de scripts que pueda optar a resultados globales con sección y límite,
+  o un proveedor propio de Crate.
+- Acciones: `play_item` (↵), una orden nueva `queue_item` (⌥↵) y `show` con el
+  elemento (⇧↵) en el socket de control de la app.
 
 ## Fase 1. Base (fork de Ryoku)
 
@@ -49,8 +72,9 @@ Arreglar la raíz para que la mayoría de superficies se corrijan solas.
    (hover de fila sin relleno hueso); foco de `Btn` y `SettingRow` en
    `Tokens.focus`; `Btn` primario según D4; `Cell` (rgba cálido fijo);
    `Slid` con `Tokens.mark`. Tamaño M, alcance enorme.
-2. **Tokens nuevos**: `navFont` (D2) y, si hace falta, `pickRow`/`pickText`
-   para listas. Documentar en docs/store.md.
+2. **Token nuevo** `navFont` (D2): la familia de la navegación (raíles,
+   pestañas, captions de sección); el estilo del tema lo fija a la mono.
+   Documentado en docs/store.md junto al resto de `style`.
 3. **Tipografía compartida**: `shell/services/Theme.qml` deja de fijar Fraunces y
    JetBrainsMono y lee `Tokens.display/displayWeight/mono` (calendario, popups de
    música, OSD, notificaciones).
@@ -126,10 +150,14 @@ Entregable: recorrido automático del sandbox por todas estas superficies.
 4. **Fastfetch**: lema propio de Crate en vez de "RYOKU · 力 · a hand-built
    CachyOS desktop".
 5. **LS_COLORS** con la misma paleta que eza (ls, fd, tree, autocompletado).
-6. **Cursor** según D7.
+6. **Cursor**: se queda Bibata Modern Ice (D7); nada que hacer.
 7. **crate-mark**: estado sin Crate abierta, volumen (decidir en Crate: sincronizar
    con el del sistema o quitar el propio), revisión del panel contra la referencia.
-8. **Pantalla de bloqueo** según D6.
+8. **Pantalla de bloqueo** (D6): piel qylock propia de Crate: reloj en
+   Bricolage 800, fecha en JetBrains Mono mayúsculas, fondo Groove, campo de
+   contraseña con subrayado cian, lo que suena en Crate y estados de error en el
+   rojo de Crate. Se instala con Crate for Ryoku y se elige en Ryoku Settings ›
+   Lockscreen.
 9. **Apps GTK y Qt**: comprobar con el tema Crate (Nautilus, diálogos de archivo,
    apps Qt) y corregir lo que haga falta en las plantillas.
 10. **Imágenes**: vista previa de la rice en el Hub y capturas de Ryostore reales,
