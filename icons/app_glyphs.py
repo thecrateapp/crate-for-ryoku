@@ -1,14 +1,22 @@
-"""Which Solar glyph each app gets in crate-icons-auto.
+"""Which glyph each app gets in crate-icons and crate-icons-auto.
 
-crateize.py draws an installed app in Crate's icon language (a Solar
-line-duotone glyph, white ink with one cyan layer) when this module names a
-glyph for it, and only recolours the app's own icon when it does not. Names are
-Solar's PascalCase component names (@solar-icons/react-perf); solar_export_perf.mjs
-vendors exactly the set this module uses (GLYPHS).
+Brands first: an app whose identity is its logo (Firefox, Slack, Steam) gets
+its brand mark, drawn in Crate's colours by build_icons.brand_svg. BRANDS names
+the mark: a Tabler Icons line brand (MIT) where Tabler has one, a Simple Icons
+silhouette (CC0) otherwise, and RECOLOR where neither has a free mark: that app
+keeps its own icon, recoloured into the Crate palette by crateize.py.
+BRAND_PREFIXES catches names that carry an install id, such as the
+jetbrains-phpstorm-<uuid> icons JetBrains Toolbox writes. brand_export.mjs
+vendors exactly the marks this module uses (BRAND_KEYS).
 
-APPS matches the desktop entry's Icon= name first, then its file name without
-.desktop. CATEGORIES is the fallback for anything installed later: the first
-freedesktop category of the entry that has a glyph here wins.
+Everything else gets a Solar line-duotone glyph (white ink with one cyan
+layer). Names are Solar's PascalCase component names (@solar-icons/react-perf);
+solar_export_perf.mjs vendors exactly the set this module uses (GLYPHS). A
+brand app's APPS entry is its Solar fallback.
+
+APPS and BRANDS match the desktop entry's Icon= name first, then its file name
+without .desktop. CATEGORIES is the fallback for anything installed later: the
+first freedesktop category of the entry that has a glyph here wins.
 """
 
 import re
@@ -84,6 +92,66 @@ CATEGORIES = [
 
 GLYPHS = sorted(set(APPS.values()) | {g for _, g in CATEGORIES})
 
+# ---------------------------------------------------------------- brands
+
+RECOLOR = ("recolor", None)  # no free mark: keep the app's own icon, recoloured
+
+
+def _tabler(name):
+    return ("tabler", "brand-" + name)
+
+
+def _si(slug):
+    return ("simple-icons", slug)
+
+
+BRANDS = {
+    # Tabler line brands
+    "firefox": _tabler("firefox"), "firefox-esr": _tabler("firefox"),
+    "firefox-developer-edition": _tabler("firefox"), "org.mozilla.firefox": _tabler("firefox"),
+    "google-chrome": _tabler("chrome"), "google-chrome-beta": _tabler("chrome"),
+    "google-chrome-unstable": _tabler("chrome"), "com.google.Chrome": _tabler("chrome"),
+    "slack": _tabler("slack"), "com.slack.Slack": _tabler("slack"),
+    "org.telegram.desktop": _tabler("telegram"), "telegram": _tabler("telegram"),
+    "telegram-desktop": _tabler("telegram"),
+    "steam": _tabler("steam"), "com.valvesoftware.Steam": _tabler("steam"),
+    "chatgpt": _tabler("openai"),
+    "tidal-hifi": _tabler("tidal"), "com.mastermindzh.tidal-hifi": _tabler("tidal"),
+    "mongodb-compass": _tabler("mongodb"),
+    # Simple Icons silhouettes
+    "claude-desktop": _si("claude"), "com.anthropic.Claude": _si("claude"), "claude": _si("claude"),
+    "org.mozilla.Thunderbird": _si("thunderbird"), "thunderbird": _si("thunderbird"),
+    "net.thunderbird.Thunderbird": _si("thunderbird"),
+    "obsidian": _si("obsidian"), "md.obsidian.Obsidian": _si("obsidian"),
+    "postman": _si("postman"), "com.getpostman.Postman": _si("postman"),
+    "onlyoffice-desktopeditors": _si("onlyoffice"), "org.onlyoffice.desktopeditors": _si("onlyoffice"),
+    "mpv": _si("mpv"), "io.mpv.Mpv": _si("mpv"),
+    "gvim": _si("vim"), "vim": _si("vim"),
+    "wine": _si("wine"), "winetricks": _si("wine"),
+    "nvidia-settings": _si("nvidia"),
+    "qemu": _si("qemu"),
+    "CMakeSetup": _si("cmake"), "cmake-gui": _si("cmake"),
+    "localsend": _si("localsend"), "org.localsend.localsend_app": _si("localsend"),
+    # the welcome app is CachyOS itself; its other tools keep their Solar glyphs
+    "org.cachyos.hello": _si("cachyos"),
+    # no free mark: Antigravity has none; Neovim's is CC BY-SA, so its own icon
+    # is recoloured on the machine instead of a share-alike mark shipping here
+    "antigravity": RECOLOR, "nvim": RECOLOR, "neovim": RECOLOR, "io.neovim.nvim": RECOLOR,
+}
+
+# name patterns matched from the start, most specific first: JetBrains Toolbox
+# names its icons jetbrains-<ide>-<install id>; distro packages use the bare IDE
+# name (phpstorm, webstorm-eap); every other JetBrains IDE gets the JetBrains mark
+BRAND_PREFIXES = [
+    (r"(jetbrains-)?phpstorm", _si("phpstorm")),
+    (r"(jetbrains-)?webstorm", _si("webstorm")),
+    (r"jetbrains-", _si("jetbrains")),
+    (r"electron\d*$", _si("electron")),  # the runtime (electron, electron37), not electron-cash
+]
+
+BRAND_KEYS = sorted({f"{src}/{name}" for src, name in list(BRANDS.values()) + [b for _, b in BRAND_PREFIXES]
+                     if src != "recolor"})
+
 
 def kebab(name):
     """PascalCase Solar name -> the kebab key the vendored JSON uses."""
@@ -91,9 +159,37 @@ def kebab(name):
     return re.sub(r"([A-Z])([A-Z][a-z])", r"\1-\2", s).lower()
 
 
+def _stem(entry_file):
+    return entry_file[:-8] if entry_file.endswith(".desktop") else entry_file
+
+
+def brand_for(icon, entry_file):
+    """(source, name) of the app's brand mark, RECOLOR, or None for a generic app."""
+    stem = _stem(entry_file)
+    for n in (icon, stem):
+        if n in BRANDS:
+            return BRANDS[n]
+    for n in (icon, stem):
+        for pattern, brand in BRAND_PREFIXES:
+            if re.match(pattern, n):
+                return brand
+    return None
+
+
+def icon_for(icon, entry_file, categories):
+    """What to draw for one app: ("brand", "source/name"), ("solar", kebab), RECOLOR or None."""
+    brand = brand_for(icon, entry_file)
+    if brand == RECOLOR:
+        return RECOLOR
+    if brand:
+        return ("brand", "/".join(brand))
+    glyph = glyph_for(icon, entry_file, categories)
+    return ("solar", glyph) if glyph else None
+
+
 def glyph_for(icon, entry_file, categories):
     """The Solar glyph (kebab) for one app, or None to keep its recoloured icon."""
-    stem = entry_file[:-8] if entry_file.endswith(".desktop") else entry_file
+    stem = _stem(entry_file)
     name = APPS.get(icon) or APPS.get(stem)
     if not name:
         cats = set(categories)
