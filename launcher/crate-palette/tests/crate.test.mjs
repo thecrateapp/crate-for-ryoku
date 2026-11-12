@@ -78,3 +78,19 @@ test("an error ack consumes its command", () => {
   t = acknowledged(t, { type: "ack", request: 2 });
   assert.equal(accepts(t, { type: "result", request: 2 }), true);
 });
+
+const { missingArt, artRetryDelay } = load("crate.js", ["missingArt", "artRetryDelay"]);
+
+test("rows wait for art while a Crate result has none", () => {
+  assert.equal(missingArt([{ kind: "artist", art: "" }, { kind: "album", art: "/a.jpg" }]), true);
+  assert.equal(missingArt([{ kind: "track", art: "/t.jpg" }]), false);
+  assert.equal(missingArt([{ kind: "notice", art: "" }]), false);
+  assert.equal(missingArt([]), false);
+});
+
+test("re-asks for art with a growing pause, then stops", () => {
+  const delays = [0, 1, 2, 3, 4, 5].map(artRetryDelay);
+  assert.deepEqual(delays.slice(0, 5), [600, 1200, 2000, 3000, 4000]);
+  assert.equal(delays[5], -1);
+  assert.equal(artRetryDelay(-1), -1);
+});

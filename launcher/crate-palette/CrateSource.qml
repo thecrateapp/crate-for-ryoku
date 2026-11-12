@@ -17,6 +17,7 @@ QtObject {
 
     property var tracker: Crate.newTracker()
     property bool greeted: false
+    property int artAttempt: 0
 
     readonly property var notice: [{
         kind: "notice",
@@ -28,6 +29,8 @@ QtObject {
     }]
 
     function reset() {
+        artTimer.stop();
+        source.artAttempt = 0;
         source.rows = [];
         source.tracker = Crate.newTracker();
     }
@@ -66,7 +69,29 @@ QtObject {
             source.send(Crate.actionLine(cmd, row.ref), cmd, "");
     }
 
-    onTextChanged: debounce.restart()
+    onTextChanged: {
+        artTimer.stop();
+        source.artAttempt = 0;
+        debounce.restart();
+    }
+
+    // covers arrive after the reply that listed them: ask again while any is missing
+    function waitForArt() {
+        const delay = Crate.artRetryDelay(source.artAttempt);
+        if (delay < 0 || !Crate.missingArt(source.rows)) {
+            artTimer.stop();
+            return;
+        }
+        artTimer.interval = delay;
+        artTimer.restart();
+    }
+
+    property Timer artTimer: Timer {
+        onTriggered: {
+            source.artAttempt += 1;
+            source.search();
+        }
+    }
     onActiveChanged: {
         if (!source.active) {
             source.greeted = false;
@@ -98,6 +123,7 @@ QtObject {
                     source.tracker = Crate.acknowledged(source.tracker, m);
                 } else if (m.type === "result" && Crate.accepts(source.tracker, m)) {
                     source.rows = Crate.toRows(m.items);
+                    source.waitForArt();
                 }
             }
         }

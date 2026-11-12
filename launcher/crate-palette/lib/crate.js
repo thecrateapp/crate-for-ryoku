@@ -93,3 +93,18 @@ function accepts(t, msg) {
     return !!msg && msg.type === "result" && t.requests[msg.request] !== undefined
         && t.requests[msg.request] === t.latest;
 }
+
+// The app caches art in the background and leaves it out of a reply until the
+// file exists, so the palette asks again while a library row still has none.
+var ART_RETRIES = [600, 1200, 2000, 3000, 4000];
+
+function missingArt(rows) {
+    for (var i = 0; i < (rows || []).length; i++)
+        if (KINDS.indexOf(rows[i].kind) >= 0 && !rows[i].art)
+            return true;
+    return false;
+}
+
+function artRetryDelay(attempt) {
+    return attempt >= 0 && attempt < ART_RETRIES.length ? ART_RETRIES[attempt] : -1;
+}
