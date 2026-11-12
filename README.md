@@ -14,6 +14,10 @@ desktop. One install gives you:
   install apps).
 - **The terminal**: kitty and alacritty in Crate's ANSI palette, eza in a
   monochrome Crate theme, and the prompt in Crate colours.
+- **Crate Palette**: a command palette for Super+Space (`launcher/crate-palette`)
+  that searches apps, files, recent files and the Crate library in one field,
+  with `cr <query>` for Crate alone; pick it in Hub > App Launcher once it is
+  installed from Ryostore (App launchers).
 - **The Crate app integration**: the launcher's `cr <query>` search-and-play
   provider (with the Crate desktop app, `crate-desktop-bin`).
 
@@ -59,6 +63,7 @@ rice/crate        the rice (rice.json, wallpaper, launcher hero, fastfetch emble
 theme/crate       the colour scheme (roles, style, terminal) and its fonts
 icons/            crate-icons (build_icons.py) and crateize.py with its Solar glyph map
 plugin/crate-mark the bar plugin
+launcher/         Crate Palette, the Super+Space launcher (node --test launcher/crate-palette/tests/)
 shell/            the eza theme and the Pure prompt
 wallpaper/        the Groove series generators (render.sh)
 package/          build.sh, install.sh, uninstall.sh and the icon watcher units

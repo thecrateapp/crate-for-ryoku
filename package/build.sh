@@ -28,6 +28,9 @@ cp "$SRC"/package/systemd/crate-icons-auto.{path,service} "$OUT/systemd/"
 cp "$SRC/package/crate-presence.sh" "$OUT/crate-presence.sh"
 mkdir -p "$OUT/shell" && cp "$SRC/shell/crate-prompt.fish" "$SRC/shell/eza-theme.yml" "$OUT/shell/"
 cp -a "$SRC/plugin/crate-mark" "$OUT/plugin/crate-mark"
+# the Crate Palette launcher, without its tests and tools
+mkdir -p "$OUT/launcher/crate-palette"
+(cd "$SRC/launcher/crate-palette" && cp -a --parents $(find . -type f ! -path './tests/*' ! -path './tools/*') "$OUT/launcher/crate-palette/")
 bash "$SRC/wallpaper/render.sh" "$SRC/build/wallpapers"
 cp "$SRC"/build/wallpapers/crate-*.webp "$OUT/wallpapers/"
 cp "$SRC/package/install.sh" "$SRC/package/uninstall.sh" "$SRC/package/README.md" "$SRC/package/VERSION" "$OUT/"
