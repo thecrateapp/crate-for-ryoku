@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "id": "crate-for-ryoku",
+  "category": "bundles",
+  "version": "0.5.0",
+  "destination": "ryoku/bundles/crate-for-ryoku",
+  "name": "Crate for Ryoku",
+  "description": "Crate's look, and Crate itself, on Ryoku: the Crate rice, the crate-mark bar plugin with Crate's equalizer, Solar app icons, and the terminal in Crate's palette.",
+  "icon": "album",
+  "accent": "#06b6d4",
+  "preview": "assets/crate-for-ryoku.png",
+  "screenshots": [
+    "assets/crate-for-ryoku.png",
+    "assets/crate-mark-panel.png"
+  ],
+  "items": [
+    {
+      "type": "package",
+      "name": "crate-desktop-bin",
+      "detect": "crate-desktop",
+      "tier": "core",
+      "source": "aur",
+      "summary": "The Crate desktop app: your library, now playing, the launcher provider.",
+      "upstream": "https://github.com/thecrateapp/crate",
+      "packageManagers": [
+        "pacman"
+      ],
+      "packageManagersReason": "Crate for Ryoku and the Crate app are packaged for Arch and CachyOS (AUR)."
+    },
+    {
+      "type": "package",
+      "name": "crate-for-ryoku",
+      "detect": "crate-for-ryoku",
+      "tier": "core",
+      "source": "aur",
+      "summary": "The Crate rice, the crate-mark bar plugin, Solar app icons and Crate's terminal styling.",
+      "upstream": "https://github.com/thecrateapp/crate-for-ryoku",
+      "packageManagers": [
+        "pacman"
+      ],
+      "packageManagersReason": "Crate for Ryoku and the Crate app are packaged for Arch and CachyOS (AUR)."
+    },
+    {
+      "type": "script",
+      "name": "crate-for-ryoku",
+      "detect": "crate-for-ryoku-installed",
+      "tier": "core",
+      "interactive": false,
+      "source": "crate",
+      "summary": "Set it up for you: apply the rice, draw the icons, place crate-mark, style the terminal.",
+      "upstream": "https://github.com/thecrateapp/crate-for-ryoku",
+      "packageManagers": [
+        "pacman"
+      ],
+      "packageManagersReason": "Crate for Ryoku and the Crate app are packaged for Arch and CachyOS (AUR)."
+    }
+  ],
+  "files": [
+    {
+      "source": "README.md",
+      "destination": "README.md",
+      "mode": "0644",
+      "size": 781,
+      "sha256": "e51ee1adf5ce89d5bd7d344779c6fc7efca273aa921b9682c72bf1215ea5fd9d",
+      "install": false
+    },
+    {
+      "source": "assets/crate-for-ryoku.png",
+      "destination": "assets/crate-for-ryoku.png",
+      "mode": "0644",
+      "size": 1798297,
+      "sha256": "517685c81993e674b7b6cf4b896fd995d19ad876580e6bee56fdcff38cc4b171",
+      "install": false
+    },
+    {
+      "source": "assets/crate-mark-panel.png",
+      "destination": "assets/crate-mark-panel.png",
+      "mode": "0644",
+      "size": 62422,
+      "sha256": "8d3ab34af69b3161e3104be1858418d2282109feeb1c4d4969d0f163cd070345",
+      "install": false
+    },
+    {
+      "source": "installers/crate-for-ryoku.sh",
+      "destination": "installers/crate-for-ryoku.sh",
+      "mode": "0755",
+      "size": 650,
+      "sha256": "f96513072c2c09e6d0ec4e305eed297aefecfe52bbc4a6f2a4498f1a0616a06e",
+      "install": true
+    }
+  ]
+}

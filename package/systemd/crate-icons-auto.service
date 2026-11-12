@@ -1,0 +1,10 @@
+[Unit]
+Description=Crate for Ryoku: grade app icons into the Crate palette, and show the Crate bar mark only while Crate is installed
+
+[Service]
+Type=oneshot
+# a package install writes many files at once; let it settle
+ExecStartPre=/usr/bin/sleep 5
+ExecStart=-/usr/bin/python3 %h/.local/share/crate-for-ryoku/crateize.py
+ExecStart=-/usr/bin/bash %h/.local/share/crate-for-ryoku/crate-presence.sh
+Nice=10

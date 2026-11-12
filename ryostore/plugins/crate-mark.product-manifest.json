@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "id": "crate-mark",
+  "category": "plugins",
+  "version": "0.5.2",
+  "destination": "ryoku/plugins/crate-mark",
+  "files": [
+    {
+      "source": "LICENSE",
+      "destination": "LICENSE",
+      "sha256": "f4135933e5ab2e1e642c9cd1b339126d7c993c839be5d769a68ce44382c67eeb",
+      "mode": "0644",
+      "size": 1071,
+      "install": false
+    },
+    {
+      "source": "README.md",
+      "destination": "README.md",
+      "sha256": "a2004f507874d4c7b03eb1b95d41b2623f2bff7c3285d6ca1a2dce8f592b30c3",
+      "mode": "0644",
+      "size": 4244,
+      "install": false
+    },
+    {
+      "source": "assets/preview-panel.png",
+      "destination": "assets/preview-panel.png",
+      "sha256": "8d3ab34af69b3161e3104be1858418d2282109feeb1c4d4969d0f163cd070345",
+      "mode": "0644",
+      "size": 62422,
+      "install": false
+    },
+    {
+      "source": "assets/preview-widget.png",
+      "destination": "assets/preview-widget.png",
+      "sha256": "977782c2dc5786fc2e954920461f97c60acf107a7a7ecdb8925b43bb0114b751",
+      "mode": "0644",
+      "size": 9861,
+      "install": false
+    },
+    {
+      "source": "content/CrateLogo.qml",
+      "destination": "content/CrateLogo.qml",
+      "sha256": "2e9842e448791b7d4c9f7968a3fe519355ab2cc835170d4aa6f2a7ccd079849b",
+      "mode": "0644",
+      "size": 2113,
+      "install": true
+    },
+    {
+      "source": "content/Panel.qml",
+      "destination": "content/Panel.qml",
+      "sha256": "53aa7cf951a627a17826478faec847947b5943d72932d56f3f038ae70eff815d",
+      "mode": "0644",
+      "size": 45762,
+      "install": true
+    },
+    {
+      "source": "content/SolarFill.qml",
+      "destination": "content/SolarFill.qml",
+      "sha256": "1f7b4d7e975b4d6b7f752f4c2e4b48904afd81dad3edeb7fffd834d093d6d714",
+      "mode": "0644",
+      "size": 1181,
+      "install": true
+    },
+    {
+      "source": "content/SolarGlyph.qml",
+      "destination": "content/SolarGlyph.qml",
+      "sha256": "2604041bb65b0c5fc828a40290a545697daa778780c70fa8c8e74fd02e977549",
+      "mode": "0644",
+      "size": 922,
+      "install": true
+    },
+    {
+      "source": "content/Widget.qml",
+      "destination": "content/Widget.qml",
+      "sha256": "b4234ee0c9d56e0380dd14bf3ab0ea634dc652ad71fab333c76606fbf8f7b2f8",
+      "mode": "0644",
+      "size": 5675,
+      "install": true
+    },
+    {
+      "source": "content/fonts/Roboto-OFL.txt",
+      "destination": "content/fonts/Roboto-OFL.txt",
+      "sha256": "ee94f8704aa81e9a3bf4271e8320e99d975a3ee08ea45a088b494b918476ec12",
+      "mode": "0644",
+      "size": 4393,
+      "install": true
+    },
+    {
+      "source": "content/fonts/roboto-latin-ext.woff2",
+      "destination": "content/fonts/roboto-latin-ext.woff2",
+      "sha256": "cedb374b05a35034cf96db185db4eeb8f8ce49e1a56197673702ff11b5533d6e",
+      "mode": "0644",
+      "size": 29392,
+      "install": true
+    },
+    {
+      "source": "content/fonts/roboto-latin.woff2",
+      "destination": "content/fonts/roboto-latin.woff2",
+      "sha256": "1404ca348bd75ef836f4dd8b6f2cc719458642d1237c368296b2fc652dca47dc",
+      "mode": "0644",
+      "size": 43136,
+      "install": true
+    },
+    {
+      "source": "manifest.json",
+      "destination": "manifest.json",
+      "sha256": "86f5113fb80b6fd7a752f75e04f1aad48db6100d2ceceb47f30cf5aac2987fac",
+      "mode": "0644",
+      "size": 2566,
+      "install": true
+    },
+    {
+      "source": "service/Main.qml",
+      "destination": "service/Main.qml",
+      "sha256": "cc05c366436fc18d78a8e7786b59aa7323860b04b5291a92f9a7d811722088cd",
+      "mode": "0644",
+      "size": 7124,
+      "install": true
+    }
+  ],
+  "license": "MIT"
+}

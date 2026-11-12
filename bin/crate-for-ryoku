@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# crate-for-ryoku: set up, check and remove Crate for Ryoku for this user.
+#
+# The package (or a release folder) holds the pieces; this command lays them
+# into your home through Ryoku's own commands. Nothing here needs root.
+set -euo pipefail
+
+VERSION_FILE=VERSION
+find_home() {
+  if [ -n "${CRATE_FOR_RYOKU_HOME:-}" ]; then echo "$CRATE_FOR_RYOKU_HOME"; return; fi
+  local self dir
+  self=$(readlink -f "${BASH_SOURCE[0]}")
+  dir=$(dirname "$self")
+  # a release folder: bin/ sits beside install.sh; the package: /usr/share
+  for d in "$dir/.." /usr/share/crate-for-ryoku; do
+    if [ -f "$d/install.sh" ] && [ -f "$d/$VERSION_FILE" ]; then (cd "$d" && pwd); return; fi
+  done
+  echo "crate-for-ryoku: cannot find the Crate for Ryoku files (set CRATE_FOR_RYOKU_HOME)" >&2
+  exit 1
+}
+
+HOME_DIR=$(find_home)
+CFG=${XDG_CONFIG_HOME:-$HOME/.config}
+DATA=${XDG_DATA_HOME:-$HOME/.local/share}
+STATE=${XDG_STATE_HOME:-$HOME/.local/state}/crate-for-ryoku
+
+usage() {
+  cat <<EOF
+Crate for Ryoku $(cat "$HOME_DIR/$VERSION_FILE")
+
+usage: crate-for-ryoku <command> [options]
+  install [opts]    lay Crate for Ryoku into your home and apply the rice
+                    (options: see crate-for-ryoku install --help)
+  uninstall [opts]  remove it and go back to what you had before
+  status            what is installed, piece by piece
+  icons             redraw the app icons (after installing apps by hand)
+  version           the packaged and the installed versions
+
+GUI: Ryoku Settings > Appearance > Rices, QS Bar Settings > Community > Crate
+EOF
+}
+
+mark() { if eval "$2" >/dev/null 2>&1; then printf '  %-22s yes\n' "$1"; else printf '  %-22s no\n' "$1"; fi; }
+
+cmd=${1:-help}; shift || true
+case $cmd in
+  install) exec bash "$HOME_DIR/install.sh" "$@" ;;
+  uninstall) exec bash "$HOME_DIR/uninstall.sh" "$@" ;;
+  icons) exec python3 "$DATA/crate-for-ryoku/crateize.py" "$@" ;;
+  version)
+    echo "packaged  $(cat "$HOME_DIR/$VERSION_FILE")"
+    echo "installed $(cat "$STATE/version" 2>/dev/null || echo none)"
+    ;;
+  status)
+    echo "Crate for Ryoku: packaged $(cat "$HOME_DIR/$VERSION_FILE"), installed $(cat "$STATE/version" 2>/dev/null || echo none)"
+    mark "rice active" '[ "$(cat "$CFG/ryoku/rices/.active" 2>/dev/null)" = crate ]'
+    mark "colour scheme" '[ -f "$DATA/ryoku/themes/crate/scheme.json" ]'
+    mark "icon theme" '[ -d "$DATA/icons/crate-icons" ]'
+    mark "app icons (Solar)" '[ -f "$DATA/icons/crate-icons-auto/manifest.json" ]'
+    mark "icon watcher" 'ryoku-host svc --user is-enabled crate-icons-auto.path'
+    mark "crate-mark plugin" 'ryoku plugin list | grep -q crate-mark'
+    mark "eza theme" 'head -1 "$CFG/eza/theme.yml" | grep -q -E "^# crate-(rice|for-ryoku): eza"'
+    mark "fish prompt (Pure)" '[ -f "$CFG/fish/conf.d/crate-prompt.fish" ]'
+    mark "Crate app" 'command -v crate-desktop'
+    ;;
+  -h|--help|help) usage ;;
+  *) echo "crate-for-ryoku: unknown command $cmd" >&2; usage >&2; exit 2 ;;
+esac

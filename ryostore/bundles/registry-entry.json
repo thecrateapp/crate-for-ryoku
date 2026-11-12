@@ -1,0 +1,72 @@
+{
+  "id": "crate-for-ryoku",
+  "name": "Crate for Ryoku",
+  "version": "0.5.0",
+  "path": "bundles/crate-for-ryoku",
+  "author": "Diego 🥷🏻",
+  "upstream": "https://github.com/thecrateapp/crate-for-ryoku",
+  "summary": "Crate rice · crate-mark · Solar icons · terminal",
+  "description": "Crate's look, and Crate itself, on Ryoku: the Crate rice, the crate-mark bar plugin with Crate's equalizer, Solar app icons, and the terminal in Crate's palette.",
+  "tags": [
+    "crate",
+    "music",
+    "rice",
+    "icons",
+    "terminal",
+    "equalizer"
+  ],
+  "accent": "#06b6d4",
+  "surface": "#0a0a0f",
+  "preview": "assets/crate-for-ryoku.png",
+  "screenshots": [
+    "assets/crate-for-ryoku.png",
+    "assets/crate-mark-panel.png"
+  ],
+  "manifest": "bundle.json",
+  "manifestSha256": "2817e65d2987cefacc6345feed7135cba82246b2b94c372d012ad4379f78df7b",
+  "components": [
+    {
+      "type": "package",
+      "name": "crate-desktop-bin",
+      "detect": "crate-desktop",
+      "tier": "core",
+      "summary": "The Crate desktop app: your library, now playing, the launcher provider.",
+      "packageManagers": [
+        "pacman"
+      ],
+      "packageManagersReason": "Crate for Ryoku and the Crate app are packaged for Arch and CachyOS (AUR).",
+      "interactive": false
+    },
+    {
+      "type": "package",
+      "name": "crate-for-ryoku",
+      "detect": "crate-for-ryoku",
+      "tier": "core",
+      "summary": "The Crate rice, the crate-mark bar plugin, Solar app icons and Crate's terminal styling.",
+      "packageManagers": [
+        "pacman"
+      ],
+      "packageManagersReason": "Crate for Ryoku and the Crate app are packaged for Arch and CachyOS (AUR).",
+      "interactive": false
+    },
+    {
+      "type": "script",
+      "name": "crate-for-ryoku",
+      "detect": "crate-for-ryoku-installed",
+      "tier": "core",
+      "interactive": false,
+      "summary": "Set it up for you: apply the rice, draw the icons, place crate-mark, style the terminal.",
+      "packageManagers": [
+        "pacman"
+      ],
+      "packageManagersReason": "Crate for Ryoku and the Crate app are packaged for Arch and CachyOS (AUR)."
+    }
+  ],
+  "tagline": "Crate's look, and Crate itself, on Ryoku.",
+  "sources": "AUR / Crate",
+  "icon": "album",
+  "packageManagers": [
+    "pacman"
+  ],
+  "packageManagersReason": "Crate for Ryoku and the Crate app are packaged for Arch and CachyOS (AUR)."
+}

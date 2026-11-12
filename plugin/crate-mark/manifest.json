@@ -1,0 +1,104 @@
+{
+  "id": "crate-mark",
+  "name": "Crate",
+  "version": "0.5.2",
+  "author": "Diego 🥷🏻 <yosoy@diego.ninja>",
+  "description": "The Crate mark on the QS Bar, shown only when Crate is installed. Its panel is drawn to Crate's own player spec: now playing with an all-caps ticker, the 1 px glow beams, the spectrum play button, Crate's equalizer (Smart, Genre, Adaptive, presets, the band chart). Part of Crate for Ryoku.",
+  "license": "MIT",
+  "official": false,
+  "hosts": [
+    "topbarGlyph"
+  ],
+  "entryPoints": {
+    "main": "service/Main.qml",
+    "content": "content/Widget.qml",
+    "panel": "content/Panel.qml"
+  },
+  "panel": {
+    "width": 440
+  },
+  "files": [
+    "content/CrateLogo.qml",
+    "content/SolarGlyph.qml",
+    "content/SolarFill.qml",
+    "assets/preview-widget.png",
+    "assets/preview-panel.png",
+    "content/fonts/roboto-latin.woff2",
+    "content/fonts/roboto-latin-ext.woff2",
+    "content/fonts/Roboto-OFL.txt"
+  ],
+  "capabilities": {
+    "densities": [
+      "glyph"
+    ],
+    "network": []
+  },
+  "defaults": {
+    "host": "topbarGlyph",
+    "label": "Crate"
+  },
+  "dependencies": {
+    "commands": []
+  },
+  "metadata": {
+    "settings": [
+      {
+        "key": "tone",
+        "type": "choice",
+        "label": "Mark colour",
+        "group": "Crate",
+        "default": "accent",
+        "options": [
+          {
+            "value": "accent",
+            "label": "Theme accent"
+          },
+          {
+            "value": "brand",
+            "label": "Crate gradient"
+          },
+          {
+            "value": "ink",
+            "label": "Bar ink"
+          }
+        ]
+      },
+      {
+        "key": "showLabel",
+        "type": "toggle",
+        "label": "Show the \"crate\" label",
+        "group": "Crate",
+        "default": false
+      },
+      {
+        "key": "nowPlaying",
+        "type": "choice",
+        "label": "Now playing on the bar",
+        "group": "Crate",
+        "default": "indicator",
+        "options": [
+          {
+            "value": "indicator",
+            "label": "Indicator while Crate plays"
+          },
+          {
+            "value": "track",
+            "label": "Indicator and artist - title"
+          },
+          {
+            "value": "off",
+            "label": "Off (panel only)"
+          }
+        ]
+      },
+      {
+        "key": "appId",
+        "type": "text",
+        "label": "Crate desktop entry id",
+        "group": "Crate",
+        "default": "app.cratemusic.crate.desktop",
+        "placeholder": "app.cratemusic.crate.desktop"
+      }
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+# Maintainer: thecrateapp (set a real name and address before publishing to the AUR)
+#
+# Crate for Ryoku: the Crate rice, the crate-mark bar plugin, Solar app icons
+# and Crate's terminal styling for a Ryoku desktop. The package holds the
+# pieces; each user lays them into their home with `crate-for-ryoku install`.
+pkgname=crate-for-ryoku
+pkgver=0.5.0
+pkgrel=1
+pkgdesc="Crate for Ryoku: Crate's look and Crate integration for the Ryoku desktop"
+arch=('any')
+url="https://github.com/thecrateapp/crate-for-ryoku"
+license=('MIT' 'CC-BY-4.0' 'OFL-1.1')
+depends=('ryoku-desktop' 'python' 'python-numpy' 'python-pillow' 'librsvg' 'fontconfig')
+makedepends=('git' 'python-cairo')
+optdepends=(
+  'crate-desktop-bin: the Crate app (now playing, the launcher provider, the bar panel)'
+  'eza: the Crate eza theme'
+  'kitty: the Crate terminal palette'
+  'ttf-jetbrains-mono-nerd: the rice font'
+  'papirus-icon-theme: icons crate-icons does not draw'
+)
+source=("$pkgname::git+https://github.com/thecrateapp/crate-for-ryoku.git#tag=v$pkgver")
+sha256sums=('SKIP')
+
+build() {
+  cd "$pkgname"
+  bash package/build.sh
+}
+
+package() {
+  cd "$pkgname"
+  install -d "$pkgdir/usr/share/$pkgname"
+  cp -a "dist/$pkgname-$pkgver/." "$pkgdir/usr/share/$pkgname/"
+  install -d "$pkgdir/usr/bin"
+  ln -s "/usr/share/$pkgname/bin/crate-for-ryoku" "$pkgdir/usr/bin/crate-for-ryoku"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 NOTICE "$pkgdir/usr/share/licenses/$pkgname/NOTICE"
+}

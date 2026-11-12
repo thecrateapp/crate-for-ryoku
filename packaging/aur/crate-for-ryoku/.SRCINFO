@@ -1,0 +1,26 @@
+pkgbase = crate-for-ryoku
+	pkgdesc = Crate for Ryoku: Crate's look and Crate integration for the Ryoku desktop
+	pkgver = 0.5.0
+	pkgrel = 1
+	url = https://github.com/thecrateapp/crate-for-ryoku
+	arch = any
+	license = MIT
+	license = CC-BY-4.0
+	license = OFL-1.1
+	makedepends = git
+	makedepends = python-cairo
+	depends = ryoku-desktop
+	depends = python
+	depends = python-numpy
+	depends = python-pillow
+	depends = librsvg
+	depends = fontconfig
+	optdepends = crate-desktop-bin: the Crate app (now playing, the launcher provider, the bar panel)
+	optdepends = eza: the Crate eza theme
+	optdepends = kitty: the Crate terminal palette
+	optdepends = ttf-jetbrains-mono-nerd: the rice font
+	optdepends = papirus-icon-theme: icons crate-icons does not draw
+	source = crate-for-ryoku::git+https://github.com/thecrateapp/crate-for-ryoku.git#tag=v0.5.0
+	sha256sums = SKIP
+
+pkgname = crate-for-ryoku

@@ -1,0 +1,13 @@
+# Built and rendered output, regenerated from the sources here:
+#   dist/                      package/build.sh
+#   icons/crate-icons/         icons/build_icons.py (run by package/build.sh)
+#   wallpaper renders          wallpaper/groove.py and wallpaper/series.py
+#   captures/                  review screenshots, some of a live desktop
+dist/
+captures/
+icons/crate-icons/
+wallpaper/*.png
+wallpaper/webp/
+wallpaper/series/
+__pycache__/
+build/

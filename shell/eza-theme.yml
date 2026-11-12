@@ -1,0 +1,111 @@
+# crate-for-ryoku: eza in Crate's palette, monochrome by intensity.
+# Installed by Crate for Ryoku as ~/.config/eza/theme.yml (only when you have
+# no theme of your own there); uninstall.sh removes it. eza >= 0.20.
+#
+# Two ramps carry everything:
+#   ink   #f1f5f9 #cbd5e1 #999ca0 #7e8084 #4a4c52   files, metadata, punctuation
+#   cyan  #a5f3fc #67e8f9 #22d3ee #06b6d4 #0e7490   directories, executables, what needs a look
+# Brightness is the information: sizes light up with magnitude, write and
+# execute bits outshine read. Crate's red is kept for what is broken.
+
+colourful: true
+
+filekinds:
+  normal: {foreground: "#f1f5f9"}
+  directory: {foreground: "#67e8f9", is_bold: true}
+  symlink: {foreground: "#22d3ee", is_italic: true}
+  pipe: {foreground: "#7e8084"}
+  block_device: {foreground: "#999ca0"}
+  char_device: {foreground: "#999ca0"}
+  socket: {foreground: "#7e8084"}
+  special: {foreground: "#7e8084"}
+  executable: {foreground: "#06b6d4", is_bold: true}
+  mount_point: {foreground: "#67e8f9", is_underline: true}
+
+perms:
+  user_read: {foreground: "#cbd5e1"}
+  user_write: {foreground: "#67e8f9"}
+  user_execute_file: {foreground: "#06b6d4", is_bold: true}
+  user_execute_other: {foreground: "#06b6d4"}
+  group_read: {foreground: "#999ca0"}
+  group_write: {foreground: "#22d3ee"}
+  group_execute: {foreground: "#0e7490"}
+  other_read: {foreground: "#7e8084"}
+  other_write: {foreground: "#22d3ee"}
+  other_execute: {foreground: "#0e7490"}
+  special_user_file: {foreground: "#a5f3fc", is_bold: true}
+  special_other: {foreground: "#a5f3fc"}
+  attribute: {foreground: "#7e8084"}
+
+size:
+  major: {foreground: "#999ca0"}
+  minor: {foreground: "#7e8084"}
+  number_byte: {foreground: "#7e8084"}
+  number_kilo: {foreground: "#999ca0"}
+  number_mega: {foreground: "#f1f5f9"}
+  number_giga: {foreground: "#67e8f9"}
+  number_huge: {foreground: "#06b6d4", is_bold: true}
+  unit_byte: {foreground: "#4a4c52"}
+  unit_kilo: {foreground: "#4a4c52"}
+  unit_mega: {foreground: "#7e8084"}
+  unit_giga: {foreground: "#0e7490"}
+  unit_huge: {foreground: "#0e7490"}
+
+users:
+  user_you: {foreground: "#999ca0"}
+  user_root: {foreground: "#67e8f9"}
+  user_other: {foreground: "#cbd5e1"}
+  group_yours: {foreground: "#7e8084"}
+  group_root: {foreground: "#67e8f9"}
+  group_other: {foreground: "#999ca0"}
+
+links:
+  normal: {foreground: "#999ca0"}
+  multi_link_file: {foreground: "#22d3ee"}
+
+git:
+  new: {foreground: "#67e8f9"}
+  modified: {foreground: "#06b6d4"}
+  deleted: {foreground: "#ef4444"}
+  renamed: {foreground: "#22d3ee"}
+  typechange: {foreground: "#999ca0"}
+  ignored: {foreground: "#4a4c52"}
+  conflicted: {foreground: "#ef4444", is_bold: true}
+
+git_repo:
+  branch_main: {foreground: "#999ca0"}
+  branch_other: {foreground: "#67e8f9"}
+  git_clean: {foreground: "#4a4c52"}
+  git_dirty: {foreground: "#06b6d4"}
+
+security_context:
+  colon: {foreground: "#4a4c52"}
+  user: {foreground: "#999ca0"}
+  role: {foreground: "#7e8084"}
+  typ: {foreground: "#7e8084"}
+  range: {foreground: "#7e8084"}
+
+file_type:
+  image: {foreground: "#a5f3fc"}
+  video: {foreground: "#a5f3fc"}
+  music: {foreground: "#a5f3fc"}
+  lossless: {foreground: "#a5f3fc", is_bold: true}
+  crypto: {foreground: "#22d3ee"}
+  document: {foreground: "#cbd5e1"}
+  compressed: {foreground: "#0e7490", is_bold: true}
+  temp: {foreground: "#4a4c52"}
+  compiled: {foreground: "#7e8084"}
+  build: {foreground: "#999ca0", is_underline: true}
+  source: {foreground: "#cbd5e1"}
+
+punctuation: {foreground: "#4a4c52"}
+date: {foreground: "#7e8084"}
+inode: {foreground: "#4a4c52"}
+blocks: {foreground: "#4a4c52"}
+header: {foreground: "#999ca0", is_underline: true}
+octal: {foreground: "#7e8084"}
+flags: {foreground: "#7e8084"}
+symlink_path: {foreground: "#999ca0"}
+control_char: {foreground: "#ef4444"}
+broken_symlink: {foreground: "#ef4444"}
+broken_path_overlay: {is_underline: true}

@@ -1,0 +1,54 @@
+{
+  "span": "islands",
+  "form": "square",
+  "scale": 1,
+  "opacity": 0.92,
+  "rim": true,
+  "autoHide": "off",
+  "hoverOpen": false,
+  "hoverSwitch": true,
+  "layout": {
+    "left": [
+      "logo",
+      "workspaces",
+      "sysmon"
+    ],
+    "center": [
+      "voice"
+    ],
+    "right": [
+      "tray",
+      "controls",
+      "battery"
+    ]
+  },
+  "gain": 0.55,
+  "depth": 12,
+  "mirror": true,
+  "feel": "tight",
+  "workspaceStyle": "numbers",
+  "workspaceShowEmpty": true,
+  "workspaceSpare": true,
+  "showDate": true,
+  "seconds": false,
+  "voiceWeather": false,
+  "mediaWidth": 220,
+  "coverSpin": false,
+  "wavy": false,
+  "spectrum": true,
+  "sysmonItems": [
+    "cpu",
+    "mem"
+  ],
+  "actions": [
+    "launcher",
+    "capture",
+    "clipboard"
+  ],
+  "trayLimit": 6,
+  "statusItems": [
+    "wifi",
+    "bluetooth",
+    "volume"
+  ]
+}

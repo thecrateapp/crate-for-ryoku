@@ -1,0 +1,18 @@
+Crate for Ryoku
+Copyright (c) 2026 Diego 🥷🏻. Released under the MIT License (LICENSE).
+
+Third-party material shipped in this repository or in its builds:
+
+- Solar Icons Set by 480 Design, CC BY 4.0
+  https://creativecommons.org/licenses/by/4.0/
+  icons/solar-line-duotone.json and icons/solar-line-duotone-extra.json, and
+  the glyphs of every icon theme built from them (crate-icons, crate-icons-auto).
+- Bricolage Grotesque, SIL Open Font License 1.1 (theme/fonts/OFL.txt).
+- Roboto, SIL Open Font License 1.1 (plugin/crate-mark/content/fonts/Roboto-OFL.txt).
+- The Crate logo (brand/crate-logo.svg and the images made from it) is the mark
+  of the Crate project (https://cratemusic.app); it is included to brand this
+  integration and is not covered by the MIT grant.
+
+crate-icons-auto is generated on each machine. Where no Solar glyph fits an app,
+its own icon is recoloured; those recoloured drawings belong to their apps and
+are never redistributed.

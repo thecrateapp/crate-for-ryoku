@@ -1,0 +1,11 @@
+[Unit]
+Description=Crate for Ryoku: react to apps being installed or removed (icons, Crate bar mark)
+
+[Path]
+PathChanged=/usr/share/applications
+PathChanged=%h/.local/share/applications
+PathChanged=/var/lib/flatpak/exports/share/applications
+PathChanged=%h/.local/share/flatpak/exports/share/applications
+
+[Install]
+WantedBy=default.target
