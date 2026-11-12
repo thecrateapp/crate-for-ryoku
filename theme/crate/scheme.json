@@ -30,7 +30,9 @@
             "labelAccent": true,
             "selectFill": false,
             "navFont": "JetBrainsMono Nerd Font",
-            "density": "compact"
+            "density": "compact",
+            "controls": "crate",
+            "mono": "JetBrainsMono Nerd Font"
         },
         "terminal": {
             "foreground": "#f1f5f9",
