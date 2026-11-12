@@ -22,8 +22,8 @@ cp -a "$SRC/rice/crate" "$OUT/rice/crate"
 cp -a "$SRC/theme/crate" "$OUT/theme/crate"
 cp -a "$SRC/theme/fonts" "$OUT/theme/fonts"
 python3 "$SRC/icons/build_icons.py" "$OUT/icons/crate-icons" "$LOGO"
-# crateize draws the installed apps with the same Solar code as the hand-drawn set
-cp "$SRC"/icons/{crateize.py,build_icons.py,app_glyphs.py,solar-line-duotone.json,solar-line-duotone-extra.json} "$OUT/icons/"
+# crateize draws the installed apps with the same brand and Solar code as the hand-drawn set
+cp "$SRC"/icons/{crateize.py,build_icons.py,app_glyphs.py,solar-line-duotone.json,solar-line-duotone-extra.json,brand-icons.json} "$OUT/icons/"
 cp "$SRC"/package/systemd/crate-icons-auto.{path,service} "$OUT/systemd/"
 cp "$SRC/package/crate-presence.sh" "$OUT/crate-presence.sh"
 mkdir -p "$OUT/shell" && cp "$SRC/shell/crate-prompt.fish" "$SRC/shell/eza-theme.yml" "$OUT/shell/"

@@ -7,10 +7,13 @@ theme, crate-icons-auto, which crate-icons inherits from:
 
   crate-icons (hand-drawn)  ->  crate-icons-auto (drawn here)  ->  Papirus-Dark ...
 
-Each app gets a Solar line-duotone glyph, drawn exactly like the hand-drawn set
-(build_icons.py: white ink, one cyan layer): the glyph app_glyphs.py names for
-it, or the one for its first freedesktop category. Only an app neither names
-keeps its own icon, recoloured (--style graded recolours every app instead).
+A brand app gets its brand mark (Tabler or Simple Icons, in Crate's colours:
+build_icons.brand_svg); a brand with no free mark (app_glyphs.RECOLOR) keeps
+its own icon, recoloured. Every other app gets a Solar line-duotone glyph, drawn
+exactly like the hand-drawn set (build_icons.py: white ink, one cyan layer): the
+glyph app_glyphs.py names for it, or the one for its first freedesktop
+category. Only an app none of these names keeps its own icon, recoloured
+(--style graded recolours every app instead).
 
 The grade keeps each icon's drawing and gives it Crate's colours:
   - lightness maps onto Crate's ink ramp, lifted off the floor so dark parts
@@ -31,8 +34,8 @@ usage:
                $XDG_CONFIG_HOME/crate-for-ryoku/crateize-keep, one per line)
     --dry-run  list what would be graded, write nothing
     --force    regrade everything, ignoring the manifest
-    --style    solar (default): Solar glyphs where app_glyphs.py has one;
-               graded: recolour every app's own icon
+    --style    solar (default): brand marks and Solar glyphs where app_glyphs.py
+               has one; graded: recolour every app's own icon
 
 needs python-numpy, python-pillow and rsvg-convert (librsvg).
 """
@@ -58,7 +61,7 @@ DATA = os.environ.get("XDG_DATA_HOME") or os.path.join(HOME, ".local/share")
 CONFIG = os.environ.get("XDG_CONFIG_HOME") or os.path.join(HOME, ".config")
 THEME = "crate-icons-auto"
 HAND = "crate-icons"
-GRADE_VERSION = 2  # bump to regrade everything after changing the grade or the glyphs
+GRADE_VERSION = 3  # bump to regrade everything after changing the grade or the glyphs
 
 # ------------------------------------------------------------------ colour
 
@@ -198,10 +201,28 @@ def crateize(src):
         im = im.resize((256, 256), Image.LANCZOS)
     return "png", grade_image(im)
 
-def solar_app_svg(glyph):
-    """The app's Solar glyph as crate-icons draws its own apps (one scalable SVG)."""
-    import build_icons  # beside this file; imported here so --style graded needs no Solar data
-    return build_icons.app_svg(glyph, "scalable")
+def drawn_svg(kind, ref):
+    """A brand mark or Solar glyph as crate-icons draws its own apps (one scalable SVG)."""
+    import build_icons  # beside this file; imported here so --style graded needs no glyph data
+    if kind == "brand":
+        return build_icons.brand_svg(ref, "scalable")
+    return build_icons.app_svg(ref, "scalable")
+
+
+def pick(name, entry, cats, src, style="solar"):
+    """What to draw for one app: ("brand", key), ("solar", glyph), ("graded", src) or None.
+
+    A brand without a free mark (RECOLOR) grades its own icon, or gets its
+    Solar glyph when there is no icon to grade."""
+    if style == "solar":
+        choice = app_glyphs.icon_for(name, entry, cats)
+        if choice and choice != app_glyphs.RECOLOR:
+            return choice
+        if choice == app_glyphs.RECOLOR and not src:
+            glyph = app_glyphs.glyph_for(name, entry, cats)
+            if glyph:
+                return ("solar", glyph)
+    return ("graded", src) if src else None
 
 # ------------------------------------------------------------------ lookup
 
@@ -290,7 +311,7 @@ def desktop_icons():
 
 INDEX = """[Icon Theme]
 Name=Crate (installed apps)
-Comment=Generated on this machine by crateize.py: Solar glyphs (480 Design, CC BY 4.0) for the installed apps, and the apps' own icons recoloured into Crate's palette where no glyph fits. Recoloured drawings belong to their apps; this folder is not for redistribution.
+Comment=Generated on this machine by crateize.py: brand marks (Tabler Icons, MIT; Simple Icons, CC0; brand names and logos are trademarks of their respective owners) and Solar glyphs (480 Design, CC BY 4.0) for the installed apps, and the apps' own icons recoloured into Crate's palette where neither fits. Recoloured drawings belong to their apps; this folder is not for redistribution.
 Hidden=true
 Inherits=Papirus-Dark,breeze-dark,hicolor
 Directories=scalable/apps,256x256/apps
@@ -360,10 +381,10 @@ def plan(keep, style="solar"):
         elif name in keep:
             skipped["kept"] += 1
         else:
-            glyph = app_glyphs.glyph_for(name, entry, cats) if style == "solar" else None
             src = next((s[name][1] for s in sources if name in s), None) or pixmaps.get(name)
-            if glyph or src:
-                todo.append((name, src, glyph))
+            choice = pick(name, entry, cats, src, style)
+            if choice:
+                todo.append((name, choice))
             else:
                 skipped["missing"].append(name)
     return todo, skipped
@@ -376,8 +397,8 @@ def main(argv):
     summary = (f"{skipped['hand']} hand-drawn in crate-icons, {skipped['kept']} kept, "
                f"{skipped['path']} absolute Icon= paths, {len(skipped['missing'])} not found")
     if opts["dry"]:
-        for name, src, glyph in todo:
-            print(f"{name:44} {'solar:' + glyph if glyph else src}")
+        for name, (kind, ref) in todo:
+            print(f"{name:44} {ref if kind == 'graded' else kind + ':' + ref}")
         print(f"{len(todo)} to draw; {summary}")
         return 0
 
@@ -395,23 +416,25 @@ def main(argv):
         for v in old.values():
             v["key"] = None  # keep the file list for cleanup, force a regrade
 
-    new, done, reused, drawn = {"_grade": GRADE_VERSION}, 0, 0, 0
-    for name, src, glyph in todo:
-        if glyph:
-            key = f"solar:{glyph}"
-        else:
+    new, done, reused = {"_grade": GRADE_VERSION}, 0, 0
+    drawn = {"brand": 0, "solar": 0}
+    for name, (kind, ref) in todo:
+        if kind == "graded":
+            src = ref
             st = os.stat(src)
             key = hashlib.sha1(f"{src}:{st.st_size}:{int(st.st_mtime)}".encode()).hexdigest()
+        else:
+            key = f"{kind}:{ref}"
         prev = old.get(name)
         if prev and prev.get("key") == key and os.path.exists(os.path.join(out, prev["file"])):
             new[name] = prev; reused += 1
             continue
-        if glyph:
+        if kind != "graded":
             rel = f"scalable/apps/{name}.svg"
             with open(os.path.join(out, rel), "w") as f:
-                f.write(solar_app_svg(glyph))
-            new[name] = {"key": key, "file": rel, "glyph": glyph}
-            done += 1; drawn += 1
+                f.write(drawn_svg(kind, ref))
+            new[name] = {"key": key, "file": rel, kind: ref}
+            done += 1; drawn[kind] += 1
             continue
         try:
             kind, data = crateize(src)
@@ -437,7 +460,9 @@ def main(argv):
     with open(manifest_path, "w") as f:
         json.dump(new, f, indent=1, sort_keys=True)
 
-    print(f"crate-icons-auto: {drawn} Solar glyphs, {done - drawn} graded, {reused} unchanged; {summary}")
+    graded = done - drawn["brand"] - drawn["solar"]
+    print(f"crate-icons-auto: {drawn['brand']} brand marks, {drawn['solar']} Solar glyphs, {graded} graded, "
+          f"{reused} unchanged; {summary}")
     if skipped["missing"]:
         print("  not found: " + ", ".join(skipped["missing"][:12]) + (" ..." if len(skipped["missing"]) > 12 else ""))
     return 0

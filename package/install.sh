@@ -101,7 +101,7 @@ if [ "$AUTO" = 1 ]; then
   # theme generated on this machine (crate-icons inherits from it)
   if python3 -c 'import numpy, PIL' 2>/dev/null && command -v rsvg-convert >/dev/null; then
     mkdir -p "$DATA/crate-for-ryoku" "$CFG/systemd/user"
-    cp "$HERE"/icons/{crateize.py,build_icons.py,app_glyphs.py,solar-line-duotone.json,solar-line-duotone-extra.json} "$DATA/crate-for-ryoku/"
+    cp "$HERE"/icons/{crateize.py,build_icons.py,app_glyphs.py,solar-line-duotone.json,solar-line-duotone-extra.json,brand-icons.json} "$DATA/crate-for-ryoku/"
     say "drawing the other apps' icons (Solar glyphs) -> $DATA/icons/crate-icons-auto"
     python3 "$DATA/crate-for-ryoku/crateize.py" || warn "crateize failed; apps keep their Papirus icons"
     cp "$HERE"/systemd/crate-icons-auto.{path,service} "$CFG/systemd/user/"

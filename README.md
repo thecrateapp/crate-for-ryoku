@@ -9,9 +9,10 @@ desktop. One install gives you:
 - **crate-mark**: the Crate logo on the QS Bar, shown while Crate is installed,
   with now playing, transport and Crate's equalizer (Smart, Genre, Adaptive,
   presets) in a panel drawn to Crate's player spec.
-- **Icons**: `crate-icons`, Solar glyphs drawn like Crate's UI, and every other
-  installed app redrawn with a Solar glyph (`crateize.py`, kept current as you
-  install apps).
+- **Icons**: `crate-icons`, Solar glyphs drawn like Crate's UI; brand apps
+  (Firefox, Slack, Steam, JetBrains IDEs...) keep their mark, redrawn in Crate's
+  colours; every other installed app gets a Solar glyph (`crateize.py`, kept
+  current as you install apps).
 - **The terminal**: kitty and alacritty in Crate's ANSI palette, eza in a
   monochrome Crate theme, and the prompt in Crate colours.
 - **Crate Palette**: a command palette for Super+Space (`launcher/crate-palette`)
@@ -61,7 +62,7 @@ changes that are on the way upstream (the
 ```
 rice/crate        the rice (rice.json, wallpaper, launcher hero, fastfetch emblem)
 theme/crate       the colour scheme (roles, style, terminal) and its fonts
-icons/            crate-icons (build_icons.py) and crateize.py with its Solar glyph map
+icons/            crate-icons (build_icons.py) and crateize.py with its brand and Solar glyph map (python3 -m pytest icons/tests)
 plugin/crate-mark the bar plugin
 launcher/         Crate Palette, the Super+Space launcher (node --test launcher/crate-palette/tests/)
 shell/            the eza theme and the Pure prompt
