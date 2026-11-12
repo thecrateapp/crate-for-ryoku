@@ -89,3 +89,10 @@ test("flatten keeps the group order for keyboard selection", () => {
   const groups = merge(sections, "all", "all");
   assert.deepEqual(flatten(groups).map(r => r.title), ["Repo", "report.pdf", "notes.md", "R1", "A1", "T1"]);
 });
+
+test("a Crate notice row survives both Crate views", () => {
+  const notice = { kind: "notice", title: "Crate is not running" };
+  const s = { apps: [], files: [], recent: [], crate: [notice] };
+  assert.deepEqual(merge(s, "all", "all"), [{ section: "crate", rows: [notice] }]);
+  assert.deepEqual(merge(s, "crate", "all"), [{ section: "crate", rows: [notice] }]);
+});

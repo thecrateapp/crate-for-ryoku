@@ -51,7 +51,14 @@ function ofKind(rows, kind) {
     return (rows || []).filter(function (r) { return r.kind === kind; });
 }
 
+function notices(rows) {
+    return ofKind(rows, "notice");
+}
+
 function crateGroups(rows) {
+    var note = notices(rows);
+    if (note.length)
+        return [{ section: "crate", rows: note }];
     var out = [];
     var names = { artist: "artists", album: "albums", track: "tracks" };
     for (var i = 0; i < CRATE_KINDS.length; i++) {
@@ -64,6 +71,9 @@ function crateGroups(rows) {
 
 // The first artist, album and track, in that order: Crate's share of a normal search.
 function crateTaste(rows) {
+    var note = notices(rows);
+    if (note.length)
+        return note;
     var out = [];
     for (var i = 0; i < CRATE_KINDS.length; i++) {
         var list = ofKind(rows, CRATE_KINDS[i]);
