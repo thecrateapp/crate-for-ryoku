@@ -3,9 +3,10 @@
 
 A small overlay theme in Crate v3's visual language: raised dark surfaces,
 hairline edges, white ink and one localized cyan element per icon. It draws
-folders, places and the generic system apps. Everything it does not draw
-(brand apps such as Firefox or Steam, mimetypes, symbolic icons) is inherited
-from Papirus-Dark, which ships with Ryoku.
+folders, places, the generic system apps and the brand apps app_glyphs.py
+names (Firefox, Slack, Steam: their marks in Crate's colours). Everything it
+does not draw (mimetypes, symbolic icons) is inherited from crate-icons-auto,
+then Papirus-Dark, which ships with Ryoku.
 
 The glyphs are Crate's own icon set: Solar (480 Design, CC BY 4.0), the family
 @crate/ui wraps through @solar-icons/react. solar-line-duotone.json vendors the
@@ -14,7 +15,13 @@ outline weight Crate's UI uses, as strokes, so each output size can get its own
 line weight. The duotone split picks the accent: the lighter of the two layers
 is drawn in cyan, the rest in white ink.
 
-Tiles and folders sit on a 64-unit grid; Solar glyphs on their 24-unit grid.
+Brand marks come from brand-icons.json (brand_export.mjs): Tabler Icons line
+brands (MIT), drawn with Solar's stroke weight, and Simple Icons silhouettes
+(CC0), filled in ink at the same optical size. Each gets one cyan element where
+the mark has a natural one (Chrome's centre, Steam's piston).
+
+Tiles and folders sit on a 64-unit grid; Solar glyphs and brand marks on their
+24-unit grid.
 
 Tokens (app/web/src/styles/tokens.css, app/shared/ui/tokens/themes.css):
   bg #0a0a0f  panel #0d0e14  raised #15161d  fg #f1f5f9  muted #999ca0
@@ -159,6 +166,132 @@ def solar_glyph(name, sw, accent=None, mono=None, dim_accent=False):
             + "".join(parts) + "</g>")
 
 
+# ---------------------------------------------------------------- brands
+
+sys.path.insert(0, HERE)
+import app_glyphs  # noqa: E402  (beside this file)
+
+# icon name -> (source, mark) for the brand apps this theme draws itself
+BRAND_NAMES = {n: b for n, b in app_glyphs.BRANDS.items() if b != app_glyphs.RECOLOR}
+
+_BRANDS_JSON = os.path.join(HERE, "brand-icons.json")
+BRANDS = json.load(open(_BRANDS_JSON)) if os.path.isfile(_BRANDS_JSON) else {"sources": {}, "icons": {}}
+
+# optical size: the mark's 24 grid is scaled by this about its centre so it
+# reads as large as a Solar glyph. Tabler draws inside 3..21 where Solar uses
+# 2..22; Simple Icons fill the whole 24 square, and a filled shape looks bigger
+# than a line of the same extent.
+LINE_FIT = 1.1
+FILL_FIT = 0.78
+BRAND_FIT = {
+    # dense squares and discs read heavier than line art of the same extent
+    "simple-icons/jetbrains": 0.7, "simple-icons/phpstorm": 0.7, "simple-icons/webstorm": 0.7,
+    "simple-icons/qemu": 0.72, "simple-icons/thunderbird": 0.72, "simple-icons/postman": 0.72,
+    "simple-icons/mpv": 0.74, "simple-icons/onlyoffice": 0.76,
+    # open or narrow marks need more extent to carry the same weight
+    "simple-icons/claude": 0.8, "simple-icons/cachyos": 0.8, "simple-icons/nvidia": 0.8,
+    "simple-icons/vim": 0.8, "simple-icons/obsidian": 0.82, "simple-icons/electron": 0.86,
+    "simple-icons/wine": 0.86,
+}
+
+# the mark's one cyan element, as Crate's own glyphs have: Tabler element
+# indices, or Simple Icons subpath indices (split_subpaths) painted over the
+# silhouette in cyan, so a cut-out subpath becomes a cyan inlay. Absent: all ink.
+BRAND_ACCENT = {
+    "tabler/brand-chrome": (1,), "tabler/brand-firefox": (1,), "tabler/brand-mongodb": (0,),
+    "tabler/brand-slack": (0,), "tabler/brand-steam": (1,),
+    "simple-icons/cachyos": (1, 2, 3), "simple-icons/cmake": (3,), "simple-icons/electron": (5,),
+    "simple-icons/jetbrains": (1,), "simple-icons/localsend": (1, 2, 3, 4, 5, 6, 7, 8),
+    "simple-icons/mpv": (4,), "simple-icons/nvidia": (0,), "simple-icons/obsidian": (2,),
+    "simple-icons/onlyoffice": (0,), "simple-icons/phpstorm": (0,), "simple-icons/postman": tuple(range(1, 11)),
+    "simple-icons/qemu": (2,), "simple-icons/thunderbird": (1,), "simple-icons/vim": (1, 2, 4),
+    "simple-icons/webstorm": (3,), "simple-icons/wine": (1,),
+}
+
+
+_TOK = re.compile(r"[MmLlHhVvCcSsQqTtAaZz]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
+_ARGS = {"m": 2, "l": 2, "h": 1, "v": 1, "c": 6, "s": 4, "q": 4, "t": 2, "a": 7, "z": 0}
+
+
+def split_subpaths(d):
+    """A path's subpaths as stand-alone path data, each starting with an absolute M.
+
+    Minified paths start a subpath with a relative m and pack arc flags
+    ("a1 1 0 011 1"), so this tracks the current point through every command."""
+    toks = _TOK.findall(d)[::-1]  # a stack: packed flags push their remainder back
+    subs, cur = [], []
+    x = y = sx = sy = 0.0
+    cmd = None
+    while toks:
+        if toks[-1].isalpha():
+            cmd = toks.pop()
+            if cmd in "Zz":
+                cur.append(cmd)
+                x, y = sx, sy
+            continue
+        args = []
+        for k in range(_ARGS[cmd.lower()]):
+            t = toks.pop()
+            if cmd in "Aa" and k in (3, 4) and len(t) > 1:  # a flag is one digit
+                toks.append(t[1:])
+                t = t[0]
+            args.append(t)
+        v = [float(a) for a in args]
+        rel = cmd.islower()
+        if cmd in "Mm":
+            x, y = (x + v[0], y + v[1]) if rel else (v[0], v[1])
+            if cur:
+                subs.append("".join(cur))
+            cur, sx, sy = [f"M{x:g} {y:g}"], x, y
+            cmd = "l" if rel else "L"  # further pairs after a moveto are line-tos
+            continue
+        cur.append(cmd + " ".join(args))
+        if cmd in "Hh":
+            x = x + v[0] if rel else v[0]
+        elif cmd in "Vv":
+            y = y + v[0] if rel else v[0]
+        else:
+            x, y = (x + v[-2], y + v[-1]) if rel else (v[-2], v[-1])
+    if cur:
+        subs.append("".join(cur))
+    return subs
+
+
+def brand_kind(key):
+    return "line" if key.startswith("tabler/") else "fill"
+
+
+def brand_fit(key):
+    return BRAND_FIT.get(key, LINE_FIT if brand_kind(key) == "line" else FILL_FIT)
+
+
+def brand_glyph(key, sw):
+    """Brand mark `key` (source/name) as an SVG group on the 24 grid, in Crate colours.
+
+    sw is the stroke a Solar glyph would get here; a line mark gets the same
+    weight on screen, a silhouette is filled and has no stroke."""
+    fit = brand_fit(key)
+    accent = BRAND_ACCENT.get(key, ())
+    ink, cyan = (FG, 0.94), (CYAN_HI, 1.0)
+    place = f'transform="translate(12 12) scale({fit}) translate(-12 -12)"'
+    elements = _EL.findall(BRANDS["icons"][key])
+    if brand_kind(key) == "fill":
+        d = re.search(r'\sd="([^"]*)"', elements[0][1]).group(1)
+        parts = [f'<path d="{d}" fill="{ink[0]}" fill-opacity="{ink[1]}"/>']
+        subs = split_subpaths(d)
+        parts += [f'<path d="{subs[i]}" fill="{cyan[0]}"/>' for i in accent]
+        return f"<g {place}>" + "".join(parts) + "</g>"
+    parts = []
+    # the accent goes last, so the ink crossing it never cuts it
+    for i, (tag, attrs) in sorted(enumerate(elements), key=lambda e: e[0] in accent):
+        color, op = cyan if i in accent else ink
+        attrs = attrs.replace('fill="currentColor"', f'fill="{color}" fill-opacity="{op}"')
+        parts.append(f'<{tag}{attrs} stroke="{color}" stroke-opacity="{op}"/>')
+    sw = max(SOLAR_STROKE[0], min(SOLAR_STROKE[1], sw)) / fit
+    return (f'<g {place}><g fill="none" stroke-width="{sw:.3f}" stroke-linecap="round" '
+            'stroke-linejoin="round">' + "".join(parts) + "</g></g>")
+
+
 # ---------------------------------------------------------------- drawing
 
 
@@ -194,17 +327,25 @@ APP_STYLE = "glyph"
 GLYPH_SCALE = 2.2  # bare glyph: Solar's 24 grid onto 52.8 units, its ~20-unit art spans ~44
 
 
-def app_svg(name, size, **kw):
+def _app(name, size, glyph):
+    """A 24-grid glyph (glyph(sw) -> SVG group) as an app icon: bare, or on the tile."""
     if APP_STYLE == "glyph":
         s = GLYPH_SCALE
-        g = solar_glyph(name, stroke_units(size, s), **kw)
         o = 32 - 12 * s
-        return svg(f'<g transform="translate({o:.3f} {o:.3f}) scale({s})">{g}</g>')
+        return svg(f'<g transform="translate({o:.3f} {o:.3f}) scale({s})">{glyph(stroke_units(size, s))}</g>')
     defs, body = tile(size, re.sub(r"[^a-z0-9]", "", name))
-    scale = 1.5  # Solar's 24 grid into a 36-unit box centred in the tile
-    g = solar_glyph(name, stroke_units(size, scale), **kw)
-    body += f'<g transform="translate(14 14) scale({scale})">{g}</g>'
+    scale = 1.5  # the 24 grid into a 36-unit box centred in the tile
+    body += f'<g transform="translate(14 14) scale({scale})">{glyph(stroke_units(size, scale))}</g>'
     return svg(body, defs)
+
+
+def app_svg(name, size, **kw):
+    return _app(name, size, lambda sw: solar_glyph(name, sw, **kw))
+
+
+def brand_svg(key, size):
+    """Brand mark `key` (source/name, from app_glyphs.BRANDS) as an app icon, like app_svg."""
+    return _app(key, size, lambda sw: brand_glyph(key, sw))
 
 
 def folder_svg(emblem, size):
@@ -252,7 +393,7 @@ def crate_svg(size, logo_svg):
 
 INDEX = """[Icon Theme]
 Name=Crate
-Comment=Crate v3 icons for Crate for Ryoku on Ryoku. Glyphs: Solar Icons Set by 480 Design (CC BY 4.0). Everything else comes from Papirus-Dark.
+Comment=Crate v3 icons for Crate for Ryoku on Ryoku. Glyphs: Solar Icons Set by 480 Design (CC BY 4.0); brand marks: Tabler Icons (MIT) and Simple Icons (CC0), trademarks of their owners. Everything else comes from Papirus-Dark.
 Inherits=crate-icons-auto,Papirus-Dark,breeze-dark,hicolor
 Example=folder
 DesktopDefault=48
@@ -275,6 +416,11 @@ Glyphs: Solar Icons Set by 480 Design
   licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
   taken from @solar-icons/react {version} (line-duotone weight), recoloured and
   placed on Crate folders (and tiles, in the tile build).
+Brand marks: Tabler Icons by Pawel Kuna, MIT License (https://tabler.io/icons),
+  @tabler/icons {tabler} (outline brands), and Simple Icons, CC0 1.0
+  (https://simpleicons.org), simple-icons {simple}; recoloured and drawn with
+  Crate's line weight. Brand names and logos are trademarks of their respective
+  owners; their use here identifies the apps and implies no endorsement.
 Crate logo: Crate (cratemusic.app).
 Tiles, folders and the build script: part of Crate for Ryoku.
 """
@@ -310,6 +456,9 @@ def main(out, logo_path):
             data = app_svg(glyph, size)
             for n in names:
                 put(os.path.join(apps, n + ".svg"), data)
+        # brand apps by exact name; crateize.py catches prefixed names (JetBrains)
+        for n, (src, mark) in sorted(BRAND_NAMES.items()):
+            put(os.path.join(apps, n + ".svg"), brand_svg(f"{src}/{mark}", size))
         data = crate_svg(size, logo)
         for n in ("app.cratemusic.crate.desktop", "app.cratemusic.crate", "crate", "crate-desktop"):
             put(os.path.join(apps, n + ".svg"), data)
@@ -327,7 +476,9 @@ def main(out, logo_path):
         f.write(INDEX.format(dirs=",".join(dirs)))
         f.write("\n".join(sections))
     with open(os.path.join(out, "CREDITS"), "w") as f:
-        f.write(CREDITS.format(version=SOLAR.get("version", "")))
+        f.write(CREDITS.format(version=SOLAR.get("version", ""),
+                               tabler=BRANDS["sources"].get("tabler", {}).get("version", ""),
+                               simple=BRANDS["sources"].get("simple-icons", {}).get("version", "")))
     print(f"wrote {count} icons into {out}")
 
 
