@@ -28,7 +28,8 @@
             "accentMarks": true,
             "focusAccent": true,
             "labelAccent": true,
-            "selectFill": false
+            "selectFill": false,
+            "navFont": "JetBrainsMono Nerd Font"
         },
         "terminal": {
             "foreground": "#f1f5f9",
