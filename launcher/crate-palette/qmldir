@@ -1,0 +1,10 @@
+singleton Look 1.0 Look.qml
+Glyph 1.0 Glyph.qml
+Art 1.0 Art.qml
+ResultRow 1.0 ResultRow.qml
+AlbumTile 1.0 AlbumTile.qml
+Card 1.0 Card.qml
+AppsSource 1.0 AppsSource.qml
+FilesSource 1.0 FilesSource.qml
+RecentSource 1.0 RecentSource.qml
+CrateSource 1.0 CrateSource.qml

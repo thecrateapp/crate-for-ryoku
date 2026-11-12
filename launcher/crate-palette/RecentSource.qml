@@ -14,7 +14,6 @@ QtObject {
     readonly property var rows: Recent.filterRecent(source.all, source.text, source.limit)
 
     function reset() {
-        source.text = "";
         xbel.reload();
     }
 

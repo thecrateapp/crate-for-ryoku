@@ -14,7 +14,7 @@ QtObject {
     property var lines: []
 
     function reset() {
-        source.text = "";
+        debounce.stop();
         source.rows = [];
     }
 

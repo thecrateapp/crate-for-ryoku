@@ -28,7 +28,6 @@ QtObject {
     }]
 
     function reset() {
-        source.text = "";
         source.rows = [];
         source.tracker = Crate.newTracker();
     }

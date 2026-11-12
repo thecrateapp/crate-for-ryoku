@@ -24,8 +24,8 @@ QtObject {
         }));
     }
 
+    // text is bound by the palette; nothing to clear
     function reset() {
-        source.text = "";
     }
 
     // launcher.json is Settings' file: read it, never write it.
