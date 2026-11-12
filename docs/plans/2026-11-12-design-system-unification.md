@@ -15,6 +15,7 @@ labels, frames and progress from one kit, and a guard stops new bespoke copies.
 
 **Spec sources:**
 - The four audits of 2026-11-12, summarised below.
+- The approved mock-ups: https://claude.ai/artifact/Bhz1QD1jRrM27BLeeDsvpw (version 3; straight chips; PickRow device list; one boost toggle; the live activity graph kept).
 - `docs/plans/2026-11-12-polish-plan.md` (D1–D7).
 - The user's direction: "la referencia canónica debería ser ese plugin y converger a ese lenguaje visual … eliminar el drift de una vez por todas".
 
@@ -29,12 +30,15 @@ labels, frames and progress from one kit, and a guard stops new bespoke copies.
 | Accent | `sun` (accent), `sunHi`/`mark` (accentHi), thumb (new, sunHi toward ink) and beam tail (new, sun toward sunHi), both derived from the palette |
 | Label | mono face, 11 px, tracking 0.14 em, uppercase. Tone `subtle` by default; `accent` for section heads and active state (crate-mark: "Crate" and "Equalizer" accent, "Presets" subtle) |
 | Value | mono 12–13 px |
-| Chip | 32 px pill (radius 16), transparent, 1 px `line` edge; hover edge accentHi at 40%; on = filled accentHi with canvas ink; mono 12 |
+| Chip | 32 px, straight (radius 6 = `Tokens.radius`, chosen over the pill in the mock-ups), transparent, 1 px `line` edge; hover edge accentHi at 40%; on = filled accentHi with canvas ink; mono 12 |
+| Pick row | full-width list row (devices, networks): icon, title over a sub line, radius 6, `line` edge; picked = `pickFill` wash, `pickEdge` edge, a 6 px accentHi dot with a halo |
 | Toggle | a slim pill switch: hairline track, thumb knob, the accentHi track when on (D1 keeps switches, which crate-mark expresses as chips) |
 | Icon button | 18 px glyph, no plate, 44 px hit area; secondary ink, accentHi on hover and when on |
 | Button | confirm = filled accent (D4); navigate = outlined accent, 10% accent wash on hover |
 | Beam | slider and progress: 1 px hairline track; 1 px gradient fill from accent at 14% to the beam tail; 8 px blurred trail; 4 px thumb-ink dot inside an 8 px accent halo; 6 px thumb shown only on hover or drag; optional over-range segment and mark (volume boost); non-interactive and indeterminate modes |
 | Frame | popover fill, hairline edge, radius 6 (`Tokens.radius`); no doubled inner hairline |
+| Live graph | the Controls activity graph stays: 1 px series lines, a gradient area under CPU, a hairline grid, a dot with a halo at each head, mono legend |
+| Boost | a single toggle Chip; on extends the output Beam to 150 % with the over segment and the 100 % mark |
 | Page head | one component: rule, seal, eyebrow, title (display face), blurb, optional right-hand register |
 | Motion | 150 ms for state colour (`Tokens.snap` stays for presses) |
 
@@ -88,7 +92,7 @@ crate-for-ryoku `theme/crate/scheme.json`.
 
 ## Wave 1: Kit primitives
 
-**Files:** new `ryoku/ui/Beam.qml`, `Chip.qml`, `IconButton.qml`, `Label.qml`, `Divider.qml`,
+**Files:** new `ryoku/ui/Beam.qml`, `Chip.qml`, `PickRow.qml`, `IconButton.qml`, `Label.qml`, `Divider.qml`,
 `PageHead.qml` (promoted from `apps/ryovm/quickshell/PageHead.qml`, plus a `register` property);
 restyled `Slid.qml`, `Seg.qml`, `Chips.qml`, `Multi.qml`, `IconBtn.qml`, `Sw.qml`, `Step.qml`,
 `Btn.qml`, `SettingRow.qml`, `SettingCard.qml`, `Section.qml`, `Picker.qml`, `AppPicker.qml`,
@@ -101,7 +105,7 @@ restyled `Slid.qml`, `Seg.qml`, `Chips.qml`, `Multi.qml`, `IconBtn.qml`, `Sw.qml
   - `over` > 1 draws the over segment;
   - `indeterminate` runs a sweep that stops under reduced motion.
 - [ ] **Step 2: Beam.** Port `Panel.qml:150-244` onto Tokens (`line`, `sun`, `beamTail`, `thumb`, `markHover`). Keep the API of `Slid` (`value`, `from`, `to`, `stepSize`, `moved`, `committed`) so `Slid` becomes a thin wrapper.
-- [ ] **Step 3: Chip test and Chip.** Pill, `on`, `checkable`, `clicked`; mono 12; hover edge `markHover`.
+- [ ] **Step 3: Chip test and Chip.** Straight (radius `Tokens.radius`), `on`, `checkable`, `clicked`; mono 12; hover edge `markHover`. **PickRow:** `icon`, `title`, `sub`, `picked`, `clicked`.
 - [ ] **Step 4: IconButton and Label.**
   - IconButton: an SVG path or font glyph, 18 px, 44 px hit area, `on`, focus edge.
   - Label: `tone` subtle/accent/active, mono `fMicro`, `trackLabel`, uppercase.
