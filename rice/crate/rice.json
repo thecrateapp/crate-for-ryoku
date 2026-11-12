@@ -38,7 +38,7 @@
         "gapsOut": 18,
         "rounding": 6,
         "roundingPower": 2,
-        "blurEnabled": false,
+        "blurEnabled": true,
         "shadowEnabled": false,
         "wobblyWindows": false
       }
