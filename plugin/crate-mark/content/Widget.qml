@@ -33,6 +33,33 @@ Item {
     readonly property bool showBars: root.nowPlaying !== "off" && root.playing
     readonly property bool showTrack: root.nowPlaying === "track" && root.hasTrack && !service.stopped
     readonly property bool canAnimate: root.active && root.visible && !(service && service.reduceMotion)
+
+    // The playing bars step through their rise and fall at ~8 frames a second, a
+    // meter's cadence, instead of animating every display frame: three bars on a
+    // 90 Hz panel kept the whole bar repainting for as long as music played.
+    readonly property int barStepMs: 125
+    property int barTick: 0
+    Timer {
+        interval: root.barStepMs
+        repeat: true
+        running: root.showBars && root.canAnimate
+        onTriggered: root.barTick = (root.barTick + 1) % 1200
+    }
+    // the old keyframes (rise, fall, rise, settle over 1.5 s, each bar 140 ms
+    // behind the previous one) sampled with the same in-out sine ease
+    function barHeightAt(index, ms) {
+        const keys = [4, index === 1 ? 11 : 8, 3, index === 2 ? 9 : 6, 4];
+        const spans = [380, 420, 360, 340];
+        let t = ((ms - index * 140) % 1500 + 1500) % 1500;
+        for (let k = 0; k < spans.length; k++) {
+            if (t <= spans[k]) {
+                const e = (1 - Math.cos(Math.PI * t / spans[k])) / 2;
+                return keys[k] + (keys[k + 1] - keys[k]) * e;
+            }
+            t -= spans[k];
+        }
+        return keys[0];
+    }
     readonly property string trackText: !service ? ""
         : (service.artist ? service.artist + " – " + service.title : service.title)
 
@@ -86,17 +113,9 @@ Item {
                     radius: 1 * root.s
                     anchors.bottom: parent.bottom
                     color: Theme.accent
-                    property real animatedHeight: 4 * root.s
-                    height: root.canAnimate ? animatedHeight : [5, 10, 7][bar.index] * root.s
-                    SequentialAnimation on animatedHeight {
-                        running: root.showBars && root.canAnimate
-                        loops: Animation.Infinite
-                        PauseAnimation { duration: bar.index * 140 }
-                        NumberAnimation { to: (bar.index === 1 ? 11 : 8) * root.s; duration: 380; easing.type: Easing.InOutSine }
-                        NumberAnimation { to: 3 * root.s; duration: 420; easing.type: Easing.InOutSine }
-                        NumberAnimation { to: (bar.index === 2 ? 9 : 6) * root.s; duration: 360; easing.type: Easing.InOutSine }
-                        NumberAnimation { to: 4 * root.s; duration: 340; easing.type: Easing.InOutSine }
-                    }
+                    height: (root.canAnimate && root.showBars
+                        ? root.barHeightAt(bar.index, root.barTick * root.barStepMs)
+                        : [5, 10, 7][bar.index]) * root.s
                 }
             }
         }

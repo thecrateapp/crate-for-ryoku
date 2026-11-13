@@ -15,7 +15,13 @@ Item {
     implicitWidth: Math.ceil(metrics.advanceWidth)
     implicitHeight: label.implicitHeight
     readonly property real overflow: Math.max(0, implicitWidth - width)
-    readonly property bool scrolling: visible && playing && width > 0 && overflow > 0
+    // A title rolls a couple of times and then rests on its start (elided), so a
+    // playing bar does not repaint every frame for the whole track. A new title or
+    // the pointer resting on it rolls it again.
+    property bool rested: false
+    // Qt 6 emits finished() for a manual stop() too; a restart is not a rest.
+    property bool restarting: false
+    readonly property bool scrolling: visible && playing && width > 0 && overflow > 0 && !rested
     readonly property real travel: continuous ? implicitWidth + 24 * scaleFactor : overflow
     clip: true
 
@@ -61,9 +67,15 @@ Item {
         }
     }
 
+    HoverHandler {
+        onHoveredChanged: if (hovered && ticker.rested) { ticker.rested = false; Qt.callLater(ticker.reset) }
+    }
+
     function reset() {
+        restarting = true
         roll.stop()
         reading.stop()
+        restarting = false
         strip.x = 0
         if (scrolling) {
             if (continuous) roll.start()
@@ -71,7 +83,7 @@ Item {
         }
     }
     onScaleFactorChanged: Qt.callLater(reset)
-    onTextChanged: Qt.callLater(reset)
+    onTextChanged: { rested = false; Qt.callLater(reset) }
     onTravelChanged: Qt.callLater(reset)
     onScrollingChanged: Qt.callLater(reset)
     onContinuousChanged: Qt.callLater(reset)
@@ -84,11 +96,13 @@ Item {
         to: -ticker.travel
         duration: Math.max(1, Math.round(ticker.travel * 20 / ticker.scaleFactor))
         easing.type: Easing.Linear
-        loops: Animation.Infinite
+        loops: 2
+        onFinished: if (!ticker.restarting) { ticker.rested = true; strip.x = 0 }
     }
     SequentialAnimation {
         id: reading
-        loops: Animation.Infinite
+        loops: 2
+        onFinished: if (!ticker.restarting) { ticker.rested = true; strip.x = 0 }
         PauseAnimation { duration: 2000 }
         XAnimator {
             target: strip

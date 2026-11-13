@@ -2,7 +2,7 @@
   "schema": 1,
   "id": "crate-mark",
   "category": "plugins",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "destination": "ryoku/plugins/crate-mark",
   "files": [
     {
@@ -88,17 +88,17 @@
     {
       "source": "content/TrackTicker.qml",
       "destination": "content/TrackTicker.qml",
-      "sha256": "abaeb95f98f81e9a97a86a738ee15556ea19abec3285dd15dae872f54e920062",
+      "sha256": "7a08f32d9cafae066126fed545f005805d1bac0cc7b7fa977db35be379337f28",
       "mode": "0644",
-      "size": 3280,
+      "size": 3992,
       "install": true
     },
     {
       "source": "content/Widget.qml",
       "destination": "content/Widget.qml",
-      "sha256": "a149ed030e681e7b3d3e99dfdcad960e5694060706840ff30e76ae4252735d87",
+      "sha256": "cdac539d590ddbe41bd197f52eaf5a460fef548176900478242c9e3dc2e846bf",
       "mode": "0644",
-      "size": 5890,
+      "size": 6361,
       "install": true
     },
     {
@@ -128,7 +128,7 @@
     {
       "source": "manifest.json",
       "destination": "manifest.json",
-      "sha256": "a5b62096f042c02b1f4fb5c785cd75a1d230ac1ce6c066d50f2945f572d1df90",
+      "sha256": "123be0b5c4f4d38a529d952bb19ee2ac24e1b3fd2ae2ba85bbb7002a3c52a8e5",
       "mode": "0644",
       "size": 2740,
       "install": true
