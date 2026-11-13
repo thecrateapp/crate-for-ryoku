@@ -345,7 +345,7 @@
         "settings": {
           "tone": "accent",
           "showLabel": false,
-          "nowPlaying": "indicator",
+          "nowPlaying": "track",
           "appId": "app.cratemusic.crate.desktop"
         }
       }
