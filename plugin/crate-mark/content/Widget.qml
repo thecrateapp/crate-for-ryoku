@@ -2,13 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Ryoku.PluginKit.Singletons
 
-// The bar glyph: the Crate mark, optionally followed by a lowercase "crate"
-// label, and Crate's now playing. Its colour follows the active scheme
-// (Theme.accent), Crate's own gradient, or the bar ink, per "tone".
-// Now playing ("nowPlaying"): "indicator" shows three small cyan bars while
-// Crate plays; "track" adds "artist - title"; "off" hides both. The bar's own
-// media widget already shows whatever player is active, so the default stays
-// small. A click opens the panel and changes nothing.
+// Crate mark, playing bars and a width-budgeted artist/title ticker.
 // Without Crate installed the mark collapses to nothing. (The Ryoku host still
 // keeps a few pixels for any plugin slot, so Crate for Ryoku also hides the
 // whole slot through `ryoku-shell bar hide crate-mark`; see README.)
@@ -30,13 +24,15 @@ Item {
     readonly property var service: pluginApi ? pluginApi.mainInstance : null
     readonly property string tone: (settings && settings.tone) ? String(settings.tone) : "accent"
     readonly property bool showLabel: (settings && settings.showLabel !== undefined) ? !!settings.showLabel : false
-    readonly property string nowPlaying: (settings && settings.nowPlaying) ? String(settings.nowPlaying) : "indicator"
+    readonly property string nowPlaying: (settings && settings.nowPlaying) ? String(settings.nowPlaying) : "track"
 
     readonly property bool installed: service ? service.installed : true
     readonly property bool playing: service ? service.playing : false
     readonly property bool hasTrack: service ? service.hasTrack : false
+    readonly property real budget: widthBudget > 0 ? widthBudget : 220 * s
     readonly property bool showBars: root.nowPlaying !== "off" && root.playing
-    readonly property bool showTrack: root.nowPlaying === "track" && root.hasTrack
+    readonly property bool showTrack: root.nowPlaying === "track" && root.hasTrack && !service.stopped
+    readonly property bool canAnimate: root.active && root.visible && !(service && service.reduceMotion)
     readonly property string trackText: !service ? ""
         : (service.artist ? service.artist + " – " + service.title : service.title)
 
@@ -50,6 +46,8 @@ Item {
         spacing: 6 * root.s
 
         CrateLogo {
+            id: logo
+            objectName: "crateMarkLogo"
             anchors.verticalCenter: parent.verticalCenter
             height: 15 * root.s
             brand: root.tone === "brand"
@@ -58,7 +56,9 @@ Item {
         }
 
         Text {
-            visible: root.showLabel
+            id: wordmark
+            visible: root.showLabel && logo.width + row.spacing + implicitWidth
+                + (root.showBars ? row.spacing + bars.width : 0) <= root.budget
             anchors.verticalCenter: parent.verticalCenter
             text: "crate"
             color: Theme.bright
@@ -70,6 +70,7 @@ Item {
         // three bars: Crate's "now playing" motif, cyan only while it plays
         Item {
             id: bars
+            objectName: "cratePlayingBars"
             visible: root.showBars
             anchors.verticalCenter: parent.verticalCenter
             width: 3 * 2 * root.s + 2 * 1.5 * root.s
@@ -85,9 +86,10 @@ Item {
                     radius: 1 * root.s
                     anchors.bottom: parent.bottom
                     color: Theme.accent
-                    height: 4 * root.s
-                    SequentialAnimation on height {
-                        running: root.showBars
+                    property real animatedHeight: 4 * root.s
+                    height: root.canAnimate ? animatedHeight : [5, 10, 7][bar.index] * root.s
+                    SequentialAnimation on animatedHeight {
+                        running: root.showBars && root.canAnimate
                         loops: Animation.Infinite
                         PauseAnimation { duration: bar.index * 140 }
                         NumberAnimation { to: (bar.index === 1 ? 11 : 8) * root.s; duration: 380; easing.type: Easing.InOutSine }
@@ -99,22 +101,23 @@ Item {
             }
         }
 
-        Text {
-            visible: root.showTrack
+        TrackTicker {
+            objectName: "crateTrackViewport"
+            textObjectName: "crateTrackText"
             anchors.verticalCenter: parent.verticalCenter
+            readonly property real remaining: root.budget
+                - logo.width - row.spacing
+                - (wordmark.visible ? wordmark.implicitWidth + row.spacing : 0)
+                - (bars.visible ? bars.width + row.spacing : 0)
+            visible: root.showTrack && remaining > 0
+            width: Math.min(implicitWidth, Math.max(0, remaining))
             text: root.trackText
             color: root.playing ? Theme.bright : Theme.dim
             font.family: Theme.mono
             font.pixelSize: 12 * root.s
-            elide: Text.ElideRight
-            // whatever the bar leaves after the mark, the label and the bars
-            width: {
-                var used = 15 * root.s * 1052 / 1120 + 6 * root.s
-                    + (root.showLabel ? 46 * root.s : 0) + (root.showBars ? bars.width + 6 * root.s : 0);
-                var cap = 220 * root.s;
-                var room = root.widthBudget > 0 ? root.widthBudget - used : cap;
-                return Math.max(0, Math.min(implicitWidth, cap, room));
-            }
+            playing: root.playing && root.canAnimate
+            scaleFactor: root.s
+            elideWhenStill: true
         }
     }
 

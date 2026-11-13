@@ -2,7 +2,7 @@
   "schema": 1,
   "id": "crate-mark",
   "category": "plugins",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "destination": "ryoku/plugins/crate-mark",
   "files": [
     {
@@ -16,9 +16,9 @@
     {
       "source": "README.md",
       "destination": "README.md",
-      "sha256": "a2004f507874d4c7b03eb1b95d41b2623f2bff7c3285d6ca1a2dce8f592b30c3",
+      "sha256": "a8eace7e92934b4879e9f284281973943bf14b9b46c622cef217713d346318d7",
       "mode": "0644",
-      "size": 4244,
+      "size": 4359,
       "install": false
     },
     {
@@ -32,9 +32,9 @@
     {
       "source": "assets/preview-widget.png",
       "destination": "assets/preview-widget.png",
-      "sha256": "977782c2dc5786fc2e954920461f97c60acf107a7a7ecdb8925b43bb0114b751",
+      "sha256": "ea62779957c09c9fcd973841610fe1f8d979383415aa109a7598903e00842e92",
       "mode": "0644",
-      "size": 9861,
+      "size": 6427,
       "install": false
     },
     {
@@ -48,9 +48,9 @@
     {
       "source": "content/Panel.qml",
       "destination": "content/Panel.qml",
-      "sha256": "53aa7cf951a627a17826478faec847947b5943d72932d56f3f038ae70eff815d",
+      "sha256": "b8677b6bd2b743f5e815359e1b5f5c8acc58c96fa8850c35a2eb3e9f878aedce",
       "mode": "0644",
-      "size": 45762,
+      "size": 44037,
       "install": true
     },
     {
@@ -70,11 +70,19 @@
       "install": true
     },
     {
+      "source": "content/TrackTicker.qml",
+      "destination": "content/TrackTicker.qml",
+      "sha256": "942ba6fa05edb488c809b6ebc62321c44f53b25e487c11ebbcbe317d98c1f9fe",
+      "mode": "0644",
+      "size": 2319,
+      "install": true
+    },
+    {
       "source": "content/Widget.qml",
       "destination": "content/Widget.qml",
-      "sha256": "b4234ee0c9d56e0380dd14bf3ab0ea634dc652ad71fab333c76606fbf8f7b2f8",
+      "sha256": "4ab59a7b4b25a316fa52bffbe8b32f28d5bc07def90eeef588e886161602dee5",
       "mode": "0644",
-      "size": 5675,
+      "size": 5861,
       "install": true
     },
     {
@@ -104,17 +112,17 @@
     {
       "source": "manifest.json",
       "destination": "manifest.json",
-      "sha256": "86f5113fb80b6fd7a752f75e04f1aad48db6100d2ceceb47f30cf5aac2987fac",
+      "sha256": "55ca495bf360835a11245292843f118ba112b1f16b0ad6e8a1bf346fd6ad7045",
       "mode": "0644",
-      "size": 2566,
+      "size": 2660,
       "install": true
     },
     {
       "source": "service/Main.qml",
       "destination": "service/Main.qml",
-      "sha256": "cc05c366436fc18d78a8e7786b59aa7323860b04b5291a92f9a7d811722088cd",
+      "sha256": "7807623b5339e444238490d06e8afb74cd6d29f570603af41218c15fad0f0569",
       "mode": "0644",
-      "size": 7124,
+      "size": 7391,
       "install": true
     }
   ],

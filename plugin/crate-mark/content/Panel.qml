@@ -384,64 +384,6 @@ Item {
         }
     }
 
-    // A single line that scrolls while Crate plays (2 s pause, 20 ms/px,
-    // 0.9 s pause) when it does not fit; its right edge fades out.
-    component Ticker: Item {
-        id: tk
-        property string text: ""
-        property bool running: false
-        readonly property bool overflow: label.implicitWidth > tk.width
-        implicitHeight: label.implicitHeight
-        clip: true
-        Text {
-            id: label
-            anchors.verticalCenter: parent.verticalCenter
-            text: tk.text
-            color: root.textPrimary
-            font.family: root.mono
-            font.pixelSize: 13
-            font.weight: Font.Medium
-            font.letterSpacing: 13 * 0.04
-            font.capitalization: Font.AllUppercase
-        }
-        // the right edge dissolves into the panel when the title runs long
-        Rectangle {
-            visible: tk.overflow
-            anchors.right: parent.right
-            width: 28
-            height: parent.height
-            gradient: Gradient {
-                orientation: Gradient.Horizontal
-                GradientStop { position: 0.0; color: "transparent" }
-                GradientStop { position: 1.0; color: Scheme.base }
-            }
-        }
-        function reset() {
-            anim.stop();
-            label.x = 0;
-            if (tk.running && tk.overflow && tk.visible)
-                anim.start();
-        }
-        onTextChanged: Qt.callLater(tk.reset)
-        onRunningChanged: tk.reset()
-        onWidthChanged: Qt.callLater(tk.reset)
-        onVisibleChanged: tk.reset()
-        SequentialAnimation {
-            id: anim
-            loops: Animation.Infinite
-            PauseAnimation { duration: 2000 }
-            NumberAnimation {
-                target: label
-                property: "x"
-                to: -(label.implicitWidth - tk.width + 4)
-                duration: Math.max(100, label.implicitWidth - tk.width + 4) * 20
-                easing.type: Easing.Linear
-            }
-            PauseAnimation { duration: 900 }
-            NumberAnimation { target: label; property: "x"; to: 0; duration: 0 }
-        }
-    }
-
     // ================================================================ layout
 
     Column {
@@ -538,11 +480,18 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     width: parent.width - cover.width - 12
                     spacing: 4
-                    Ticker {
+                    TrackTicker {
                         width: parent.width
                         height: 18
                         text: root.service ? root.service.title : ""
-                        running: root.playing && root.visible
+                        color: root.textPrimary
+                        font.family: root.mono
+                        font.pixelSize: 13
+                        font.weight: Font.Medium
+                        font.letterSpacing: 13 * 0.04
+                        font.capitalization: Font.AllUppercase
+                        fadeColor: Scheme.base
+                        playing: root.playing && root.active && root.visible && !root.service?.reduceMotion
                     }
                     Text {
                         width: parent.width

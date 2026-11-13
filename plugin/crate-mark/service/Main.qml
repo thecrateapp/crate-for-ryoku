@@ -66,6 +66,9 @@ Item {
     readonly property bool running: svc.player !== null
     readonly property bool hasTrack: svc.running && String(svc.player.trackTitle || "") !== ""
     readonly property bool playing: svc.running && svc.player.playbackState === MprisPlaybackState.Playing
+    readonly property bool stopped: !svc.running || svc.player.playbackState === MprisPlaybackState.Stopped
+    readonly property bool reduceMotion: typeof Qt.ReducedMotion !== "undefined"
+        && Qt.styleHints.accessibility?.motionPreference === Qt.ReducedMotion
     readonly property string title: svc.hasTrack ? String(svc.player.trackTitle) : ""
     readonly property string artist: svc.hasTrack ? String(svc.player.trackArtist || "") : ""
     readonly property string album: svc.hasTrack ? String(svc.player.trackAlbum || "") : ""

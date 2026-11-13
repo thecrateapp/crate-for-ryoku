@@ -1,7 +1,8 @@
 # Crate mark (`crate-mark`)
 
 The Crate logo on the QS Bar, part of the Crate for Ryoku. While Crate plays,
-three small cyan bars sit after the mark. A click opens a panel drawn to Crate's
+three cyan bars follow the mark, then the artist and track title. Long titles
+scroll within the bar. Pausing leaves the current track visible and still. A click opens a panel drawn to Crate's
 own player spec (1 px glow beams, the spectrum play button, chips, the EQ chart): now
 playing, transport and Crate's equalizer. Roboto ships in `content/fonts` (OFL).
 
@@ -52,7 +53,7 @@ Crate appears or disappears, so a mark you hid yourself stays hidden.
 | ---------- | ------ | ------------------------------ | ------------ |
 | tone       | choice | `accent`                       | `accent` follows the theme, `brand` is Crate's own gradient, `ink` is the bar text colour |
 | showLabel  | toggle | `false`                        | show a lowercase "crate" label after the mark |
-| nowPlaying | choice | `indicator`                    | `indicator`: cyan bars while Crate plays; `track`: bars and "artist - title"; `off`: panel only |
+| nowPlaying | choice | `track`                        | `track`: playing bars and an artist/title ticker; `indicator`: playing bars only; `off`: panel only |
 | appId      | text   | `app.cratemusic.crate.desktop` | the desktop entry "Open Crate" starts |
 
 ## Credits

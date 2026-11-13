@@ -1,12 +1,12 @@
 {
   "id": "crate-mark",
   "name": "Crate",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "path": "plugins/crate-mark",
   "author": "Diego 🥷🏻",
   "upstream": "https://github.com/thecrateapp/crate-for-ryoku/tree/main/plugin/crate-mark",
   "summary": "The Crate mark on the QS Bar: now playing, transport and Crate's equalizer, shown while Crate is installed.",
-  "description": "The Crate logo on the QS Bar, shown only while the Crate app is installed and animated while it plays. Its panel is drawn to Crate's player spec: an all-caps ticker title, transport, a 1 px progress beam, and Crate's equalizer (Smart, Genre, Adaptive, presets and the band curve), over Crate's desktop control socket and MPRIS. Part of Crate for Ryoku.",
+  "description": "The Crate mark on the QS Bar, shown only when Crate is installed. Playing bars and an artist/title ticker follow the logo. Its panel is drawn to Crate's own player spec: now playing with an all-caps ticker, the 1 px glow beams, the spectrum play button, Crate's equalizer (Smart, Genre, Adaptive, presets, the band chart). Part of Crate for Ryoku.",
   "tags": [
     "bar-widget",
     "music",
@@ -21,7 +21,7 @@
     "assets/preview-widget.png"
   ],
   "manifest": "product-manifest.json",
-  "manifestSha256": "5a205d6b6c1c1b65843b60df6bc2cf4c2920a144a6472bcfc035f18d962b9220",
+  "manifestSha256": "c170d707d9e3d7963f2403139faddff3701b3363af70d831b9dde7ac53268098",
   "official": false,
   "tagline": "Now playing, transport and Crate's equalizer on the QS Bar.",
   "icon": "",
@@ -29,5 +29,5 @@
     "topbarGlyph"
   ],
   "license": "MIT",
-  "lastUpdated": "2026-11-12"
+  "lastUpdated": "2026-11-13"
 }
