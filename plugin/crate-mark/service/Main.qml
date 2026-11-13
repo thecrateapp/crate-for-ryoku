@@ -63,18 +63,18 @@ Item {
         return null;
     }
 
-    readonly property bool running: svc.player !== null
-    readonly property bool hasTrack: svc.running && String(svc.player.trackTitle || "") !== ""
-    readonly property bool playing: svc.running && svc.player.playbackState === MprisPlaybackState.Playing
-    readonly property bool stopped: !svc.running || svc.player.playbackState === MprisPlaybackState.Stopped
+    readonly property bool running: !!svc.player
+    readonly property string title: svc.player?.trackTitle || ""
+    readonly property bool hasTrack: svc.title !== ""
+    readonly property bool playing: svc.player?.playbackState === MprisPlaybackState.Playing
+    readonly property bool stopped: !svc.player || svc.player.playbackState === MprisPlaybackState.Stopped
     readonly property bool reduceMotion: typeof Qt.ReducedMotion !== "undefined"
         && Qt.styleHints.accessibility?.motionPreference === Qt.ReducedMotion
-    readonly property string title: svc.hasTrack ? String(svc.player.trackTitle) : ""
-    readonly property string artist: svc.hasTrack ? String(svc.player.trackArtist || "") : ""
-    readonly property string album: svc.hasTrack ? String(svc.player.trackAlbum || "") : ""
-    readonly property string artUrl: svc.hasTrack ? String(svc.player.trackArtUrl || "") : ""
-    readonly property real length: (svc.hasTrack && svc.player.lengthSupported) ? svc.player.length : 0
-    readonly property bool canSeek: svc.hasTrack && svc.length > 0
+    readonly property string artist: svc.hasTrack ? (svc.player?.trackArtist || "") : ""
+    readonly property string album: svc.hasTrack ? (svc.player?.trackAlbum || "") : ""
+    readonly property string artUrl: svc.hasTrack ? String(svc.player?.trackArtUrl || "") : ""
+    readonly property real length: svc.hasTrack && svc.player?.lengthSupported ? svc.player.length : 0
+    readonly property bool canSeek: !!svc.player && svc.hasTrack && svc.length > 0
         && (svc.controlConnected || (svc.player.canSeek && svc.player.positionSupported))
 
     function togglePlaying() {
@@ -90,7 +90,7 @@ Item {
             svc.player.previous();
     }
     function seekTo(seconds) {
-        if (!svc.canSeek)
+        if (!svc.player || !svc.canSeek)
             return;
         var s = Math.max(0, Math.min(svc.length, seconds));
         if (svc.controlConnected)

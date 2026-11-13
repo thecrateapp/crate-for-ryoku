@@ -1,7 +1,7 @@
 {
   "id": "crate-mark",
   "name": "Crate",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "author": "Diego 🥷🏻 <yosoy@diego.ninja>",
   "description": "The Crate mark on the QS Bar, shown only when Crate is installed. Playing bars and an artist/title ticker follow the logo. Its panel is drawn to Crate's own player spec: now playing with an all-caps ticker, the 1 px glow beams, the spectrum play button, Crate's equalizer (Smart, Genre, Adaptive, presets, the band chart). Part of Crate for Ryoku.",
   "license": "MIT",

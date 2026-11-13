@@ -11,13 +11,16 @@ export XDG_DATA_HOME="$work/data" XDG_CACHE_HOME="$work/cache" XDG_STATE_HOME="$
 export DBUS_SYSTEM_BUS_ADDRESS="unix:path=$work/runtime/no-system-bus"
 export QT_QPA_PLATFORM=offscreen PLUGIN_DIR="$plugin"
 ln -s "$plugin/content" "$work/content"
+ln -s "$plugin/service" "$work/service"
 cp "$here/position.qml" "$work/shell.qml"
 cd "$work"
 dbus-run-session -- bash -eu -o pipefail -c '
     for peer in crate:0 other:329000000 paused:42250000; do
         name=${peer%:*}
         python3 "$1/position-peer.py" "org.mpris.MediaPlayer2.$name" "${peer#*:}" >"$name.log" &
-        pids+=" $!"
+        peer_pid=$!
+        pids+=" $peer_pid"
+        if [[ $name == crate ]]; then crate_pid=$peer_pid; fi
     done
     trap "kill $pids 2>/dev/null || true" EXIT
     for name in crate other paused; do
@@ -31,7 +34,12 @@ dbus-run-session -- bash -eu -o pipefail -c '
         if ! kill -0 "$test_pid" 2>/dev/null; then break; fi
         sleep .05
     done
+    for i in {1..140}; do
+        if grep -q CRATE-MARK-QUIT-PLAYER log; then kill -USR1 "$crate_pid"; break; fi
+        if ! kill -0 "$test_pid" 2>/dev/null; then break; fi
+        sleep .05
+    done
     wait "$test_pid"
-    if ! grep -q CRATE-MARK-POSITION-PASS log; then cat log >&2; exit 1; fi
+    if ! grep -q CRATE-MARK-POSITION-PASS log || grep -q TypeError log; then cat log >&2; exit 1; fi
 ' bash "$here"
-echo "crate-mark raw playback position passed"
+echo "crate-mark raw playback position and player shutdown passed"
