@@ -18,7 +18,10 @@ build_dir=${CRATE_DESKTOP_BUILD:-$HOME/.cache/ryoku/crate-desktop-build}
 die() { echo "publish.sh: $*" >&2; exit 1; }
 
 [ -d "$repo_dir" ] && [ -w "$repo_dir" ] || die "$repo_dir is missing or not writable"
-git -C "$checkout" diff --quiet || die "$checkout has uncommitted changes"
+# a Tauri build regenerates the vendored plugins' permission files; those are
+# build output, not source, so they do not count as uncommitted work
+git -C "$checkout" diff --quiet -- . ':(exclude)app/listen-desktop/src-tauri/vendor/*/permissions/**' \
+  || die "$checkout has uncommitted changes"
 
 deb=$(ls -t "$checkout"/app/listen-desktop/src-tauri/target/release/bundle/deb/*.deb 2>/dev/null | head -1) \
   || true
