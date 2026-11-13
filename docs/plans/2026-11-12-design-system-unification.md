@@ -156,6 +156,14 @@ restyled `Slid.qml`, `Seg.qml`, `Chips.qml`, `Multi.qml`, `IconBtn.qml`, `Sw.qml
 - [ ] **Label and an `InfoRow` kit row:** replace the 4 caption sizes, 2 InfoRows and ~17 inline rows. This also absorbs Phase 2a's `sectionInk`.
 - [ ] **IconButton:** replaces TransportButton, the info "!" plate, the chevron well and the dismiss ✕.
 
+**Wave 3 status (2026-11-13).** The 17 panel bodies, the dashboard, the tooltip and QS Bar Settings are on
+the kit (fork commits 8e2e81bd..06fc9f71). Rulings from the user: every crate floating surface uses the
+shared glass (Tokens.glass plus compositor blur, no filled drop shadow under it) and the 6 px
+`Tokens.radius` corner; QS Bar Settings opens with the panels' `CrateResourceHeader` line and flat
+`SettingCard` groups (which also converges the Hub); Japanese glosses follow `showJapaneseGloss` in
+either look. `CrateResourceHeader` stands in for the planned `PanelCard`. **Deferred to a later wave:**
+the image and media pickers (`ImageCarousel*`, `MediaBrowser*`), all three layouts each.
+
 ## Wave 4: Apps (task list)
 
 - [ ] **Hub:** the 22 page-header copies and 4 variants → PageHead (with `register` for ControlsPage); the 8 bespoke chips → Chip or Chips; the 4 progress copies → Beam; RowTool → IconButton; SectionHead and Head → Label. Delete the dead `hub/quickshell/Singletons/Theme.qml`.
