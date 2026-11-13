@@ -192,7 +192,9 @@ fi
 # Detect support without running it: an older Crate would open its window.
 crate_bin=$(command -v crate-desktop 2>/dev/null || true)
 if [ -n "$crate_bin" ] && grep -qaF "ROFI_RETV" "$(readlink -f "$crate_bin")"; then
-  python3 - "$CFG/ryoku/launcher-scripts.json" "$(command -v crate-desktop)" <<'PY' && say 'launcher: type "cr <query>" to search and play from Crate'
+  # the bare name, resolved on PATH at each run: a stored absolute path broke as
+  # soon as Crate moved (a manual ~/.local install replaced by the package)
+  python3 - "$CFG/ryoku/launcher-scripts.json" crate-desktop <<'PY' && say 'launcher: type "cr <query>" to search and play from Crate'
 import json, os, sys
 path, exe = sys.argv[1], sys.argv[2]
 try:
