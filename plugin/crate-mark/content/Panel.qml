@@ -101,26 +101,19 @@ Item {
             root.pluginApi.closePanel();
     }
 
-    // ---- position tick: only while the panel is open and Crate plays
-    property real pos: 0
-    function tick() {
-        if (!root.service)
-            return;
-        root.service.refreshPosition();
-        root.pos = root.service.position();
+    readonly property real pos: progress.dragging ? progress.preview : clock.seconds
+    PositionReader {
+        id: clock
+        helper: root.pluginApi?.pluginDir ? root.pluginApi.pluginDir + "/bin/read-position" : ""
+        playerName: root.service?.player?.dbusName || ""
+        trackSerial: root.service?.player?.uniqueId || 0
+        playing: root.playing
+        watching: root.visible && root.active && root.hasTrack && !root.service.stopped
+        duration: root.service?.length || 0
     }
-    Timer {
-        interval: 1000
-        repeat: true
-        triggeredOnStart: true
-        running: root.visible && root.hasTrack && root.playing
-        onTriggered: root.tick()
-    }
-    onHasTrackChanged: root.tick()
     Connections {
-        target: root.service
-        function onTitleChanged() { root.tick(); }
-        function onPlayingChanged() { root.tick(); }
+        target: root.service?.player ?? null
+        function onPositionChanged() { if (!root.playing && clock.watching) clock.request(); }
     }
 
     implicitWidth: root.widthBudget
@@ -151,6 +144,7 @@ Item {
         id: beam
         property real value: 0
         property bool interactive: true
+        readonly property bool dragging: area.pressed
         property bool hovering: area.containsMouse || area.pressed
         signal moved(real v)
         signal committed(real v)
@@ -556,13 +550,15 @@ Item {
                     font.pixelSize: 12
                 }
                 Beam {
+                    id: progress
+                    property real preview: 0
                     width: parent.width - 2 * 36 - 16
                     value: (root.service && root.service.length > 0) ? root.pos / root.service.length : 0
                     interactive: root.service ? root.service.canSeek : false
-                    onMoved: v => root.pos = v * root.service.length
+                    onMoved: v => preview = v * root.service.length
                     onCommitted: v => {
-                        root.pos = v * root.service.length;
-                        root.service.seekTo(root.pos);
+                        root.service.seekTo(v * root.service.length);
+                        clock.request();
                     }
                 }
                 Text {

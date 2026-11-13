@@ -1,7 +1,7 @@
 {
   "id": "crate-mark",
   "name": "Crate",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "author": "Diego 🥷🏻 <yosoy@diego.ninja>",
   "description": "The Crate mark on the QS Bar, shown only when Crate is installed. Playing bars and an artist/title ticker follow the logo. Its panel is drawn to Crate's own player spec: now playing with an all-caps ticker, the 1 px glow beams, the spectrum play button, Crate's equalizer (Smart, Genre, Adaptive, presets, the band chart). Part of Crate for Ryoku.",
   "license": "MIT",
@@ -26,7 +26,9 @@
     "assets/preview-panel.png",
     "content/fonts/roboto-latin.woff2",
     "content/fonts/roboto-latin-ext.woff2",
-    "content/fonts/Roboto-OFL.txt"
+    "content/fonts/Roboto-OFL.txt",
+    "content/PositionReader.qml",
+    "bin/read-position"
   ],
   "capabilities": {
     "densities": [
@@ -39,7 +41,9 @@
     "label": "Crate"
   },
   "dependencies": {
-    "commands": []
+    "commands": [
+      "python3"
+    ]
   },
   "metadata": {
     "settings": [

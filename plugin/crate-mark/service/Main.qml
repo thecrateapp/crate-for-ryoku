@@ -13,7 +13,7 @@ import Quickshell.Services.Mpris
 //    ($XDG_RUNTIME_DIR/crate/control.sock, Crate 3.4+), one JSON object per
 //    line. Older Crate builds have no socket; the panel then shows now playing
 //    and transport only.
-// It writes no files and runs no commands. It connects to the socket only
+// The service connects to the socket only
 // while Crate's player is on the bus.
 Item {
     id: svc
@@ -76,14 +76,6 @@ Item {
     readonly property real length: (svc.hasTrack && svc.player.lengthSupported) ? svc.player.length : 0
     readonly property bool canSeek: svc.hasTrack && svc.length > 0
         && (svc.controlConnected || (svc.player.canSeek && svc.player.positionSupported))
-
-    function position() {
-        return (svc.hasTrack && svc.player.positionSupported) ? svc.player.position : 0;
-    }
-    function refreshPosition() {
-        if (svc.player)
-            svc.player.positionChanged();
-    }
 
     function togglePlaying() {
         if (svc.player && svc.player.canTogglePlaying)

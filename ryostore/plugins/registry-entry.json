@@ -1,7 +1,7 @@
 {
   "id": "crate-mark",
   "name": "Crate",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "path": "plugins/crate-mark",
   "author": "Diego 🥷🏻",
   "upstream": "https://github.com/thecrateapp/crate-for-ryoku/tree/main/plugin/crate-mark",
@@ -21,7 +21,7 @@
     "assets/preview-widget.png"
   ],
   "manifest": "product-manifest.json",
-  "manifestSha256": "21b7f0af4e3ec4932fa6af1367428394c919a844586fcbe2959ddf7d790f4d2d",
+  "manifestSha256": "a929c4e42cde27aaf807b2f833bf1c83ba6c28e6cf372666e0f27dba4053b3ca",
   "official": false,
   "tagline": "Now playing, transport and Crate's equalizer on the QS Bar.",
   "icon": "",

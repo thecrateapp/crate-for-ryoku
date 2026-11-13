@@ -32,15 +32,14 @@ Crate appears or disappears, so a mark you hid yourself stays hidden.
 
 ## What it runs, reads and writes
 
-- **Runs:** nothing on its own. "Open Crate" starts the desktop entry named by
+- **Runs:** one `bin/read-position` helper (Python 3 and PyGObject) while the track panel is open. "Open Crate" starts the desktop entry named by
   `appId` (or the packaged `Crate` entry) through Quickshell's `DesktopEntries`, only
   on that click.
 - **Reads:** its own settings; the desktop-entry database; the Crate player on MPRIS
   (`org.mpris.MediaPlayer2.crate`) for now playing and transport; and Crate's local
   control socket, `$XDG_RUNTIME_DIR/crate/control.sock` (Crate 3.4+, owner-only),
   for shuffle, repeat and the equalizer. It connects only while Crate's
-  player is on the bus. Position is read once a second only while the panel is open
-  and Crate is playing.
+  player is on the bus. The helper reads the raw MPRIS position once per second during playback and on track, pause or seek changes.
 - **Controls:** every change is a click or drag and goes to Crate: transport over
   MPRIS, the rest as one JSON line on the socket (`{"cmd":"eq_mode","mode":"genre"}`).
   With an older Crate (no socket) the panel shows now playing and transport only.
