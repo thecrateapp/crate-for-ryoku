@@ -145,7 +145,7 @@ Item {
     }
 
     // Crate's 1 px glow beam (PlayerProgressBeam): hairline track, gradient
-    // fill, an 8 px blurred trail, a 4 px dot at the head, and a 6 px hover
+    // fill, a 6 px trail, a 2 px dot at the head, and a 4 px hover
     // thumb. value 0..1; moved() while dragging, committed() on release.
     component Beam: Item {
         id: beam
@@ -163,13 +163,13 @@ Item {
             id: trail
             visible: beam.value > 0
             x: 0
-            y: beam.cy - 4 + 0.5
+            y: beam.cy + 0.5 - height / 2
             width: beam.headX
-            height: 8
+            height: 6
             opacity: 0.65
             Rectangle {
                 anchors.fill: parent
-                radius: 4
+                radius: height / 2
                 gradient: Gradient {
                     orientation: Gradient.Horizontal
                     GradientStop { position: 0.0; color: "transparent" }
@@ -191,40 +191,40 @@ Item {
             }
             Behavior on width { enabled: !area.pressed; NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
         }
-        // the head: 4 px #abe2ee dot with Crate's cyan glow as a halo
+        // the head: a 2 px dot inside the 6 px halo
         Rectangle {
-            x: beam.headX - 4
-            y: beam.cy - 3.5
-            width: 8
-            height: 8
-            radius: 4
+            x: beam.headX - width / 2
+            y: beam.cy + 0.5 - height / 2
+            width: 6
+            height: width
+            radius: width / 2
             color: root.accentA(0.22)
             visible: beam.value > 0
         }
         Rectangle {
             id: dot
-            x: beam.headX - 2
-            y: beam.cy - 1.5
-            width: 4
-            height: 4
-            radius: 2
+            x: beam.headX - width / 2
+            y: beam.cy + 0.5 - height / 2
+            width: 2
+            height: width
+            radius: width / 2
             color: root.thumb
             opacity: beam.value > 0 ? 0.62 : 0
         }
         Rectangle {
-            x: beam.headX - 5
-            y: beam.cy - 4.5
-            width: 10
-            height: 10
-            radius: 5
+            x: beam.headX - width / 2
+            y: beam.cy + 0.5 - height / 2
+            width: 8
+            height: width
+            radius: width / 2
             color: root.accentA(0.14)
             opacity: beam.hovering && beam.interactive ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 150 } }
             Rectangle {
                 anchors.centerIn: parent
-                width: 6
-                height: 6
-                radius: 3
+                width: 4
+                height: width
+                radius: width / 2
                 color: root.thumb
                 border.width: 1
                 border.color: root.accentA(0.80)

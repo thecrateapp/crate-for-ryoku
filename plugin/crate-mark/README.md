@@ -2,7 +2,8 @@
 
 The Crate logo on the QS Bar, part of the Crate for Ryoku. While Crate plays,
 three cyan bars follow the mark, then the artist and track title. Long titles
-scroll within the bar. Pausing leaves the current track visible and still. A click opens a panel drawn to Crate's
+scroll continuously within the bar at 50 logical pixels per second at normal scale.
+Pausing leaves the current track visible and still. A click opens a panel drawn to Crate's
 own player spec (1 px glow beams, the spectrum play button, chips, the EQ chart): now
 playing, transport and Crate's equalizer. Roboto ships in `content/fonts` (OFL).
 
@@ -21,7 +22,7 @@ Crate appears or disappears, so a mark you hid yourself stays hidden.
 
 - **Now playing:** cover, the title as an all-caps JetBrains Mono ticker (it scrolls
   only while Crate plays and the title is too long: 2 s pause, 20 ms per pixel, 0.9 s
-  pause, like the bar's media title), artist and album, progress (click to seek), and
+  pause), artist and album, progress (click to seek), and
   shuffle / previous / play-pause / next / repeat.
 - **Equalizer:** on/off; the mode, as in Crate's player: Smart (the server's curve for
   the track, with its source: your preset, a curator preset, the genre taxonomy, audio

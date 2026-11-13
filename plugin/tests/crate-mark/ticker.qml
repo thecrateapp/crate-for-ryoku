@@ -23,6 +23,7 @@ ShellRoot {
         function togglePanel() { ++toggles }
     }
     FloatingWindow {
+        color: "black"
         implicitWidth: 420
         implicitHeight: 80
         Test.TestCase { id: input; when: false }
@@ -45,6 +46,35 @@ ShellRoot {
         const child = input.findChild(widget, name)
         check(child, "missing " + name)
         return child
+    }
+    function hasInk(image, start, end) {
+        for (let x = start; x < end; x++)
+            for (let y = 0; y < image.height; y++)
+                if (image.red(x, y) > 90) return true
+        return false
+    }
+    function verifyContinuousLoop(viewport) {
+        playback.artist = ""
+        playback.title = "Crate FM"
+        widget.widthBudget = 72
+        playback.reduceMotion = true
+        input.wait(50)
+        check(viewport.overflow > 0, "loop fixture must overflow")
+        playback.reduceMotion = false
+        input.wait(180)
+        const first = input.grabImage(viewport)
+        // The strip should still be passing through this viewport after a
+        // whole revolution. A pause or an empty seam yields identical frames.
+        const until = Date.now() + viewport.travel * 20 + 240
+        let previous = first
+        while (Date.now() < until) {
+            input.wait(120)
+            const next = input.grabImage(viewport)
+            check(!next.equals(previous) && hasInk(next, 0, next.width),
+                  "both copies form a moving, populated strip across the loop seam")
+            previous = next
+        }
+        widget.widthBudget = 220
     }
     function verify() {
         const logo = named("crateMarkLogo")
@@ -69,13 +99,38 @@ ShellRoot {
         check(title.text === "Marea Lunar – " + longTitle, "artist and title")
         check(viewport.clip && widget.implicitWidth <= widget.widthBudget + 1, "host budget and clipping")
         check(title.elide === Text.ElideNone && !title.truncated && title.contentWidth > viewport.width && Math.abs(title.contentWidth - title.width) < 2, "entire long title must render before viewport clipping")
-        const deadline = Date.now() + 4500
-        while (offset() >= -2 && Date.now() < deadline) input.wait(30)
-        check(offset() < -2, "long text must actually move")
-        playback.title = "Tema distinto con un título largo que también necesita desplazamiento"
+        // XAnimator moves the scene graph directly, so compare rendered frames.
+        let frame = input.grabImage(viewport)
+        input.wait(140)
+        check(!input.grabImage(viewport).equals(frame), "long bar title moves without a reading pause")
+        playback.artist = ""
+        playback.title = "I" + " ".repeat(6) + "W".repeat(24)
         tick()
-        check(stationary(), "changing track should return to the beginning")
+        input.wait(900)
+        frame = input.grabImage(viewport)
+        check(hasInk(frame, 0, 24), "past the leading space before metadata refresh")
+        playback.titleChanged()
+        widget.widthBudget += 8
+        tick()
+        frame = input.grabImage(viewport)
+        check(hasInk(frame, 6, 24), "metadata refresh and width change preserve the current position")
+        widget.widthBudget -= 8
+        playback.title = "I" + " ".repeat(6) + "M".repeat(24)
+        tick()
+        frame = input.grabImage(viewport)
+        check(title.text === playback.title && !hasInk(frame, 10, 24), "new track starts at its leading title")
+        playback.reduceMotion = true
+        tick()
+        const stillAtStart = input.grabImage(viewport)
+        playback.reduceMotion = false
+        input.wait(820)
+        check(hasInk(input.grabImage(viewport), 10, 24), "moving section has reached the viewport")
+        playback.reduceMotion = true
+        tick()
+        check(input.grabImage(viewport).equals(stillAtStart), "stopping restores the first, elided frame")
 
+        verifyContinuousLoop(viewport)
+        playback.title = longTitle
         playback.playing = false
         tick()
         check(!bars.visible && viewport.visible && stationary() && title.elide === Text.ElideRight, "paused track remains readable")

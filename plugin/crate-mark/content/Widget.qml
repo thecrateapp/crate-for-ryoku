@@ -117,6 +117,7 @@ Item {
             font.pixelSize: 12 * root.s
             playing: root.playing && root.canAnimate
             scaleFactor: root.s
+            continuous: true
             elideWhenStill: true
         }
     }

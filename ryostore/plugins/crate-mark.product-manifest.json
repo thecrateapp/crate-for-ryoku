@@ -2,7 +2,7 @@
   "schema": 1,
   "id": "crate-mark",
   "category": "plugins",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "destination": "ryoku/plugins/crate-mark",
   "files": [
     {
@@ -16,9 +16,9 @@
     {
       "source": "README.md",
       "destination": "README.md",
-      "sha256": "a8eace7e92934b4879e9f284281973943bf14b9b46c622cef217713d346318d7",
+      "sha256": "89491fc38acf754f9daa2c098acd61a5290a536ea60b526389c2dbdc73716785",
       "mode": "0644",
-      "size": 4359,
+      "size": 4392,
       "install": false
     },
     {
@@ -48,9 +48,9 @@
     {
       "source": "content/Panel.qml",
       "destination": "content/Panel.qml",
-      "sha256": "b8677b6bd2b743f5e815359e1b5f5c8acc58c96fa8850c35a2eb3e9f878aedce",
+      "sha256": "723775a34d06ddde7ed3596432a0aca90adf3dfb14e0bea12eef2f296ce80ebe",
       "mode": "0644",
-      "size": 44037,
+      "size": 44137,
       "install": true
     },
     {
@@ -72,17 +72,17 @@
     {
       "source": "content/TrackTicker.qml",
       "destination": "content/TrackTicker.qml",
-      "sha256": "942ba6fa05edb488c809b6ebc62321c44f53b25e487c11ebbcbe317d98c1f9fe",
+      "sha256": "abaeb95f98f81e9a97a86a738ee15556ea19abec3285dd15dae872f54e920062",
       "mode": "0644",
-      "size": 2319,
+      "size": 3280,
       "install": true
     },
     {
       "source": "content/Widget.qml",
       "destination": "content/Widget.qml",
-      "sha256": "4ab59a7b4b25a316fa52bffbe8b32f28d5bc07def90eeef588e886161602dee5",
+      "sha256": "a149ed030e681e7b3d3e99dfdcad960e5694060706840ff30e76ae4252735d87",
       "mode": "0644",
-      "size": 5861,
+      "size": 5890,
       "install": true
     },
     {
@@ -112,7 +112,7 @@
     {
       "source": "manifest.json",
       "destination": "manifest.json",
-      "sha256": "55ca495bf360835a11245292843f118ba112b1f16b0ad6e8a1bf346fd6ad7045",
+      "sha256": "f4cf63f77835cf32ebb949f4eec48313a5538cfd0488aa018501f44ca3bd5a20",
       "mode": "0644",
       "size": 2660,
       "install": true

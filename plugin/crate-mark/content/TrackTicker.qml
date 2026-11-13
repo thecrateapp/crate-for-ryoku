@@ -1,6 +1,5 @@
 import QtQuick
 
-// The bar and panel use the same reading pauses and scroll speed as QS Bar's media widget.
 Item {
     id: ticker
     required property string text
@@ -9,6 +8,7 @@ Item {
     property alias color: label.color
     property string textObjectName: ""
     property bool elideWhenStill: false
+    property bool continuous: false
     property real scaleFactor: 1
     property color fadeColor: "transparent"
 
@@ -16,6 +16,7 @@ Item {
     implicitHeight: label.implicitHeight
     readonly property real overflow: Math.max(0, implicitWidth - width)
     readonly property bool scrolling: visible && playing && width > 0 && overflow > 0
+    readonly property real travel: continuous ? implicitWidth + 24 * scaleFactor : overflow
     clip: true
 
     TextMetrics {
@@ -23,14 +24,29 @@ Item {
         font: label.font
         text: ticker.text
     }
-    Text {
-        id: label
-        objectName: ticker.textObjectName
-        anchors.verticalCenter: parent.verticalCenter
-        text: ticker.text
-        textFormat: Text.PlainText
-        width: ticker.elideWhenStill && !ticker.scrolling ? ticker.width : ticker.implicitWidth
-        elide: ticker.elideWhenStill && !ticker.scrolling ? Text.ElideRight : Text.ElideNone
+    Item {
+        id: strip
+        width: ticker.implicitWidth
+        height: ticker.height
+
+        Text {
+            id: label
+            objectName: ticker.textObjectName
+            anchors.verticalCenter: parent.verticalCenter
+            text: ticker.text
+            textFormat: Text.PlainText
+            width: ticker.elideWhenStill && !ticker.scrolling ? ticker.width : ticker.implicitWidth
+            elide: ticker.elideWhenStill && !ticker.scrolling ? Text.ElideRight : Text.ElideNone
+        }
+        Text {
+            visible: ticker.continuous && ticker.scrolling
+            x: ticker.travel
+            anchors.verticalCenter: parent.verticalCenter
+            text: label.text
+            textFormat: Text.PlainText
+            font: label.font
+            color: label.color
+        }
     }
 
     Rectangle {
@@ -46,27 +62,42 @@ Item {
     }
 
     function reset() {
-        animation.stop()
-        label.x = 0
-        if (ticker.scrolling)
-            animation.start()
+        roll.stop()
+        reading.stop()
+        strip.x = 0
+        if (scrolling) {
+            if (continuous) roll.start()
+            else reading.start()
+        }
     }
+    onScaleFactorChanged: Qt.callLater(reset)
     onTextChanged: Qt.callLater(reset)
-    onOverflowChanged: Qt.callLater(reset)
+    onTravelChanged: Qt.callLater(reset)
     onScrollingChanged: Qt.callLater(reset)
+    onContinuousChanged: Qt.callLater(reset)
 
+    // The second copy takes the first one's place at the end of each revolution.
+    XAnimator {
+        id: roll
+        target: strip
+        from: 0
+        to: -ticker.travel
+        duration: Math.max(1, Math.round(ticker.travel * 20 / ticker.scaleFactor))
+        easing.type: Easing.Linear
+        loops: Animation.Infinite
+    }
     SequentialAnimation {
-        id: animation
+        id: reading
         loops: Animation.Infinite
         PauseAnimation { duration: 2000 }
-        NumberAnimation {
-            target: label
-            property: "x"
-            to: -ticker.overflow
-            duration: Math.max(100, ticker.overflow / ticker.scaleFactor * 20)
+        XAnimator {
+            target: strip
+            from: 0
+            to: -ticker.travel
+            duration: Math.max(100, Math.round(ticker.travel * 20 / ticker.scaleFactor))
             easing.type: Easing.Linear
         }
         PauseAnimation { duration: 900 }
-        PropertyAction { target: label; property: "x"; value: 0 }
+        PropertyAction { target: strip; property: "x"; value: 0 }
     }
 }
