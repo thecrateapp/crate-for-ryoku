@@ -1,0 +1,27 @@
+# Crate Desktop for Arch, repackaged from the .deb that Tauri bundles from a
+# Crate checkout, so the files are exactly what Crate ships for Linux. Built by
+# publish.sh beside this file, which sets the two variables below and adds the
+# package to the local [ryoku-fork] repository; not an AUR recipe (the planned
+# AUR package is crate-desktop-bin, from public release assets).
+pkgname=crate-desktop
+pkgver=${CRATE_DESKTOP_PKGVER:-0}
+pkgrel=1
+pkgdesc="Crate Desktop: the Crate music player for Linux"
+arch=('x86_64')
+url="https://cratemusic.app"
+license=('AGPL-3.0-only')
+# WebKitGTK plays audio through GStreamer: base and good cover the formats Crate
+# serves, libav covers AAC and the rest.
+depends=('webkit2gtk-4.1' 'gtk3' 'libayatana-appindicator'
+         'gst-plugins-base' 'gst-plugins-good' 'gst-libav')
+provides=('crate-desktop-bin')
+conflicts=('crate-desktop-bin')
+options=('!strip' '!debug')
+source=()
+
+package() {
+  [ -f "${CRATE_DESKTOP_DEB:-}" ] || { echo "CRATE_DESKTOP_DEB must name the Tauri .deb" >&2; return 1; }
+  bsdtar -xOf "$CRATE_DESKTOP_DEB" 'data.tar.*' | bsdtar -xpf - -C "$pkgdir"
+  # a .deb's data tarball carries ./ entries with dpkg's modes; normalise them
+  find "$pkgdir" -type d -exec chmod 755 {} +
+}
