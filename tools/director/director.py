@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shlex
 import signal
 import subprocess
@@ -66,7 +67,10 @@ class Timeline:
             kind = raw.get("do")
             if kind not in KINDS:
                 raise DirectorError(f"step {index}: unknown do {kind!r}")
-            at = float(raw.get("at", -1))
+            try:
+                at = float(raw.get("at", -1))
+            except (TypeError, ValueError):
+                at = -1.0
             if at < 0:
                 raise DirectorError(f"step {index}: 'at' must be a time in seconds")
             if steps and at < previous:
@@ -158,31 +162,65 @@ class Env:
     prompt: Callable[[str], None]
 
 
-def run(timeline: Timeline, env: Env, record: str | None = None) -> None:
-    recorder = env.spawn([*RECORDER, "-f", record]) if record else None
+def failed_path(take: Path) -> Path:
+    """Where a take that did not finish is moved: `hero.mkv` becomes `hero.failed.mkv`."""
+    return take.with_name(f"{take.stem}.failed{take.suffix}")
+
+
+def run(timeline: Timeline, env: Env, record: str | None = None, output: str | None = None) -> None:
+    take = Path(record) if record else None
+    recorder = None
+    if take is not None:
+        take.parent.mkdir(parents=True, exist_ok=True)
+        argv = [*RECORDER, *(["-o", output] if output else []), "-f", str(take)]
+        try:
+            recorder = env.spawn(argv)
+        except OSError as error:
+            raise DirectorError(f"cannot start the recorder: {error}") from error
+    finished = False
     try:
         start = env.clock()
         shift = 0.0  # time spent waiting on cues pushes the rest of the timeline back
         for step in timeline.steps:
             env.sleep(start + shift + step.at - env.clock())
+            if recorder is not None and not recorder.alive():
+                raise DirectorError(f"the recorder stopped before step {step.index}")
             if step.kind == "cue":
                 before = env.clock()
                 env.prompt(step.data["message"])
                 shift += env.clock() - before
                 continue
             for mode, argv in commands(step, timeline):
+                failure = f"step {step.index} failed ({_label(step)}): {shlex.join(argv)}"
                 if mode == "spawn":
-                    env.spawn(argv)
+                    try:
+                        env.spawn(argv)
+                    except OSError as error:
+                        raise DirectorError(f"{failure}: {error.strerror or error}") from error
                 elif env.run(argv) != 0:
-                    raise DirectorError(f"step {step.index} failed ({_label(step)}): {shlex.join(argv)}")
+                    raise DirectorError(failure)
+        finished = True
     finally:
         if recorder is not None:
             recorder.stop()
+        # A take that did not reach the end is never left under its real name.
+        if take is not None and not finished and take.exists():
+            take.replace(failed_path(take))
 
 
 class _Process:
     def __init__(self, argv: list[str]):
-        self.proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        # stdin is not shared: cues read the terminal, and wf-recorder would prompt on it.
+        self.proc = subprocess.Popen(
+            argv,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+
+    def alive(self) -> bool:
+        return self.proc.poll() is None
 
     def stop(self) -> None:
         if self.proc.poll() is None:
@@ -201,8 +239,24 @@ def _run(argv: list[str]) -> int:
         return 1
 
 
+class _Resume(Exception):
+    pass
+
+
+def _resume(signum, frame):  # noqa: ARG001
+    raise _Resume
+
+
 def _prompt(message: str) -> None:
-    input(f"\n  CUE  {message}\n  Press Enter to continue... ")
+    """Waits for Enter in this terminal, or SIGUSR1 from a compositor keybind, so the
+    terminal never has to come into frame during a take."""
+    previous = signal.signal(signal.SIGUSR1, _resume)
+    try:
+        input(f"\n  CUE  {message}\n  Press Enter, or send SIGUSR1 (pid {os.getpid()}), to continue... ")
+    except _Resume:
+        print()
+    finally:
+        signal.signal(signal.SIGUSR1, previous)
 
 
 def system_env() -> Env:
@@ -215,13 +269,14 @@ def main(argv: list[str] | None = None) -> int:
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", action="store_true", help="print the resolved commands with their times")
     mode.add_argument("--record", metavar="OUT.mkv", help="record the screen with wf-recorder while running")
+    parser.add_argument("--output", metavar="NAME", help="record only this output (wf-recorder -o), e.g. DP-1")
     args = parser.parse_args(argv)
     try:
         timeline = Timeline.load(args.timeline)
         if args.dry_run:
             print("\n".join(dry_run(timeline)))
             return 0
-        run(timeline, system_env(), record=args.record)
+        run(timeline, system_env(), record=args.record, output=args.output)
     except DirectorError as error:
         print(f"director: {error}", file=sys.stderr)
         return 1

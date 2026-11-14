@@ -5,13 +5,18 @@ re-recorded when something changes. Python 3 standard library only.
 
 ```sh
 tools/director/director.py tools/director/timelines/example.json --dry-run
-tools/director/director.py timelines/hero.json --record takes/hero.mkv
+tools/director/director.py tools/director/timelines/hero.json \
+  --record tools/director/takes/hero.mkv --output DP-1
 ```
 
 `--dry-run` prints each step's time and the exact commands. `--record` starts
-`wf-recorder -r 60 -f OUT` first and stops it with SIGINT after the last step. If any
-command fails, the run stops and so does the recorder: a broken take is never kept
-as if it were good. Takes go in `takes/`, which git ignores.
+`wf-recorder -r 60 [-o OUTPUT] -f OUT` first (creating the folder) and stops it with
+SIGINT after the last step. `--output` records one monitor, so the terminal can sit
+on another.
+
+If a command fails, an app is missing, the recorder dies, or you press Ctrl+C, the
+run stops, the recorder stops, and the take is renamed `NAME.failed.mkv`: a broken
+take never keeps the real name. Takes go in `takes/`, which git ignores.
 
 ## Timeline
 
@@ -42,8 +47,14 @@ Steps run in order at `at` seconds from the start; times never go backwards.
 | `cue` | `message` | prints the message and waits for Enter |
 
 A `cue` is for a surface that cannot be opened from a terminal: the run pauses, you
-open it by its shortcut and press Enter, and the rest of the timeline moves back by
-the time you took. Cut the pause out in the edit.
+open it by its shortcut, and you resume, and the rest of the timeline moves back by
+the time you took. Resume with Enter in the director's terminal, or, to keep the
+terminal out of the take, with SIGUSR1 from a keybind that does not show on screen:
+
+```
+# ~/.config/hypr: resume the director's cue
+bind = SUPER CTRL, F12, exec, pkill -USR1 -f tools/director/director.py
+```
 
 Surface commands live in each timeline, not in this script, because how each Ryoku
 surface opens is probed on the desktop (below).
