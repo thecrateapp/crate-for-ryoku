@@ -32,7 +32,8 @@ cp -a "$SRC/plugin/crate-mark" "$OUT/plugin/crate-mark"
 mkdir -p "$OUT/launcher/crate-palette"
 (cd "$SRC/launcher/crate-palette" && cp -a --parents $(find . -type f ! -path './tests/*' ! -path './tools/*') "$OUT/launcher/crate-palette/")
 bash "$SRC/wallpaper/render.sh" "$SRC/build/wallpapers"
-cp "$SRC"/build/wallpapers/crate-*.webp "$OUT/wallpapers/"
+# Groove only: an older render of the retired series in build/ is not shipped
+cp "$SRC"/build/wallpapers/crate-groove-*.webp "$OUT/wallpapers/"
 cp "$SRC/package/install.sh" "$SRC/package/uninstall.sh" "$SRC/package/README.md" "$SRC/package/VERSION" "$OUT/"
 cp "$SRC/LICENSE" "$SRC/NOTICE" "$OUT/"
 mkdir -p "$OUT/bin" && cp "$SRC/bin/crate-for-ryoku" "$OUT/bin/" && chmod +x "$OUT/bin/crate-for-ryoku"

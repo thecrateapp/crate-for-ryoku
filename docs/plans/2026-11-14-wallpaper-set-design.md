@@ -1,5 +1,10 @@
 # Crate Wallpaper Set: Design
 
+> **Shelved 2026-11-14.** The first two new wallpapers (Lead-in, Run-out) were rejected: the Groove
+> motif was exhausted, they read as weaker copies of Groove, too empty and dark, and the parallax
+> motion looked bad and seemed to deform the record. The set ships Groove alone, flat; depth and
+> new motifs wait for a different approach. Kept for the findings on Stage below.
+
 Status: design, agreed with the user on 2026-11-14 (Wave 6 of the design-system plan). Implementation
 plan to follow once this spec is approved.
 

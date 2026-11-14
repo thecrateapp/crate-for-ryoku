@@ -1,5 +1,10 @@
 # Crate Wallpaper Set Implementation Plan
 
+> **Shelved 2026-11-14.** The first two new wallpapers (Lead-in, Run-out) were rejected: the Groove
+> motif was exhausted, they read as weaker copies of Groove, too empty and dark, and the parallax
+> motion looked bad and seemed to deform the record. The set ships Groove alone, flat; depth and
+> new motifs wait for a different approach. Not executed beyond Tasks 1 and 2, which were discarded.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Five Crate wallpapers (Groove, Lead-in, Run-out, Tonearm, Stack) rendered as Stage Parallax layers, laid down and registered by `crate-for-ryoku install`.
