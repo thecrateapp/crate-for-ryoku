@@ -12,3 +12,6 @@ wallpaper/series/
 __pycache__/
 build/
 .superpowers/
+
+# Screencast takes recorded by tools/director
+tools/director/takes/
