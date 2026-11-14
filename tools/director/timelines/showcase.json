@@ -1,0 +1,649 @@
+{
+  "name": "showcase",
+  "output": "showcase.mp4",
+  "surfaces": {
+    "launcher": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:launcher\")"
+      ],
+      "close": [
+        "ydotool",
+        "key",
+        "1:1",
+        "1:0"
+      ],
+      "focus": [
+        0.35,
+        0.16,
+        0.3,
+        0.44
+      ]
+    },
+    "controls": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:quicksettings\")"
+      ],
+      "close": [
+        "ydotool",
+        "key",
+        "1:1",
+        "1:0"
+      ],
+      "focus": [
+        0.34,
+        0.02,
+        0.32,
+        0.53
+      ]
+    },
+    "gamebar": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:gamebar\")"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:gamebar\")"
+      ],
+      "focus": [
+        0.39,
+        0.02,
+        0.22,
+        0.31
+      ]
+    },
+    "wallpaper-picker": {
+      "open": [
+        "qs",
+        "-c",
+        "shell",
+        "ipc",
+        "call",
+        "picker",
+        "wallpaper"
+      ],
+      "close": [
+        "ydotool",
+        "key",
+        "1:1",
+        "1:0"
+      ],
+      "focus": [
+        0.3,
+        0.33,
+        0.4,
+        0.36
+      ]
+    },
+    "kit": {
+      "open": [
+        "setsid",
+        "-f",
+        "ryoku-kit"
+      ],
+      "close": [
+        "ydotool",
+        "key",
+        "1:1",
+        "1:0"
+      ],
+      "focus": [
+        0.2,
+        0.2,
+        0.6,
+        0.62
+      ]
+    },
+    "terminal": {
+      "open": [
+        "true"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.close({ window = \"class:director-term\" })"
+      ]
+    },
+    "crate-app": {
+      "open": [
+        "sh",
+        "-c",
+        "hyprctl dispatch 'hl.dsp.focus({ window = \"class:app.cratemusic.crate.desktop\" })' && hyprctl dispatch 'hl.dsp.window.fullscreen()'"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.fullscreen()"
+      ]
+    },
+    "crate-mark": {
+      "focus": [
+        0.36,
+        0.02,
+        0.21,
+        0.53
+      ]
+    },
+    "preview-sheen": {
+      "open": [
+        "sh",
+        "-c",
+        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/crate-sheen.webp"
+      ]
+    },
+    "preview-horizon": {
+      "open": [
+        "sh",
+        "-c",
+        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/crate-horizon.webp"
+      ]
+    },
+    "preview-macro": {
+      "open": [
+        "sh",
+        "-c",
+        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/crate-macro.webp"
+      ]
+    },
+    "preview-clear": {
+      "open": [
+        "ryogami",
+        "wallpaper",
+        "preview-clear"
+      ]
+    },
+    "crate-window": {
+      "open": [
+        "setsid",
+        "-f",
+        "crate-desktop"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.close({ window = \"class:app.cratemusic.crate.desktop\" })"
+      ]
+    },
+    "qsbar-settings": {
+      "open": [
+        "qs",
+        "-c",
+        "shell",
+        "ipc",
+        "call",
+        "qsbar",
+        "settings",
+        ""
+      ],
+      "close": [
+        "ydotool",
+        "key",
+        "1:1",
+        "1:0"
+      ],
+      "focus": [
+        0.0,
+        0.02,
+        0.4,
+        0.68
+      ]
+    },
+    "network": {
+      "focus": [
+        0.77,
+        0.02,
+        0.15,
+        0.5
+      ]
+    },
+    "audio": {
+      "focus": [
+        0.81,
+        0.02,
+        0.15,
+        0.56
+      ]
+    },
+    "bluetooth": {
+      "focus": [
+        0.78,
+        0.02,
+        0.16,
+        0.18
+      ]
+    },
+    "bell": {
+      "focus": [
+        0.85,
+        0.02,
+        0.15,
+        0.4
+      ]
+    }
+  },
+  "steps": [
+    {
+      "at": 0,
+      "do": "pointer",
+      "to": [
+        3408,
+        2540
+      ]
+    },
+    {
+      "at": 0.2,
+      "do": "play",
+      "action": "play"
+    },
+    {
+      "at": 1,
+      "do": "key",
+      "key": "m",
+      "mods": [
+        "super"
+      ]
+    },
+    {
+      "at": 2.5,
+      "do": "surface",
+      "name": "preview-sheen",
+      "action": "open"
+    },
+    {
+      "at": 5,
+      "do": "surface",
+      "name": "preview-horizon",
+      "action": "open"
+    },
+    {
+      "at": 7.5,
+      "do": "surface",
+      "name": "preview-macro",
+      "action": "open"
+    },
+    {
+      "at": 10,
+      "do": "surface",
+      "name": "preview-clear",
+      "action": "open"
+    },
+    {
+      "at": 11.5,
+      "do": "key",
+      "key": "m",
+      "mods": [
+        "super"
+      ]
+    },
+    {
+      "at": 12.5,
+      "do": "key",
+      "key": "w",
+      "mods": [
+        "super"
+      ]
+    },
+    {
+      "at": 14,
+      "do": "key",
+      "key": "Right"
+    },
+    {
+      "at": 15.2,
+      "do": "key",
+      "key": "Right"
+    },
+    {
+      "at": 16.4,
+      "do": "key",
+      "key": "Right"
+    },
+    {
+      "at": 18,
+      "do": "key",
+      "key": "Escape"
+    },
+    {
+      "at": 19.5,
+      "do": "window",
+      "run": [
+        "kitty",
+        "--class",
+        "director-term",
+        "sh",
+        "-c",
+        "cd ~/Code/Ninja/crate-for-ryoku && clear && fastfetch && sleep 120"
+      ]
+    },
+    {
+      "at": 20.5,
+      "do": "window",
+      "run": [
+        "kitty",
+        "--class",
+        "director-term",
+        "sh",
+        "-c",
+        "cd ~/Code/Ninja/crate-for-ryoku && btop"
+      ]
+    },
+    {
+      "at": 21.5,
+      "do": "window",
+      "run": [
+        "kitty",
+        "--class",
+        "director-term",
+        "sh",
+        "-c",
+        "cd ~/Code/Ninja/crate-for-ryoku && cava"
+      ]
+    },
+    {
+      "at": 22.5,
+      "do": "window",
+      "run": [
+        "kitty",
+        "--class",
+        "director-term",
+        "sh",
+        "-c",
+        "cd ~/Code/Ninja/crate-for-ryoku && yazi"
+      ]
+    },
+    {
+      "at": 28,
+      "do": "surface",
+      "name": "terminal",
+      "action": "close"
+    },
+    {
+      "at": 28.6,
+      "do": "surface",
+      "name": "terminal",
+      "action": "close"
+    },
+    {
+      "at": 29.2,
+      "do": "surface",
+      "name": "terminal",
+      "action": "close"
+    },
+    {
+      "at": 29.8,
+      "do": "surface",
+      "name": "terminal",
+      "action": "close"
+    },
+    {
+      "at": 31,
+      "do": "surface",
+      "name": "crate-window",
+      "action": "open"
+    },
+    {
+      "at": 35,
+      "do": "pointer",
+      "from": [
+        3408,
+        2540
+      ],
+      "to": [
+        2377,
+        1460
+      ],
+      "duration": 0.9,
+      "click": true,
+      "opens": "crate-mark"
+    },
+    {
+      "at": 40,
+      "do": "pointer",
+      "from": [
+        2377,
+        1460
+      ],
+      "to": [
+        2377,
+        1460
+      ],
+      "duration": 0.1,
+      "click": true,
+      "closes": "crate-mark"
+    },
+    {
+      "at": 41,
+      "do": "pointer",
+      "from": [
+        2377,
+        1460
+      ],
+      "to": [
+        3460,
+        1460
+      ],
+      "duration": 0.7,
+      "click": true,
+      "opens": "audio"
+    },
+    {
+      "at": 44.2,
+      "do": "pointer",
+      "from": [
+        3460,
+        1460
+      ],
+      "to": [
+        3460,
+        1460
+      ],
+      "duration": 0.05,
+      "click": true,
+      "closes": "audio"
+    },
+    {
+      "at": 45,
+      "do": "pointer",
+      "from": [
+        3460,
+        1460
+      ],
+      "to": [
+        3397,
+        1460
+      ],
+      "duration": 0.7,
+      "click": true,
+      "opens": "bluetooth"
+    },
+    {
+      "at": 48.2,
+      "do": "pointer",
+      "from": [
+        3397,
+        1460
+      ],
+      "to": [
+        3397,
+        1460
+      ],
+      "duration": 0.05,
+      "click": true,
+      "closes": "bluetooth"
+    },
+    {
+      "at": 49,
+      "do": "pointer",
+      "from": [
+        3397,
+        1460
+      ],
+      "to": [
+        3355,
+        1460
+      ],
+      "duration": 0.7,
+      "click": true,
+      "opens": "network"
+    },
+    {
+      "at": 52.2,
+      "do": "pointer",
+      "from": [
+        3355,
+        1460
+      ],
+      "to": [
+        3355,
+        1460
+      ],
+      "duration": 0.05,
+      "click": true,
+      "closes": "network"
+    },
+    {
+      "at": 53,
+      "do": "pointer",
+      "from": [
+        3355,
+        1460
+      ],
+      "to": [
+        3681,
+        1460
+      ],
+      "duration": 0.7,
+      "click": true,
+      "opens": "bell"
+    },
+    {
+      "at": 56.2,
+      "do": "pointer",
+      "from": [
+        3681,
+        1460
+      ],
+      "to": [
+        3681,
+        1460
+      ],
+      "duration": 0.05,
+      "click": true,
+      "closes": "bell"
+    },
+    {
+      "at": 57,
+      "do": "pointer",
+      "from": [
+        3681,
+        1460
+      ],
+      "to": [
+        3408,
+        2540
+      ],
+      "duration": 0.8
+    },
+    {
+      "at": 58,
+      "do": "surface",
+      "name": "crate-window",
+      "action": "close"
+    },
+    {
+      "at": 59.5,
+      "do": "surface",
+      "name": "controls",
+      "action": "open"
+    },
+    {
+      "at": 63.5,
+      "do": "surface",
+      "name": "controls",
+      "action": "close"
+    },
+    {
+      "at": 64.7,
+      "do": "surface",
+      "name": "launcher",
+      "action": "open"
+    },
+    {
+      "at": 65.3,
+      "do": "type",
+      "text": "cr nitzer"
+    },
+    {
+      "at": 69.7,
+      "do": "surface",
+      "name": "launcher",
+      "action": "close"
+    },
+    {
+      "at": 70.9,
+      "do": "surface",
+      "name": "gamebar",
+      "action": "open"
+    },
+    {
+      "at": 74.9,
+      "do": "surface",
+      "name": "gamebar",
+      "action": "close"
+    },
+    {
+      "at": 76.10000000000001,
+      "do": "surface",
+      "name": "kit",
+      "action": "open"
+    },
+    {
+      "at": 80.10000000000001,
+      "do": "surface",
+      "name": "kit",
+      "action": "close"
+    },
+    {
+      "at": 81.30000000000001,
+      "do": "surface",
+      "name": "qsbar-settings",
+      "action": "open"
+    },
+    {
+      "at": 85.30000000000001,
+      "do": "surface",
+      "name": "qsbar-settings",
+      "action": "close"
+    },
+    {
+      "at": 86.50000000000001,
+      "do": "key",
+      "key": "s",
+      "mods": [
+        "super",
+        "shift"
+      ]
+    },
+    {
+      "at": 89.50000000000001,
+      "do": "key",
+      "key": "Escape"
+    },
+    {
+      "at": 91.00000000000001,
+      "do": "notify",
+      "title": "Crate",
+      "body": "Now playing"
+    },
+    {
+      "at": 95.50000000000001,
+      "do": "wait"
+    }
+  ]
+}

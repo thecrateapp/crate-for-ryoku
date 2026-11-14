@@ -217,9 +217,18 @@ def test_type_step_types_text_with_wtype():
     assert director.dry_run(load(data)) == ["   0.00  type: wtype -d 60 'cr nitzer'"]
 
 
-def test_key_step_presses_a_shortcut_with_wtype():
-    data = {"name": "t", "output": "t.mkv", "steps": [{"at": 0, "do": "key", "key": "Escape", "mods": ["logo"]}]}
-    assert director.dry_run(load(data)) == ["   0.00  key: wtype -M logo -k Escape -m logo"]
+def test_key_step_presses_a_shortcut_with_real_keycodes():
+    # Ryoku binds by keycode; wtype's virtual keymap starts at code 9 (Escape), so
+    # shortcuts go through ydotool with evdev codes: Super (125) + W (17).
+    data = {"name": "t", "output": "t.mkv", "steps": [{"at": 0, "do": "key", "key": "w", "mods": ["super"]}]}
+    assert director.dry_run(load(data)) == ["   0.00  key: ydotool key 125:1 17:1 17:0 125:0"]
+
+
+def test_key_step_knows_named_keys_and_rejects_unknown_ones():
+    data = {"name": "t", "output": "t.mkv", "steps": [{"at": 0, "do": "key", "key": "Right"}]}
+    assert director.dry_run(load(data)) == ["   0.00  key: ydotool key 106:1 106:0"]
+    with pytest.raises(director.DirectorError, match="unknown key 'Hyper'"):
+        load({"name": "t", "output": "t.mkv", "steps": [{"at": 0, "do": "key", "key": "Hyper"}]})
 
 
 def test_a_pointer_glide_moves_in_eased_frames_over_its_duration():

@@ -28,6 +28,18 @@ PLAY_ACTIONS = ("play", "pause", "play-pause", "next", "previous", "stop")
 RECORDER = ["wf-recorder", "-r", "60"]
 COMMAND_TIMEOUT = 15
 GLIDE_FPS = 60
+
+# Linux evdev key codes (input-event-codes.h) for `key` steps. Ryoku binds shortcuts
+# by keycode, so they are sent through ydotool's uinput keyboard, not wtype.
+KEYCODES = {
+    "super": 125, "shift": 42, "ctrl": 29, "alt": 56,
+    "Escape": 1, "Return": 28, "Tab": 15, "space": 57, "BackSpace": 14,
+    "Left": 105, "Right": 106, "Up": 103, "Down": 108,
+    **{c: code for c, code in zip("1234567890", range(2, 12))},
+    **{c: code for c, code in zip("qwertyuiop", range(16, 26))},
+    **{c: code for c, code in zip("asdfghjkl", range(30, 39))},
+    **{c: code for c, code in zip("zxcvbnm", range(44, 51))},
+}
 TYPE_DELAY_MS = 60
 
 
@@ -116,6 +128,9 @@ def _validate(index: int, kind: str, raw: dict[str, Any], surfaces: dict) -> Non
         need("text")
     elif kind == "key":
         need("key")
+        for name in [raw["key"], *raw.get("mods", [])]:
+            if name not in KEYCODES:
+                raise DirectorError(f"step {index}: unknown key {name!r}")
     elif kind == "cue":
         need("message")
 
@@ -139,10 +154,10 @@ def commands(step: Step, timeline: Timeline) -> list[tuple[str, list[str]]]:
     if step.kind == "type":
         return [("run", ["wtype", "-d", str(TYPE_DELAY_MS), d["text"]])]
     if step.kind == "key":
-        mods = d.get("mods", [])
-        press = [a for m in mods for a in ("-M", m)]
-        release = [a for m in mods for a in ("-m", m)]
-        return [("run", ["wtype", *press, "-k", d["key"], *release])]
+        codes = [KEYCODES[m] for m in d.get("mods", [])] + [KEYCODES[d["key"]]]
+        press = [f"{c}:1" for c in codes]
+        release = [f"{c}:0" for c in reversed(codes)]
+        return [("run", ["ydotool", "key", *press, *release])]
     if step.kind == "pointer" and "duration" in d:
         return [("run", argv) for _, argv in glide(d)] + (
             [("run", ["ydotool", "click", "0xC0"])] if d.get("click") else []
