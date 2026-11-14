@@ -5,7 +5,7 @@ desktop. One install gives you:
 
 - **The Crate rice**: Crate's palette and type across the shell, the Hub and
   the apps (cyan marks, JetBrains Mono caps navigation, hairlines, Bricolage
-  titles), the Groove wallpaper, and the Crate fastfetch emblem.
+  titles), the Groove and Sheen wallpapers, and the Crate fastfetch emblem.
 - **crate-mark**: the Crate logo on the QS Bar, shown while Crate is installed,
   with now playing, transport and Crate's equalizer (Smart, Genre, Adaptive,
   presets) in a panel drawn to Crate's player spec.
@@ -66,7 +66,7 @@ icons/            crate-icons (build_icons.py) and crateize.py with its brand an
 plugin/crate-mark the bar plugin
 launcher/         Crate Palette, the Super+Space launcher (node --test launcher/crate-palette/tests/)
 shell/            the eza theme and the Pure prompt
-wallpaper/        the Groove wallpaper generator (render.sh)
+wallpaper/        the Groove and Sheen wallpaper generators (render.sh)
 package/          build.sh, install.sh, uninstall.sh and the icon watcher units
 bin/              the crate-for-ryoku command
 packaging/aur/    the crate-for-ryoku PKGBUILD

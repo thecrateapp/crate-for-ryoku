@@ -1,7 +1,7 @@
 # Built and rendered output, regenerated from the sources here:
 #   dist/                      package/build.sh
 #   icons/crate-icons/         icons/build_icons.py (run by package/build.sh)
-#   wallpaper renders          wallpaper/groove.py (via wallpaper/render.sh)
+#   wallpaper renders          wallpaper/groove.py, sheen.py (via render.sh)
 #   captures/                  review screenshots, some of a live desktop
 dist/
 captures/
