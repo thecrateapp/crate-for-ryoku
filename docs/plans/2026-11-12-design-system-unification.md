@@ -220,7 +220,25 @@ Decided with the user on 2026-11-14:
 - [ ] **Contact sheet:** every surface under Crate and Default, compared with crate-mark; record residual exceptions with a reason.
 - [ ] **Final:** a fresh whole-branch review; the rulings and deferred minors go to the user.
 
+## Wave 7: Remaining surfaces (task list)
+
+Inventory of 2026-11-14 (every module that opens its own window, checked for any crate adaptation): the user ruled that all of them migrate, in any order. Each surface follows the rulings in sections 1-2 and the Wave 3-5 patterns (kit primitives, Tokens roles, `Tokens.controlsCrate` gates, stock unchanged, one glass for floating panels, opaque large working windows, no Ryoku marginalia, kanji glosses kept), with a probe or scene for both looks.
+
+- [ ] **Game Bar** (`shell/modules/gamebar`, 23 files, kit in 10).
+- [ ] **Ask** (`shell/modules/ask`: AskBar, AskBubble; Rashin's question bar).
+- [ ] **Capture overlays** (`shell/modules/capture`: region, camera, keypress, recording).
+- [ ] **Ryoku launcher** (`shell/modules/launcher`: hero launcher, window rail; 39 literal colours). Crate Palette users skip it, but a fresh install shows it.
+- [ ] **Keys** and **Keys hint** (`shell/quickshell/keys`, `keys-hint`).
+- [ ] **Phone bridge** (`shell/modules/phone`).
+- [ ] **Ryopin** (`shell/quickshell/ryopin`, pinned windows).
+- [ ] **Visualizer** (`shell/modules/visualizer`; 5 literal colours).
+- [ ] **Desktop widgets and edit mode** (`stage/modules/ii`: notes, clocks and the rest, the edit chrome; 244 files, 53 literal colours).
+- [ ] **iNiR shared surfaces** (`inir/modules`: context menu, popup tooltip, cheatsheet, close confirm, media controls, overlay, background).
+- [ ] **iRiS bar** (`inir/modules/iris`, the alternative bar style; 184 files).
+- [ ] **QS Bar image and media pickers** (three layouts each; deferred since Wave 3).
+- [ ] The overview backdrop (`shell/modules/wallpaper`) has no chrome of its own; confirm and close.
+
 ## Ordering and verification
 
-Wave 0 → Wave 1 → Waves 2 and 3 (independent once the kit exists) → Wave 4 → Wave 5 → Wave 6.
+Wave 0 → Wave 1 → Waves 2 and 3 (independent once the kit exists) → Wave 4 → Wave 5 → Wave 6 → Wave 7.
 Each wave ends with packages installed live and a capture review with the user before the next starts.
