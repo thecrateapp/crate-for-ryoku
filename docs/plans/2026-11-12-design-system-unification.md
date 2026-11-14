@@ -238,10 +238,11 @@ Inventory of 2026-11-14 (every module that opens its own window, checked for any
 - [x] **Phone bridge** (no chrome: services only; its notifications are the Wave 2 cards. The card's last-resort Material icon still needs a crate glyph) (`shell/modules/phone`).
 - [x] **Ryopin** (fork 868cbd12, merged; strip is glass in the margin, card opaque, pin margin 44 px under crate) (`shell/quickshell/ryopin`, pinned windows).
 - [x] **Visualizer** (fork 0b737130 + 74160cfd wallpaper relight kept, merged 9b082546) (`shell/modules/visualizer`; 5 literal colours).
+- [ ] **Shima dock** (the Crate setup's dock: `dock.design = shima`, drawn by inir/modules/iris/dock/IrisDockSurface; in progress). The Crate rice now carries the dock's look (shima, bottom, autohide, frost, labels, no magnify) without pinned apps; the fork keeps the user's pins when a rice names none (70c017ed).
+- [x] **QS Bar image and media pickers** (fork f1d18832, merged f44ed8a7; tanzaku and hearthstone scrims glass; carousel slices keep their skewed corners).
+- [x] **iNiR shared surfaces**: none can show in the Crate setup (iRiS bar or ii dock only); the notification card's fallback thumbnail is a kit glyph (fork f40f6e99, merged 214e272e).
 - [ ] **Desktop widgets and edit mode** (`stage/modules/ii`: notes, clocks and the rest, the edit chrome; 244 files, 53 literal colours).
-- [ ] **iNiR shared surfaces** (`inir/modules`: context menu, popup tooltip, cheatsheet, close confirm, media controls, overlay, background).
 - [-] **iRiS bar**: out of scope (alternative style, scope ruling above).
-- [ ] **QS Bar image and media pickers** (three layouts each; deferred since Wave 3).
 - [ ] The overview backdrop (`shell/modules/wallpaper`) has no chrome of its own; confirm and close.
 
 ## Ordering and verification

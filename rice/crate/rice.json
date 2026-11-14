@@ -158,6 +158,28 @@
         "workspaceStyle": "kanji",
         "launcherLogoText": "crate",
         "launcherLogoIcon": "crate"
+      },
+      "dock": {
+        "autohide": true,
+        "design": "shima",
+        "edge": "bottom",
+        "edgeGap": 0,
+        "enabled": true,
+        "frost": true,
+        "labels": true,
+        "magnify": false,
+        "media": false,
+        "revealOnEmpty": true,
+        "shadow": true,
+        "shima": {
+          "launcher": false,
+          "material": "inherit",
+          "notch": true,
+          "reserveSpace": true,
+          "shape": "auto"
+        },
+        "size": 44,
+        "style": "ledger"
       }
     },
     "theme": {
