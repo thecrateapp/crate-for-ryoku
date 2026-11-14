@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import shlex
 import signal
@@ -22,10 +23,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-KINDS = ("surface", "window", "notify", "play", "pointer", "wait", "cue")
+KINDS = ("surface", "window", "notify", "play", "pointer", "type", "key", "wait", "cue")
 PLAY_ACTIONS = ("play", "pause", "play-pause", "next", "previous", "stop")
 RECORDER = ["wf-recorder", "-r", "60"]
 COMMAND_TIMEOUT = 15
+GLIDE_FPS = 60
+TYPE_DELAY_MS = 60
 
 
 class DirectorError(RuntimeError):
@@ -104,6 +107,12 @@ def _validate(index: int, kind: str, raw: dict[str, Any], surfaces: dict) -> Non
             raise DirectorError(f"step {index}: unknown play action {raw['action']!r}")
     elif kind == "pointer":
         need("to")
+        if "duration" in raw and "from" not in raw:
+            raise DirectorError(f"step {index}: a pointer glide needs 'from'")
+    elif kind == "type":
+        need("text")
+    elif kind == "key":
+        need("key")
     elif kind == "cue":
         need("message")
 
@@ -115,21 +124,53 @@ def commands(step: Step, timeline: Timeline) -> list[tuple[str, list[str]]]:
         return [("run", list(timeline.surfaces[d["name"]][d["action"]]))]
     if step.kind == "window":
         out = [("spawn", list(d["run"]))]
+        # Hyprland 0.57+ dispatches Lua: each entry is passed as written,
+        # e.g. 'hl.dsp.window.fullscreen()'.
         for dispatch in d.get("dispatch", []):
-            name, _, args = dispatch.partition(" ")
-            out.append(("run", ["hyprctl", "dispatch", name, *([args] if args else [])]))
+            out.append(("run", ["hyprctl", "dispatch", dispatch]))
         return out
     if step.kind == "notify":
         return [("run", ["notify-send", "-a", d.get("app", "Crate"), d["title"], d["body"]])]
     if step.kind == "play":
         return [("run", ["playerctl", "-p", d.get("player", "crate"), d["action"]])]
+    if step.kind == "type":
+        return [("run", ["wtype", "-d", str(TYPE_DELAY_MS), d["text"]])]
+    if step.kind == "key":
+        mods = d.get("mods", [])
+        press = [a for m in mods for a in ("-M", m)]
+        release = [a for m in mods for a in ("-m", m)]
+        return [("run", ["wtype", *press, "-k", d["key"], *release])]
+    if step.kind == "pointer" and "duration" in d:
+        return [("run", argv) for _, argv in glide(d)] + (
+            [("run", ["ydotool", "click", "0xC0"])] if d.get("click") else []
+        )
     if step.kind == "pointer":
         x, y = d["to"]
-        out = [("run", ["hyprctl", "dispatch", "movecursor", str(x), str(y)])]
+        out = [("run", move_cursor(x, y))]
         if d.get("click"):
             out.append(("run", ["ydotool", "click", "0xC0"]))
         return out
     return []
+
+
+def move_cursor(x: int, y: int) -> list[str]:
+    """Moves the pointer to layout coordinates (Hyprland 0.57+ Lua dispatch)."""
+    return ["hyprctl", "dispatch", f"hl.dsp.cursor.move({{x={x},y={y}}})"]
+
+
+def glide(d: dict[str, Any]) -> list[tuple[float, list[str]]]:
+    """A pointer glide: (seconds into the step, movecursor argv) per frame, eased
+    in and out like the Beam, from `from` to `to` over `duration` seconds."""
+    (x0, y0), (x1, y1) = d["from"], d["to"]
+    duration = float(d["duration"])
+    frames = max(2, round(duration * GLIDE_FPS))
+    out = []
+    for i in range(frames):
+        t = i / (frames - 1)
+        e = (1 - math.cos(math.pi * t)) / 2
+        x, y = round(x0 + (x1 - x0) * e), round(y0 + (y1 - y0) * e)
+        out.append((duration * t, move_cursor(x, y)))
+    return out
 
 
 def _label(step: Step) -> str:
@@ -147,6 +188,15 @@ def dry_run(timeline: Timeline) -> list[str]:
         head = f"{step.at:7.2f}  {_label(step)}"
         if step.kind == "cue":
             lines.append(f"{head}: {step.data['message']}")
+            continue
+        if step.kind == "pointer" and "duration" in step.data:
+            d = step.data
+            moves = glide(d)
+            click = "; ydotool click 0xC0" if d.get("click") else ""
+            lines.append(
+                f"{head} glide {d['from']} -> {d['to']} over {d['duration']} s: "
+                f"{len(moves)} x hl.dsp.cursor.move{click}"
+            )
             continue
         cmds = commands(step, timeline)
         lines.append(f"{head}: {'; '.join(shlex.join(argv) for _, argv in cmds)}" if cmds else head)
@@ -189,6 +239,15 @@ def run(timeline: Timeline, env: Env, record: str | None = None, output: str | N
                 before = env.clock()
                 env.prompt(step.data["message"])
                 shift += env.clock() - before
+                continue
+            if step.kind == "pointer" and "duration" in step.data:
+                base = start + shift + step.at
+                for offset, argv in glide(step.data):
+                    env.sleep(base + offset - env.clock())
+                    if env.run(argv) != 0:
+                        raise DirectorError(f"step {step.index} failed (pointer glide): {shlex.join(argv)}")
+                if step.data.get("click") and env.run(["ydotool", "click", "0xC0"]) != 0:
+                    raise DirectorError(f"step {step.index} failed (pointer click): ydotool click 0xC0")
                 continue
             for mode, argv in commands(step, timeline):
                 failure = f"step {step.index} failed ({_label(step)}): {shlex.join(argv)}"

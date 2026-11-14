@@ -63,6 +63,28 @@
         "-k",
         "Escape"
       ]
+    },
+    "terminal": {
+      "open": [
+        "true"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.close({ window = \"class:director-term\" })"
+      ]
+    },
+    "crate-app": {
+      "open": [
+        "sh",
+        "-c",
+        "hyprctl dispatch 'hl.dsp.focus({ window = \"class:app.cratemusic.crate.desktop\" })' && hyprctl dispatch 'hl.dsp.window.fullscreen()'"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.fullscreen()"
+      ]
     }
   },
   "steps": [
@@ -81,8 +103,44 @@
     },
     {
       "at": 6,
-      "do": "cue",
-      "message": "R2: click the crate-mark pill, change presets, click it closed"
+      "do": "pointer",
+      "from": [
+        2560,
+        2160
+      ],
+      "to": [
+        2377,
+        1460
+      ],
+      "duration": 0.9,
+      "click": true
+    },
+    {
+      "at": 12.9,
+      "do": "pointer",
+      "from": [
+        2377,
+        1460
+      ],
+      "to": [
+        2377,
+        1460
+      ],
+      "duration": 0.1,
+      "click": true
+    },
+    {
+      "at": 13.2,
+      "do": "pointer",
+      "from": [
+        2377,
+        1460
+      ],
+      "to": [
+        2560,
+        2160
+      ],
+      "duration": 0.9
     },
     {
       "at": 16,
@@ -91,12 +149,12 @@
       "action": "open"
     },
     {
-      "at": 17,
-      "do": "cue",
-      "message": "R3: type 'cr ' and play a result"
+      "at": 16.6,
+      "do": "type",
+      "text": "cr nitzer"
     },
     {
-      "at": 25,
+      "at": 24.5,
       "do": "surface",
       "name": "launcher",
       "action": "close"
@@ -151,13 +209,72 @@
     },
     {
       "at": 46,
-      "do": "cue",
-      "message": "R6: terminal: fastfetch, then eza"
+      "do": "window",
+      "run": [
+        "kitty",
+        "--class",
+        "director-term",
+        "sh",
+        "-c",
+        "cd ~/Code/Ninja/crate-for-ryoku && clear && fastfetch && sleep 4 && eza --icons -l && sleep 60"
+      ]
+    },
+    {
+      "at": 55,
+      "do": "surface",
+      "name": "terminal",
+      "action": "close"
     },
     {
       "at": 56,
-      "do": "cue",
-      "message": "R7: Crate desktop app full screen, then back"
+      "do": "surface",
+      "name": "crate-app",
+      "action": "open"
+    },
+    {
+      "at": 64,
+      "do": "surface",
+      "name": "crate-app",
+      "action": "close"
+    },
+    {
+      "at": 66,
+      "do": "pointer",
+      "from": [
+        2560,
+        2160
+      ],
+      "to": [
+        2420,
+        2832
+      ],
+      "duration": 0.8
+    },
+    {
+      "at": 66.9,
+      "do": "pointer",
+      "from": [
+        2420,
+        2832
+      ],
+      "to": [
+        2700,
+        2832
+      ],
+      "duration": 2.4
+    },
+    {
+      "at": 69.4,
+      "do": "pointer",
+      "from": [
+        2700,
+        2832
+      ],
+      "to": [
+        2560,
+        2160
+      ],
+      "duration": 0.8
     },
     {
       "at": 75,

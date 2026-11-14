@@ -63,6 +63,28 @@
         "-k",
         "Escape"
       ]
+    },
+    "terminal": {
+      "open": [
+        "true"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.close({ window = \"class:director-term\" })"
+      ]
+    },
+    "crate-app": {
+      "open": [
+        "sh",
+        "-c",
+        "hyprctl dispatch 'hl.dsp.focus({ window = \"class:app.cratemusic.crate.desktop\" })' && hyprctl dispatch 'hl.dsp.window.fullscreen()'"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.fullscreen()"
+      ]
     }
   },
   "steps": [
@@ -81,8 +103,44 @@
     },
     {
       "at": 1,
-      "do": "cue",
-      "message": "qsbar: click the crate-mark pill, change the EQ preset, click it closed"
+      "do": "pointer",
+      "from": [
+        2560,
+        2160
+      ],
+      "to": [
+        2377,
+        1460
+      ],
+      "duration": 0.9,
+      "click": true
+    },
+    {
+      "at": 5.4,
+      "do": "pointer",
+      "from": [
+        2377,
+        1460
+      ],
+      "to": [
+        2377,
+        1460
+      ],
+      "duration": 0.1,
+      "click": true
+    },
+    {
+      "at": 5.7,
+      "do": "pointer",
+      "from": [
+        2377,
+        1460
+      ],
+      "to": [
+        2560,
+        2160
+      ],
+      "duration": 0.9
     },
     {
       "at": 7,
@@ -101,6 +159,11 @@
       "do": "surface",
       "name": "launcher",
       "action": "open"
+    },
+    {
+      "at": 13.6,
+      "do": "type",
+      "text": "cr nitzer"
     },
     {
       "at": 18,
@@ -146,23 +209,57 @@
     },
     {
       "at": 37,
-      "do": "cue",
-      "message": "dock: move the pointer along the dock and back"
+      "do": "pointer",
+      "from": [
+        2560,
+        2160
+      ],
+      "to": [
+        2420,
+        2832
+      ],
+      "duration": 0.8
     },
     {
-      "at": 43,
+      "at": 37.9,
+      "do": "pointer",
+      "from": [
+        2420,
+        2832
+      ],
+      "to": [
+        2700,
+        2832
+      ],
+      "duration": 2.4
+    },
+    {
+      "at": 40.4,
+      "do": "pointer",
+      "from": [
+        2700,
+        2832
+      ],
+      "to": [
+        2560,
+        2160
+      ],
+      "duration": 0.8
+    },
+    {
+      "at": 42.5,
       "do": "notify",
       "title": "Crate",
       "body": "Now playing"
     },
     {
-      "at": 44.5,
+      "at": 44,
       "do": "notify",
       "title": "Crate",
       "body": "Added to your library"
     },
     {
-      "at": 49,
+      "at": 48.5,
       "do": "wait"
     }
   ]

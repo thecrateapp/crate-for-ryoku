@@ -138,14 +138,14 @@ def test_window_launches_detached_and_places_with_hyprctl():
         "name": "t",
         "output": "t.mkv",
         "steps": [
-            {"at": 0, "do": "window", "run": ["crate-desktop"], "dispatch": ["movewindowpixel exact 80 80,class:crate"]},
+            {"at": 0, "do": "window", "run": ["crate-desktop"], "dispatch": ['hl.dsp.window.fullscreen()']},
         ],
     }
     fake = Fake()
     director.run(load(data), fake.env())
     assert fake.calls == [
         ("spawn", ["crate-desktop"], 0.0),
-        ("run", ["hyprctl", "dispatch", "movewindowpixel", "exact 80 80,class:crate"], 0.0),
+        ("run", ["hyprctl", "dispatch", "hl.dsp.window.fullscreen()"], 0.0),
     ]
 
 
@@ -153,7 +153,7 @@ def test_pointer_moves_with_hyprctl_and_clicks_with_ydotool():
     # Shell surfaces open on the monitor under the pointer, so a take parks it first.
     data = {"name": "t", "output": "t.mkv", "steps": [{"at": 0, "do": "pointer", "to": [100, 200], "click": True}]}
     assert director.dry_run(load(data)) == [
-        "   0.00  pointer: hyprctl dispatch movecursor 100 200; ydotool click 0xC0",
+        "   0.00  pointer: hyprctl dispatch 'hl.dsp.cursor.move({x=100,y=200})'; ydotool click 0xC0",
     ]
 
 
@@ -208,3 +208,36 @@ def test_record_can_target_one_output_so_the_terminal_stays_out_of_frame(tmp_pat
     fake = Fake()
     director.run(load({"name": "t", "output": "t.mkv", "steps": []}), fake.env(), record=str(tmp_path / "t.mkv"), output="DP-1")
     assert fake.calls[0][1] == ["wf-recorder", "-r", "60", "-o", "DP-1", "-f", str(tmp_path / "t.mkv")]
+
+
+def test_type_step_types_text_with_wtype():
+    data = {"name": "t", "output": "t.mkv", "steps": [{"at": 0, "do": "type", "text": "cr nitzer"}]}
+    assert director.dry_run(load(data)) == ["   0.00  type: wtype -d 60 'cr nitzer'"]
+
+
+def test_key_step_presses_a_shortcut_with_wtype():
+    data = {"name": "t", "output": "t.mkv", "steps": [{"at": 0, "do": "key", "key": "Escape", "mods": ["logo"]}]}
+    assert director.dry_run(load(data)) == ["   0.00  key: wtype -M logo -k Escape -m logo"]
+
+
+def test_a_pointer_glide_moves_in_eased_frames_over_its_duration():
+    data = {
+        "name": "t",
+        "output": "t.mkv",
+        "steps": [{"at": 1, "do": "pointer", "from": [0, 0], "to": [100, 50], "duration": 0.5}],
+    }
+    fake = Fake()
+    director.run(load(data), fake.env())
+    moves = [(argv, at) for kind, argv, at in fake.calls if kind == "run"]
+    assert len(moves) == 30  # 60 fps for half a second
+    assert moves[0][0] == ["hyprctl", "dispatch", "hl.dsp.cursor.move({x=0,y=0})"]
+    assert moves[-1][0] == ["hyprctl", "dispatch", "hl.dsp.cursor.move({x=100,y=50})"]
+    assert moves[0][1] == 1.0 and moves[-1][1] == pytest.approx(1.5, abs=0.02)
+    xs = [int(argv[2].split("x=")[1].split(",")[0]) for argv, _ in moves]
+    assert xs == sorted(xs), "the glide never goes backwards"
+    assert xs[1] - xs[0] < xs[15] - xs[14], "eased: slow at the start, faster in the middle"
+
+
+def test_a_glide_needs_a_start_point():
+    with pytest.raises(director.DirectorError, match="glide needs 'from'"):
+        load({"name": "t", "output": "t.mkv", "steps": [{"at": 0, "do": "pointer", "to": [1, 1], "duration": 1}]})
