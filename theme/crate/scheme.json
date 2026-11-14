@@ -32,7 +32,8 @@
             "navFont": "JetBrainsMono Nerd Font",
             "density": "compact",
             "controls": "crate",
-            "mono": "JetBrainsMono Nerd Font"
+            "mono": "JetBrainsMono Nerd Font",
+            "coverMark": "cover-mark.svg"
         },
         "terminal": {
             "foreground": "#f1f5f9",
