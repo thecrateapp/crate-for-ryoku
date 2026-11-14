@@ -289,3 +289,39 @@ def test_a_failed_take_writes_no_marks(tmp_path):
     with pytest.raises(director.DirectorError):
         director.run(director.Timeline.load(EXAMPLE), fake.env(), record=str(tmp_path / "t.mkv"), geometry=EDP)
     assert not (tmp_path / "t.marks.json").exists()
+
+
+def test_a_click_that_opens_a_surface_marks_its_focus_for_the_cut(tmp_path):
+    data = {
+        "name": "t",
+        "output": "t.mp4",
+        "surfaces": {"crate-mark": {"focus": [0.36, 0.02, 0.21, 0.53]}},
+        "steps": [
+            {"at": 1, "do": "pointer", "to": [2377, 1460], "click": True, "opens": "crate-mark"},
+            {"at": 3, "do": "pointer", "to": [2377, 1460], "click": True, "closes": "crate-mark"},
+        ],
+    }
+    fake = Fake()
+    director.run(load(data), fake.env(), record=str(tmp_path / "t.mp4"), geometry=EDP)
+    events = json.loads((tmp_path / "t.marks.json").read_text())["events"]
+    assert [e["kind"] for e in events] == ["open", "close"]
+    assert events[0]["surface"] == "crate-mark" and events[0]["focus"] == [0.36, 0.02, 0.21, 0.53]
+    assert events[1] == {"t": 3.0, "step": 2, "kind": "close", "surface": "crate-mark"}
+
+
+def test_a_click_cannot_open_an_unknown_surface():
+    with pytest.raises(director.DirectorError, match="unknown surface 'nope'"):
+        load({"name": "t", "output": "t.mp4", "steps": [{"at": 0, "do": "pointer", "to": [1, 1], "click": True, "opens": "nope"}]})
+
+
+def test_a_glide_that_clicks_marks_the_click_at_the_end_of_the_glide(tmp_path):
+    data = {
+        "name": "t",
+        "output": "t.mp4",
+        "surfaces": {"crate-mark": {"focus": [0.36, 0.02, 0.21, 0.53]}},
+        "steps": [{"at": 1, "do": "pointer", "from": [0, 0], "to": [2377, 1460], "duration": 0.9, "click": True, "opens": "crate-mark"}],
+    }
+    fake = Fake()
+    director.run(load(data), fake.env(), record=str(tmp_path / "t.mp4"), geometry=EDP)
+    events = json.loads((tmp_path / "t.marks.json").read_text())["events"]
+    assert events[0]["t"] == pytest.approx(1.9)

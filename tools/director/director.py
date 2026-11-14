@@ -109,6 +109,9 @@ def _validate(index: int, kind: str, raw: dict[str, Any], surfaces: dict) -> Non
         need("to")
         if "duration" in raw and "from" not in raw:
             raise DirectorError(f"step {index}: a pointer glide needs 'from'")
+        for key in ("opens", "closes"):
+            if key in raw and raw[key] not in surfaces:
+                raise DirectorError(f"step {index}: unknown surface {raw[key]!r}")
     elif kind == "type":
         need("text")
     elif kind == "key":
@@ -231,6 +234,8 @@ def _fraction(point: list[float], geometry: dict[str, Any]) -> list[float]:
 
 def _mark(step: Step, timeline: Timeline, t: float, geometry: dict[str, Any]) -> dict[str, Any] | None:
     d = step.data
+    if step.kind == "pointer" and "duration" in d:
+        t += float(d["duration"])  # a glide clicks when it lands
     base = {"t": round(t, 3), "step": step.index}
     if step.kind == "surface":
         event = {**base, "kind": d["action"], "surface": d["name"]}
@@ -239,6 +244,14 @@ def _mark(step: Step, timeline: Timeline, t: float, geometry: dict[str, Any]) ->
             event["focus"] = focus
         return event
     if step.kind == "pointer" and d.get("click"):
+        # A click that opens or closes a surface (the crate-mark pill) marks it like a
+        # surface step, so the cut frames the panel rather than the click.
+        if "opens" in d:
+            event = {**base, "kind": "open", "surface": d["opens"]}
+            focus = timeline.surfaces[d["opens"]].get("focus")
+            return {**event, "focus": focus} if focus else event
+        if "closes" in d:
+            return {**base, "kind": "close", "surface": d["closes"]}
         return {**base, "kind": "click", "point": _fraction(d["to"], geometry)}
     if step.kind == "notify":
         return {**base, "kind": "notify"}
