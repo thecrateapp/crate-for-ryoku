@@ -1,31 +1,153 @@
 {
   "name": "reddit",
   "output": "reddit.mkv",
+  "surfaces": {
+    "launcher": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:launcher\")"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    },
+    "controls": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:quicksettings\")"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    },
+    "gamebar": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:gamebar\")"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:gamebar\")"
+      ]
+    },
+    "wallpaper-picker": {
+      "open": [
+        "qs",
+        "-c",
+        "shell",
+        "ipc",
+        "call",
+        "picker",
+        "wallpaper"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    },
+    "kit": {
+      "open": [
+        "ryoku-kit"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    }
+  },
   "steps": [
     {
       "at": 0,
+      "do": "pointer",
+      "to": [
+        2560,
+        2160
+      ]
+    },
+    {
+      "at": 0.2,
       "do": "play",
       "action": "play"
     },
     {
       "at": 6,
       "do": "cue",
-      "message": "R2: open the crate-mark panel, change presets, close it"
+      "message": "R2: click the crate-mark pill, change presets, click it closed"
     },
     {
       "at": 16,
+      "do": "surface",
+      "name": "launcher",
+      "action": "open"
+    },
+    {
+      "at": 17,
       "do": "cue",
-      "message": "R3: launcher, search 'cr ', play a result"
+      "message": "R3: type 'cr ' and play a result"
+    },
+    {
+      "at": 25,
+      "do": "surface",
+      "name": "launcher",
+      "action": "close"
     },
     {
       "at": 26,
-      "do": "cue",
-      "message": "R4: Controls, then the Game Bar"
+      "do": "surface",
+      "name": "controls",
+      "action": "open"
+    },
+    {
+      "at": 30,
+      "do": "surface",
+      "name": "controls",
+      "action": "close"
+    },
+    {
+      "at": 31,
+      "do": "surface",
+      "name": "gamebar",
+      "action": "open"
+    },
+    {
+      "at": 35,
+      "do": "surface",
+      "name": "gamebar",
+      "action": "close"
     },
     {
       "at": 36,
-      "do": "cue",
-      "message": "R5: Kit, then the wallpaper picker"
+      "do": "surface",
+      "name": "kit",
+      "action": "open"
+    },
+    {
+      "at": 40,
+      "do": "surface",
+      "name": "kit",
+      "action": "close"
+    },
+    {
+      "at": 41,
+      "do": "surface",
+      "name": "wallpaper-picker",
+      "action": "open"
+    },
+    {
+      "at": 45,
+      "do": "surface",
+      "name": "wallpaper-picker",
+      "action": "close"
     },
     {
       "at": 46,

@@ -1,21 +1,93 @@
 {
   "name": "hero",
   "output": "hero.mkv",
+  "surfaces": {
+    "launcher": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:launcher\")"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    },
+    "controls": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:quicksettings\")"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    },
+    "gamebar": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:gamebar\")"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:gamebar\")"
+      ]
+    },
+    "wallpaper-picker": {
+      "open": [
+        "qs",
+        "-c",
+        "shell",
+        "ipc",
+        "call",
+        "picker",
+        "wallpaper"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    },
+    "kit": {
+      "open": [
+        "ryoku-kit"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    }
+  },
   "steps": [
     {
       "at": 0,
+      "do": "pointer",
+      "to": [
+        2560,
+        2160
+      ]
+    },
+    {
+      "at": 0.2,
       "do": "play",
       "action": "play"
     },
     {
       "at": 4,
       "do": "cue",
-      "message": "H2: open the crate-mark panel on the QS Bar"
+      "message": "H2: click the crate-mark pill on the QS Bar"
     },
     {
       "at": 10,
       "do": "cue",
-      "message": "H3: close the crate-mark panel"
+      "message": "H3: click the pill again to close the panel"
     },
     {
       "at": 12,
@@ -25,13 +97,27 @@
     },
     {
       "at": 17,
-      "do": "cue",
-      "message": "H5: open the launcher (Super+Space), type 'cr ', wait for results, close it"
+      "do": "surface",
+      "name": "launcher",
+      "action": "open"
+    },
+    {
+      "at": 23,
+      "do": "surface",
+      "name": "launcher",
+      "action": "close"
     },
     {
       "at": 24,
-      "do": "cue",
-      "message": "H6: open Controls (Super+Esc), then close it"
+      "do": "surface",
+      "name": "controls",
+      "action": "open"
+    },
+    {
+      "at": 29,
+      "do": "surface",
+      "name": "controls",
+      "action": "close"
     },
     {
       "at": 30,

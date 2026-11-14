@@ -1,41 +1,148 @@
 {
   "name": "surfaces",
   "output": "surfaces.mkv",
+  "surfaces": {
+    "launcher": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:launcher\")"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    },
+    "controls": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:quicksettings\")"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    },
+    "gamebar": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:gamebar\")"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:gamebar\")"
+      ]
+    },
+    "wallpaper-picker": {
+      "open": [
+        "qs",
+        "-c",
+        "shell",
+        "ipc",
+        "call",
+        "picker",
+        "wallpaper"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    },
+    "kit": {
+      "open": [
+        "ryoku-kit"
+      ],
+      "close": [
+        "wtype",
+        "-k",
+        "Escape"
+      ]
+    }
+  },
   "steps": [
     {
       "at": 0,
+      "do": "pointer",
+      "to": [
+        2560,
+        2160
+      ]
+    },
+    {
+      "at": 0.2,
       "do": "play",
       "action": "play"
     },
     {
       "at": 1,
       "do": "cue",
-      "message": "qsbar: open the crate-mark panel, change the EQ preset, close it"
+      "message": "qsbar: click the crate-mark pill, change the EQ preset, click it closed"
     },
     {
       "at": 7,
-      "do": "cue",
-      "message": "controls: open Controls (Super+Esc), flip a toggle, close it"
+      "do": "surface",
+      "name": "controls",
+      "action": "open"
+    },
+    {
+      "at": 12,
+      "do": "surface",
+      "name": "controls",
+      "action": "close"
     },
     {
       "at": 13,
-      "do": "cue",
-      "message": "launcher: open the launcher, search 'cr ' and close it"
+      "do": "surface",
+      "name": "launcher",
+      "action": "open"
+    },
+    {
+      "at": 18,
+      "do": "surface",
+      "name": "launcher",
+      "action": "close"
     },
     {
       "at": 19,
-      "do": "cue",
-      "message": "gamebar: open the Game Bar and close it"
+      "do": "surface",
+      "name": "gamebar",
+      "action": "open"
+    },
+    {
+      "at": 24,
+      "do": "surface",
+      "name": "gamebar",
+      "action": "close"
     },
     {
       "at": 25,
-      "do": "cue",
-      "message": "kit: open Kit: let the Beam scan, pick a chip, move a slider"
+      "do": "surface",
+      "name": "kit",
+      "action": "open"
+    },
+    {
+      "at": 30,
+      "do": "surface",
+      "name": "kit",
+      "action": "close"
     },
     {
       "at": 31,
-      "do": "cue",
-      "message": "pickers: open the wallpaper picker on Groove and Sheen, close it"
+      "do": "surface",
+      "name": "wallpaper-picker",
+      "action": "open"
+    },
+    {
+      "at": 36,
+      "do": "surface",
+      "name": "wallpaper-picker",
+      "action": "close"
     },
     {
       "at": 37,

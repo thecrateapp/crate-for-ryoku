@@ -149,10 +149,11 @@ def test_window_launches_detached_and_places_with_hyprctl():
     ]
 
 
-def test_pointer_moves_and_clicks_with_ydotool():
+def test_pointer_moves_with_hyprctl_and_clicks_with_ydotool():
+    # Shell surfaces open on the monitor under the pointer, so a take parks it first.
     data = {"name": "t", "output": "t.mkv", "steps": [{"at": 0, "do": "pointer", "to": [100, 200], "click": True}]}
     assert director.dry_run(load(data)) == [
-        "   0.00  pointer: ydotool mousemove --absolute -x 100 -y 200; ydotool click 0xC0",
+        "   0.00  pointer: hyprctl dispatch movecursor 100 200; ydotool click 0xC0",
     ]
 
 

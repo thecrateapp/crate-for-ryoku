@@ -125,7 +125,7 @@ def commands(step: Step, timeline: Timeline) -> list[tuple[str, list[str]]]:
         return [("run", ["playerctl", "-p", d.get("player", "crate"), d["action"]])]
     if step.kind == "pointer":
         x, y = d["to"]
-        out = [("run", ["ydotool", "mousemove", "--absolute", "-x", str(x), "-y", str(y)])]
+        out = [("run", ["hyprctl", "dispatch", "movecursor", str(x), str(y)])]
         if d.get("click"):
             out.append(("run", ["ydotool", "click", "0xC0"]))
         return out

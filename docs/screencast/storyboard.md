@@ -11,9 +11,10 @@ Three deliverables come from three timelines in `tools/director/timelines/`:
 | Surface clips | `surfaces.json` | 8 shots of 6 s, cut apart | the Surfaces grid |
 | Reddit cut | `reddit.json` | 75 s | r/unixporn post, 16:9 and 9:16 |
 
-Every surface whose terminal command is not yet probed is a `cue` in the timelines:
-the run pauses and you open it by its shortcut. After the probe (director README),
-cues that turn out to paint from a command become `surface` steps.
+Recorded on eDP-1 (3840 x 2400, the laptop panel; 16:10, cut to 16:9 and 9:16 in the
+edit). The surface probe (director README) found every surface opens from a command
+except the crate-mark panel, which stays a `cue` (click the pill), as do the shots
+where a hand moves the pointer or types.
 
 ## Open question: Crate Decks
 

@@ -42,7 +42,7 @@ Steps run in order at `at` seconds from the start; times never go backwards.
 | `window` | `run`, optional `dispatch` | `run` detached, then `hyprctl dispatch <each>` |
 | `notify` | `title`, `body`, optional `app` (Crate) | `notify-send -a app title body` |
 | `play` | `action` (play, pause, play-pause, next, previous, stop), optional `player` (crate) | `playerctl -p player action` |
-| `pointer` | `to: [x, y]`, optional `click` | `ydotool mousemove --absolute`, `ydotool click 0xC0` |
+| `pointer` | `to: [x, y]` (layout coordinates), optional `click` | `hyprctl dispatch movecursor x y`, `ydotool click 0xC0` |
 | `wait` | | nothing; holds the timeline |
 | `cue` | `message` | prints the message and waits for Enter |
 
@@ -62,26 +62,30 @@ surface opens is probed on the desktop (below).
 ## Requirements
 
 - `wf-recorder` (`sudo pacman -S wf-recorder`) for `--record`.
-- `ydotool` with its daemon running, only for `pointer` steps.
+- `wtype` to close surfaces with Escape.
+- `ydotool` with its daemon running, only for `pointer` steps that click.
 - `playerctl`, `notify-send`, `hyprctl`, `ryoku-shell` (present on a Ryoku desktop).
 
 ## Surface probe
 
-Each surface the storyboard needs, checked with a one-step timeline on the live
-desktop: does it open and paint from the director, or does it need a `cue`?
+Probed live on 2026-11-14 (Hyprland, crate theme, three monitors). Shell surfaces
+open on the monitor under the pointer, not the focused one: every timeline starts
+with a `pointer` step that parks the cursor on the recorded output.
 
-| Surface | Open command | Paints from the director? |
-|---|---|---|
-| QS Bar crate-mark panel | to probe | to probe |
-| Controls (Super+Esc) | to probe | to probe |
-| Launcher (Super+Space) | to probe | to probe |
-| Game Bar | to probe | to probe |
-| Kit | to probe | to probe |
-| Pickers | to probe | to probe |
-| shima dock | always visible | n/a |
-| Notifications | `notify` step | to probe |
+| Surface | Open | Close | From the director? |
+|---|---|---|---|
+| Launcher (Crate Palette) | `hyprctl dispatch 'hl.dsp.global("ryoku:launcher")'` | `wtype -k Escape` | yes |
+| Controls | `hyprctl dispatch 'hl.dsp.global("ryoku:quicksettings")'` | `wtype -k Escape` | yes |
+| Game Bar | `hyprctl dispatch 'hl.dsp.global("ryoku:gamebar")'` | same (toggle) | yes |
+| Wallpaper picker | `qs -c shell ipc call picker wallpaper` | `wtype -k Escape` | yes |
+| Kit | `ryoku-kit` | `wtype -k Escape` | yes (check close on the first take) |
+| Notifications | `notify` step | timeout | yes |
+| shima dock | always visible | | n/a |
+| crate-mark panel | click the pill on the QS Bar | click again | no: a `cue`, or a `pointer` click with ydotool |
 
-QS Bar Settings is never opened from a terminal on this desktop: use a `cue`.
+The QS Bar's IPC exposes only `layout` and `settings`, so the crate-mark popout has
+no command. Pressing a shortcut works too: `wtype -M logo -k Escape -m logo` is
+Super+Esc. QS Bar Settings is never opened from a terminal on this desktop.
 
 ## Tests
 
