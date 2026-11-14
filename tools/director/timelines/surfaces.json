@@ -1,0 +1,62 @@
+{
+  "name": "surfaces",
+  "output": "surfaces.mkv",
+  "steps": [
+    {
+      "at": 0,
+      "do": "play",
+      "action": "play"
+    },
+    {
+      "at": 1,
+      "do": "cue",
+      "message": "qsbar: open the crate-mark panel, change the EQ preset, close it"
+    },
+    {
+      "at": 7,
+      "do": "cue",
+      "message": "controls: open Controls (Super+Esc), flip a toggle, close it"
+    },
+    {
+      "at": 13,
+      "do": "cue",
+      "message": "launcher: open the launcher, search 'cr ' and close it"
+    },
+    {
+      "at": 19,
+      "do": "cue",
+      "message": "gamebar: open the Game Bar and close it"
+    },
+    {
+      "at": 25,
+      "do": "cue",
+      "message": "kit: open Kit: let the Beam scan, pick a chip, move a slider"
+    },
+    {
+      "at": 31,
+      "do": "cue",
+      "message": "pickers: open the wallpaper picker on Groove and Sheen, close it"
+    },
+    {
+      "at": 37,
+      "do": "cue",
+      "message": "dock: move the pointer along the dock and back"
+    },
+    {
+      "at": 43,
+      "do": "notify",
+      "title": "Crate",
+      "body": "Now playing"
+    },
+    {
+      "at": 44.5,
+      "do": "notify",
+      "title": "Crate",
+      "body": "Added to your library"
+    },
+    {
+      "at": 49,
+      "do": "wait"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "name": "reddit",
+  "output": "reddit.mkv",
+  "steps": [
+    {
+      "at": 0,
+      "do": "play",
+      "action": "play"
+    },
+    {
+      "at": 6,
+      "do": "cue",
+      "message": "R2: open the crate-mark panel, change presets, close it"
+    },
+    {
+      "at": 16,
+      "do": "cue",
+      "message": "R3: launcher, search 'cr ', play a result"
+    },
+    {
+      "at": 26,
+      "do": "cue",
+      "message": "R4: Controls, then the Game Bar"
+    },
+    {
+      "at": 36,
+      "do": "cue",
+      "message": "R5: Kit, then the wallpaper picker"
+    },
+    {
+      "at": 46,
+      "do": "cue",
+      "message": "R6: terminal: fastfetch, then eza"
+    },
+    {
+      "at": 56,
+      "do": "cue",
+      "message": "R7: Crate desktop app full screen, then back"
+    },
+    {
+      "at": 75,
+      "do": "wait"
+    }
+  ]
+}
