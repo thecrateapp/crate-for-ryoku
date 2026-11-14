@@ -211,14 +211,20 @@ Decided with the user on 2026-11-14:
 - [x] **Crate rice refresh** (2026-11-14, done): the bar block is the live one (launcher first; crate-mark on the right after quick; the user's widgets, colours, corners and picker), the CRATE wordmark on (`launcherLogoText`/`launcherLogoIcon` crate, which the fork now keeps in shell.json, f3c7b9ac), every AI tool offered, no brand layer; proved by `ryoku-hub rice apply crate` on an isolated copy. The rest of the rice was already current.
   Original note: `rice/crate/rice.json` was captured on Ryoku 1.0.7, before Waves 0 to 5 (an older bar layout and widget set; its theme attributes, radius 8 and border 2, match the live desktop and are not the kit's 6 px `Tokens.radius`). Re-capture it from the approved live desktop (the user's bar as it is now: launcher first on the left, crate-mark on the right after `quick`; not crate-mark first), with the "CRATE" wordmark on (`launcherLogoMode` text, `launcherLogoText` crate). Strip anything personal, keep it without a brand layer, and prove it on a fresh, session-isolated apply. The contact sheet below is taken from that fresh apply, not from the development machine.
 
-- [ ] **`tools/design-lint`** (a Python script in the Ryoku repo), run by `.githooks/pre-commit`. It flags new QML outside `ui/` that:
+- [x] **`tools/design-lint`** (done 2026-11-14 as `bin/ryoku-dev-design-lint`, fork b916403e; baseline 519 files: 1434 hex colours, 1363 literal sizes, 35 control names, 12 hand-made bars, 8 sliders) (a Python script in the Ryoku repo), run by `.githooks/pre-commit`. It flags new QML outside `ui/` that:
   - defines a slider (`QQC.Slider`) or a progress bar (a Rectangle `width: … * value` pattern);
   - hard-codes `font.pixelSize` or a hex colour in shell, app or bar code;
   - defines a component named `*Chip`, `*Slider` or `*Progress`.
 
   The current debt goes in a shrink-only allowlist file, so debt can only go down.
-- [ ] **Contact sheet:** every surface under Crate and Default, compared with crate-mark; record residual exceptions with a reason.
-- [ ] **Final:** a fresh whole-branch review; the rulings and deferred minors go to the user.
+- [x] **Contact sheet** (done 2026-11-14: 62 surfaces in both looks from tests/visual/surfaces, shown to the user; `brightness` and `shell-states` do not render offscreen, to investigate in the harness): every surface under Crate and Default, compared with crate-mark; record residual exceptions with a reason.
+- [x] **Final** (done 2026-11-14): a fresh review found no Critical and three Important, fixed with tests (fork 2f466df5 cover falls back to the wordmark when the mark fails; 19e8c00c bar glyphs fall back on an older kit; a5fbab36 a rice naming no launcher marks gets Ryoku's). Deferred minors for the user:
+  - AudioOutput.js: a single analog-stereo node that switches ports (non-UCM laptops) always reads "speaker"; a desktop with a "Speaker" PCI port reads "laptop"; Bluetooth headphones without form factor read as a remote speaker (fix: read the active port, gate "laptop" on a battery).
+  - design-lint: counts the working tree, not the staged blob; skips renames; never prunes deleted files; misses ternary sizes, named colours, Qt.rgba and 3-digit hex; not in CI.
+  - coverMark rejects a symlinked file (stow-style theme installs).
+  - Beam's scan end is fixed at start: a track resized mid-scan or narrower than 24 px can still overflow.
+  - The stock cover now imports QtQuick.Effects (Qt 6.5+).
+  - install.sh still says "Ryoku 1.0.7+" though the CRATE mark and coverMark need the fork.
 
 ## Wave 7: Remaining surfaces (task list)
 
