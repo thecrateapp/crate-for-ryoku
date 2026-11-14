@@ -166,11 +166,23 @@ the image and media pickers (`ImageCarousel*`, `MediaBrowser*`), all three layou
 
 ## Wave 4: Apps (task list)
 
-- [ ] **Hub:** the 22 page-header copies and 4 variants → PageHead (with `register` for ControlsPage); the 8 bespoke chips → Chip or Chips; the 4 progress copies → Beam; RowTool → IconButton; SectionHead and Head → Label. Delete the dead `hub/quickshell/Singletons/Theme.qml`.
-- [ ] **Ryostore:** InstallProgress → Beam (indeterminate); ProviderTabs → Tabs; LinkChip → IconButton; the AppsHero Chip → Chip; ProductCard and AppsTile → a kit `PickCard`; search fields → Field.
-- [ ] **Ryovm:** PageHead → kit; DownloadStack → Beam (delete the dead `Progress.qml`); LabelText, FieldLabel, Head and SectionMark → Label; the card plates → PickCard.
-- [ ] **Ryoshot:** Slider → Beam; IconButton → kit; drop `radius*2` and the 6–9 px radius literals.
-- [ ] **Welcome:** PageTitle → PageHead; the step rail → Tabs plus Beam.
+- [x] **Hub:** the 22 page-header copies and 4 variants → PageHead (with `register` for ControlsPage); the 8 bespoke chips → Chip or Chips; the 4 progress copies → Beam; RowTool → IconButton; SectionHead and Head → Label. Delete the dead `hub/quickshell/Singletons/Theme.qml`.
+- [x] **Ryostore:** InstallProgress → Beam (indeterminate); ProviderTabs → Tabs; LinkChip → IconButton; the AppsHero Chip → Chip; ProductCard and AppsTile → a kit `PickCard`; search fields → Field.
+- [x] **Ryovm:** PageHead → kit; DownloadStack → Beam (delete the dead `Progress.qml`); LabelText, FieldLabel, Head and SectionMark → Label; the card plates → PickCard.
+- [x] **Ryoshot:** Slider → Beam; IconButton → kit; drop `radius*2` and the 6–9 px radius literals.
+- [x] **Welcome:** PageTitle → PageHead; the step rail → Tabs (the Beam under it was dropped, see status).
+
+**Wave 4 status (2026-11-14).** The Hub, Ryostore, Ryovm (Ryoport), Ryoshot and Welcome are on the kit
+(fork commits 17edf2ed..e6f5ce16), installed live as ryoku-desktop 1.0.9.r6221 and reviewed by the user
+app by app. New kit pieces: `PickCard` (a picked card takes the pick wash, the 1 px `pickEdge` and a corner
+dot), keyed Tabs with counts, a Field leading glyph, a bipolar Beam. Rulings from the user: selection is
+filled with the mark everywhere (the Hub-only outline variant is gone); large working windows (Hub,
+Ryostore, Ryovm, Welcome) are opaque `Tokens.popover`, no glass; Ryoku marginalia (corner ticks, lead
+bars, barcodes, framed seals) do not appear under crate; a step rail is marked by its tab underline
+alone, with no progress beam under it. Residuals: about a dozen Ryoshot tools have no Solar glyph and
+keep their own line icons; Ryostore's GitHub and Discord links use generic Solar glyphs; the kit Field
+keeps its 2 px focus border (about 250 callers). Two Ryostore probes (`ryostore-components`,
+`ryostore-handoff`) failed before the wave and still do.
 
 ## Wave 5: Islands (task list)
 
