@@ -197,6 +197,13 @@
         0.15,
         0.4
       ]
+    },
+    "wallpaper-groove": {
+      "open": [
+        "sh",
+        "-c",
+        "ryogami wallpaper set ~/Pictures/Wallpapers/crate-groove.webp"
+      ]
     }
   },
   "steps": [
@@ -232,17 +239,23 @@
       "key": "Right"
     },
     {
-      "at": 6.4,
+      "at": 6.6,
       "do": "key",
-      "key": "Right"
+      "key": "Return"
     },
     {
-      "at": 8.0,
+      "at": 9.6,
       "do": "key",
       "key": "Escape"
     },
     {
-      "at": 9.5,
+      "at": 12.4,
+      "do": "surface",
+      "name": "wallpaper-groove",
+      "action": "open"
+    },
+    {
+      "at": 14.0,
       "do": "window",
       "run": [
         "kitty",
@@ -254,7 +267,7 @@
       ]
     },
     {
-      "at": 10.5,
+      "at": 15.0,
       "do": "window",
       "run": [
         "kitty",
@@ -266,7 +279,7 @@
       ]
     },
     {
-      "at": 11.5,
+      "at": 16.0,
       "do": "window",
       "run": [
         "kitty",
@@ -278,7 +291,7 @@
       ]
     },
     {
-      "at": 12.5,
+      "at": 17.0,
       "do": "window",
       "run": [
         "kitty",
@@ -290,37 +303,37 @@
       ]
     },
     {
-      "at": 18.0,
+      "at": 22.5,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 18.6,
+      "at": 23.1,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 19.2,
+      "at": 23.7,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 19.8,
+      "at": 24.3,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 21.0,
+      "at": 25.5,
       "do": "surface",
       "name": "crate-window",
       "action": "open"
     },
     {
-      "at": 25.0,
+      "at": 29.5,
       "do": "pointer",
       "from": [
         3408,
@@ -335,7 +348,7 @@
       "opens": "crate-mark"
     },
     {
-      "at": 30.0,
+      "at": 34.5,
       "do": "pointer",
       "from": [
         2377,
@@ -350,7 +363,7 @@
       "closes": "crate-mark"
     },
     {
-      "at": 31.0,
+      "at": 35.5,
       "do": "pointer",
       "from": [
         2377,
@@ -365,7 +378,7 @@
       "opens": "audio"
     },
     {
-      "at": 34.2,
+      "at": 38.7,
       "do": "pointer",
       "from": [
         3460,
@@ -380,7 +393,7 @@
       "closes": "audio"
     },
     {
-      "at": 35.0,
+      "at": 39.5,
       "do": "pointer",
       "from": [
         3460,
@@ -395,7 +408,7 @@
       "opens": "bluetooth"
     },
     {
-      "at": 38.2,
+      "at": 42.7,
       "do": "pointer",
       "from": [
         3397,
@@ -410,7 +423,7 @@
       "closes": "bluetooth"
     },
     {
-      "at": 39.0,
+      "at": 43.5,
       "do": "pointer",
       "from": [
         3397,
@@ -425,7 +438,7 @@
       "opens": "network"
     },
     {
-      "at": 42.2,
+      "at": 46.7,
       "do": "pointer",
       "from": [
         3355,
@@ -440,7 +453,7 @@
       "closes": "network"
     },
     {
-      "at": 43.0,
+      "at": 47.5,
       "do": "pointer",
       "from": [
         3355,
@@ -455,7 +468,7 @@
       "opens": "bell"
     },
     {
-      "at": 46.2,
+      "at": 50.7,
       "do": "pointer",
       "from": [
         3681,
@@ -470,7 +483,7 @@
       "closes": "bell"
     },
     {
-      "at": 47.0,
+      "at": 51.5,
       "do": "pointer",
       "from": [
         3681,
@@ -483,78 +496,78 @@
       "duration": 0.8
     },
     {
-      "at": 48.0,
+      "at": 52.5,
       "do": "surface",
       "name": "crate-window",
       "action": "close"
     },
     {
-      "at": 49.5,
+      "at": 54.0,
       "do": "surface",
       "name": "controls",
       "action": "open"
     },
     {
-      "at": 53.5,
+      "at": 58.0,
       "do": "surface",
       "name": "controls",
       "action": "close"
     },
     {
-      "at": 54.7,
+      "at": 59.2,
       "do": "surface",
       "name": "launcher",
       "action": "open"
     },
     {
-      "at": 55.3,
+      "at": 59.8,
       "do": "type",
       "text": "cr nitzer"
     },
     {
-      "at": 59.7,
+      "at": 64.2,
       "do": "surface",
       "name": "launcher",
       "action": "close"
     },
     {
-      "at": 60.9,
+      "at": 65.4,
       "do": "surface",
       "name": "gamebar",
       "action": "open"
     },
     {
-      "at": 64.9,
+      "at": 69.4,
       "do": "surface",
       "name": "gamebar",
       "action": "close"
     },
     {
-      "at": 66.1,
+      "at": 70.6,
       "do": "surface",
       "name": "kit",
       "action": "open"
     },
     {
-      "at": 70.1,
+      "at": 74.6,
       "do": "surface",
       "name": "kit",
       "action": "close"
     },
     {
-      "at": 71.3,
+      "at": 75.8,
       "do": "surface",
       "name": "qsbar-settings",
       "action": "open"
     },
     {
-      "at": 75.3,
+      "at": 79.8,
       "do": "surface",
       "name": "qsbar-settings",
       "action": "close"
     },
     {
-      "at": 76.5,
+      "at": 81.0,
       "do": "key",
       "key": "s",
       "mods": [
@@ -563,18 +576,24 @@
       ]
     },
     {
-      "at": 79.5,
+      "at": 84.0,
       "do": "key",
       "key": "Escape"
     },
     {
-      "at": 81.0,
+      "at": 85.5,
       "do": "notify",
       "title": "Crate",
       "body": "Now playing"
     },
     {
-      "at": 85.5,
+      "at": 89.5,
+      "do": "surface",
+      "name": "wallpaper-groove",
+      "action": "open"
+    },
+    {
+      "at": 90.0,
       "do": "wait"
     }
   ]
