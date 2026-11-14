@@ -294,7 +294,13 @@ def run(
                 continue
             if step.kind == "pointer" and "duration" in step.data:
                 base = start + shift + step.at
-                for offset, argv in glide(step.data):
+                frames = glide(step.data)
+                for i, (offset, argv) in enumerate(frames):
+                    last = i == len(frames) - 1
+                    # Running late (each move is a hyprctl call): skip this frame if the
+                    # next one is already due, so the glide lands on time. Never skip the last.
+                    if not last and env.clock() > base + frames[i + 1][0]:
+                        continue
                     env.sleep(base + offset - env.clock())
                     if env.run(argv) != 0:
                         raise DirectorError(f"step {step.index} failed (pointer glide): {shlex.join(argv)}")

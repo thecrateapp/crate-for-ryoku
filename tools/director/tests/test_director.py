@@ -14,7 +14,8 @@ EXAMPLE = Path(__file__).resolve().parents[1] / "timelines" / "example.json"
 class Fake:
     """Records every command and lets a test fail one or answer a cue."""
 
-    def __init__(self, fail=None, missing=(), recorder_dies=False):
+    def __init__(self, fail=None, missing=(), recorder_dies=False, run_cost=0.0):
+        self.run_cost = run_cost
         self.calls = []
         self.missing = set(missing)
         self.recorder_dies = recorder_dies
@@ -25,6 +26,7 @@ class Fake:
 
     def run(self, argv):
         self.calls.append(("run", argv, round(self.now, 3)))
+        self.now += self.run_cost
         return 1 if self.fail(argv) else 0
 
     def spawn(self, argv):
@@ -325,3 +327,22 @@ def test_a_glide_that_clicks_marks_the_click_at_the_end_of_the_glide(tmp_path):
     director.run(load(data), fake.env(), record=str(tmp_path / "t.mp4"), geometry=EDP)
     events = json.loads((tmp_path / "t.marks.json").read_text())["events"]
     assert events[0]["t"] == pytest.approx(1.9)
+
+
+def test_a_slow_glide_drops_frames_to_land_on_time():
+    # each movecursor costs 50 ms, three frames' worth at 60 fps
+    data = {
+        "name": "t",
+        "output": "t.mp4",
+        "steps": [
+            {"at": 1, "do": "pointer", "from": [0, 0], "to": [100, 50], "duration": 0.5},
+            {"at": 1.6, "do": "notify", "title": "C", "body": "b"},
+        ],
+    }
+    fake = Fake(run_cost=0.05)
+    director.run(load(data), fake.env())
+    moves = [c for c in fake.calls if c[1][0] == "hyprctl"]
+    assert moves[-1][1] == ["hyprctl", "dispatch", "hl.dsp.cursor.move({x=100,y=50})"], "always lands"
+    assert moves[-1][2] <= 1.55, "the last move is not late"
+    notify = [c for c in fake.calls if c[1][0] == "notify-send"][0]
+    assert notify[2] == pytest.approx(1.6), "the next step keeps its time"
