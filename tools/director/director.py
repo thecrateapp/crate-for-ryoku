@@ -299,7 +299,8 @@ def run(
                     raise DirectorError(failure)
         finished = True
         if take is not None and geometry is not None:
-            marks = {"take": take.name, "output": geometry, "events": events}
+            duration = round(env.clock() - start, 3)
+            marks = {"take": take.name, "output": geometry, "duration": duration, "events": events}
             marks_path(take).write_text(json.dumps(marks, indent=2) + "\n")
     finally:
         if recorder is not None:

@@ -6,7 +6,7 @@ re-recorded when something changes. Python 3 standard library only.
 ```sh
 tools/director/director.py tools/director/timelines/example.json --dry-run
 tools/director/director.py tools/director/timelines/hero.json \
-  --record tools/director/takes/hero.mkv --output DP-1
+  --record tools/cut/public/takes/hero.mp4 --output eDP-1
 ```
 
 `--dry-run` prints each step's time and the exact commands. `--record` starts

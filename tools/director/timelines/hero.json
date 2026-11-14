@@ -1,6 +1,6 @@
 {
   "name": "hero",
-  "output": "hero.mkv",
+  "output": "hero.mp4",
   "surfaces": {
     "launcher": {
       "open": [

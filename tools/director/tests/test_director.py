@@ -264,6 +264,7 @@ def test_a_good_take_writes_marks_for_the_cut(tmp_path):
     director.run(load(data), fake.env(), record=str(take), geometry=EDP)
     marks = json.loads((tmp_path / "t.marks.json").read_text())
     assert marks["output"] == EDP
+    assert marks["duration"] == 4.0
     assert marks["events"] == [
         {"t": 1.0, "step": 1, "kind": "open", "surface": "launcher", "focus": [0.3, 0.05, 0.4, 0.3]},
         {"t": 2.0, "step": 2, "kind": "click", "point": [0.5, 0.5]},
