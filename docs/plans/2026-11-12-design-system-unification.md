@@ -232,9 +232,9 @@ Inventory of 2026-11-14 (every module that opens its own window, checked for any
 
 - [ ] **Game Bar** (`shell/modules/gamebar`, 23 files, kit in 10).
 - [ ] **Ask** (`shell/modules/ask`: AskBar, AskBubble; Rashin's question bar).
-- [ ] **Capture overlays** (`shell/modules/capture`: region, camera, keypress, recording).
+- [x] **Capture overlays** (fork fef3f416, merged 41cededa; readout tags opaque popover, not glass: the camera layer redraws every frame) (`shell/modules/capture`: region, camera, keypress, recording).
 - [ ] **Ryoku launcher** (`shell/modules/launcher`: hero launcher, window rail; 39 literal colours). Crate Palette users skip it, but a fresh install shows it.
-- [ ] **Keys** and **Keys hint** (`shell/quickshell/keys`, `keys-hint`).
+- [x] **Keys** and **Keys hint** (fork 7f8634a5 + d27b89b2 phone-tab Solar glyphs, merged 8926ddc4; the user keeps the blurred scrim behind Kit in both looks) (`shell/quickshell/keys`, `keys-hint`).
 - [ ] **Phone bridge** (`shell/modules/phone`).
 - [ ] **Ryopin** (`shell/quickshell/ryopin`, pinned windows).
 - [ ] **Visualizer** (`shell/modules/visualizer`; 5 literal colours).
