@@ -2,7 +2,7 @@
   "schema": 1,
   "id": "crate-mark",
   "category": "plugins",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "destination": "ryoku/plugins/crate-mark",
   "files": [
     {
@@ -16,9 +16,9 @@
     {
       "source": "README.md",
       "destination": "README.md",
-      "sha256": "d5015f9d0ab172ca784ba0b10846bf1d27a700cc0555bee83b520f49f1e6a7f7",
+      "sha256": "514434bbb8a73a86950a0fdfabac7b89c88c4487d159030d3f49c8452fa3d598",
       "mode": "0644",
-      "size": 4484,
+      "size": 4968,
       "install": false
     },
     {
@@ -56,9 +56,9 @@
     {
       "source": "content/Panel.qml",
       "destination": "content/Panel.qml",
-      "sha256": "73b42ea862da39931360604f26f6620b89165f204679310b099453c610ef5143",
+      "sha256": "8a4d1d8950ccfd4bb2c9c512656edcecfc3255179e7c6a80f7eb1f42b3d1bce8",
       "mode": "0644",
-      "size": 44294,
+      "size": 31615,
       "install": true
     },
     {
@@ -75,14 +75,6 @@
       "sha256": "1f7b4d7e975b4d6b7f752f4c2e4b48904afd81dad3edeb7fffd834d093d6d714",
       "mode": "0644",
       "size": 1181,
-      "install": true
-    },
-    {
-      "source": "content/SolarGlyph.qml",
-      "destination": "content/SolarGlyph.qml",
-      "sha256": "2604041bb65b0c5fc828a40290a545697daa778780c70fa8c8e74fd02e977549",
-      "mode": "0644",
-      "size": 922,
       "install": true
     },
     {
@@ -128,9 +120,9 @@
     {
       "source": "manifest.json",
       "destination": "manifest.json",
-      "sha256": "123be0b5c4f4d38a529d952bb19ee2ac24e1b3fd2ae2ba85bbb7002a3c52a8e5",
+      "sha256": "5034d4664b662ed812df90f0c76c6709ffaed0d6af92f758aec7168fa65579ca",
       "mode": "0644",
-      "size": 2740,
+      "size": 2710,
       "install": true
     },
     {

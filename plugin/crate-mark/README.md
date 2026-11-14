@@ -1,11 +1,18 @@
 # Crate mark (`crate-mark`)
 
 The Crate logo on the QS Bar, part of the Crate for Ryoku. While Crate plays,
-three cyan bars follow the mark, then the artist and track title. Long titles
-scroll continuously within the bar at 50 logical pixels per second at normal scale.
-Pausing leaves the current track visible and still. A click opens a panel drawn to Crate's
-own player spec (1 px glow beams, the spectrum play button, chips, the EQ chart): now
-playing, transport and Crate's equalizer. Roboto ships in `content/fonts` (OFL).
+three cyan bars follow the mark, then the artist and track title. A long title
+rolls twice within the bar at 50 logical pixels per second at normal scale, then
+rests elided until the track changes or the pointer rests on it. Pausing leaves the
+current track visible and still. A click opens a panel drawn to Crate's own player
+spec: now playing, transport and Crate's equalizer. Its progress beam, buttons,
+chips and labels are the Ryoku shell kit's own (Beam, IconButton, Chip, TrackLabel,
+through `Ryoku.PluginKit`), so the panel follows the theme's controls style with the
+rest of the bar; the spectrum play button and the EQ chart are Crate's. Roboto ships
+in `content/fonts` (OFL).
+
+Requires a Ryoku whose plugin kit re-exports the shell kit (Beam, Chip, IconButton,
+TrackLabel); an older plugin kit cannot draw the panel.
 
 ![The panel against the live Crate (test window: the real Panel.qml and service, saved 1:1)](assets/preview-panel.png)
 
@@ -60,7 +67,8 @@ Crate appears or disappears, so a mark you hid yourself stays hidden.
 
 Icons are Solar (Solar Icons Set by 480 Design, CC BY 4.0), the set Crate's UI uses,
 with the weights Crate's player uses: `skip-previous`, `skip-next`, `shuffle`,
-`repeat` and `repeat-one` Outline; `play` and `pause` Bold. The mark is the Crate logo
+`repeat`, `repeat-one` and the close cross Outline, drawn from the Ryoku kit's glyph
+catalogue; `play` and `pause` Bold, in the plugin. The mark is the Crate logo
 outline (`app/web/public/icons/logo.svg` in the Crate repository) as a vector `Shape`.
 
 ## Build, check, install

@@ -4,6 +4,8 @@ here=$(cd "$(dirname "$0")" && pwd)
 plugin=$(realpath "${1:-$here/../../crate-mark}")
 work=$(mktemp -d)
 trap 'rm -rf -- "$work"' EXIT
+source "$here/kit-path.sh"
+crate_mark_kit_path "$work"
 unset DISPLAY WAYLAND_DISPLAY NIRI_SOCKET SWAYSOCK DBUS_SESSION_BUS_ADDRESS
 mkdir -m 700 "$work"/{runtime,config,data,cache,state,home}
 export HOME="$work/home" XDG_RUNTIME_DIR="$work/runtime" XDG_CONFIG_HOME="$work/config"
