@@ -89,14 +89,17 @@ noise (a test pins this).
    scene by the wallpaper's file stem.
 2. Runs after the rice is applied, then touches every layer so it is newer than its wallpaper
    (Stage treats an older artifact as stale and does not draw it).
-3. Registers each scene in `~/.local/state/ryoku/stage-walls.json`: effect `parallax` and the
-   layers with their depths from `scene.json`, merged without touching other wallpapers' entries.
-   To verify during implementation: that Stage's refresh keeps those depths (it rebuilds the layer
-   list from the folder; extra layers default to depth 0.5).
+3. Registers each scene through Stage's own verbs, scoped to that wallpaper:
+   `ryoku-shell stage set-effect parallax -- <wall>`, then `stage set-layer <index> <json> -- <wall>`
+   for each layer with its depth and `front: false` from `scene.json`. Stage stores them in
+   `~/.local/state/ryoku/stage-walls.json` and keeps them across refreshes (it carries each layer's
+   flags forward by file path), and other wallpapers' entries are never touched.
 4. A scene the user has changed since install (its folder or entry differs from what was laid
    down) is left alone on reinstall and on uninstall.
 
-`uninstall` removes the wallpapers, folders and entries it laid down, under the same rule.
+`uninstall` follows the installer's existing rule for wallpapers: they and their scenes stay
+unless `--purge`, which removes the wallpapers, scene folders and Stage entries it laid down, under
+the same user-changed rule.
 
 The rice's own `wall.png` stays Groove's flat.
 
@@ -111,5 +114,6 @@ joins the set; a wallpaper the user does not like is redrawn or dropped, not shi
   flat within one level of dither; layer alpha is premultiplied-clean (no coloured fringe where
   alpha is low); the top 20 % band carries no structure; Groove's flat matches the reference.
 - Installer (a shell test with a temporary HOME and a stub `ryoku-shell`): files land where
-  stated, layers are newer than their wallpaper, `stage-walls.json` gains the five scenes and keeps
-  an unrelated entry, a user-changed scene survives reinstall and uninstall.
+  stated, layers are newer than their wallpaper, Stage receives the effect and each layer's depth
+  for the five scenes, an unrelated Stage folder is untouched, a user-changed scene survives
+  reinstall and `--purge`.
