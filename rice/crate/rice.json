@@ -10,7 +10,7 @@
     "hud",
     "cyan"
   ],
-  "createdWith": "1.0.7",
+  "createdWith": "1.0.9",
   "color": {
     "mode": "fixed",
     "themeApps": true
@@ -77,84 +77,87 @@
         "audioBoost": false,
         "barAnim": 0,
         "barAutoHide": false,
-        "barBorderEnabled": false,
-        "barColor": "accent",
-        "barCornerRadius": 7,
-        "barFrostEnabled": true,
+        "barBorderEnabled": true,
+        "barColor": "color01",
+        "barCornerRadius": 6,
+        "barFrostEnabled": false,
         "barGapBottom": 0,
-        "barGapLeft": 13,
-        "barGapRight": 13,
-        "barGapTop": 6,
+        "barGapLeft": 0,
+        "barGapRight": 0,
+        "barGapTop": 3,
         "barPosition": "top",
         "barScale": 1,
         "barSeps": [
-          "G8",
-          "G2",
-          "P:crate-mark"
+          "G2"
         ],
-        "barShadowEnabled": true,
+        "barShadowEnabled": false,
         "barShellStyle": "islands",
         "barTemperatureSource": "cpu",
         "iconOnlyGids": [
-          "G15",
-          "G11"
+          "G11",
+          "G15"
         ],
+        "isolateMonitors": false,
         "launcherLogoMode": "text",
         "layout": {
           "center": [
             "clock"
           ],
           "left": [
-            "crate-mark",
             "launcher",
-            "workspaces",
-            "status",
             "cpu",
-            "volume",
+            "layout",
+            "workspaces",
             "memory",
-            "ai"
+            "ai",
+            "storage"
           ],
           "right": [
             "media",
             "quick",
-            "power",
+            "crate-mark",
             "cputemp",
-            "storage",
-            "brightness",
+            "power",
+            "network",
             "bluetooth",
             "gpu",
-            "network",
-            "layout",
-            "battery"
+            "volume",
+            "brightness",
+            "battery",
+            "status"
           ],
           "version": 1
         },
+        "mprisBarStyle": "default",
+        "mprisTitleWidth": 88,
         "panelTooltipBorderEnabled": true,
-        "pickerStyle": "hearthstone",
-        "widgetColorStyles": "G1~inherit~border~auto~1~inherit",
+        "pickerStyle": "tanzaku",
+        "widgetColorStyles": "-",
         "widgetGeom": {},
         "widgets": {
           "battery": true,
           "bluetooth": true,
           "brightness": true,
-          "claude": false,
+          "claude": true,
           "cpu": false,
-          "cpuTemperature": true,
+          "cpuTemperature": false,
           "gpu": false,
-          "layout": true,
+          "layout": false,
           "media": true,
-          "memory": true,
-          "mpris": true,
+          "memory": false,
+          "mpris": false,
           "network": true,
-          "power": true,
+          "power": false,
           "quick": false,
           "status": true,
-          "storage": true,
+          "storage": false,
           "volume": true,
           "weather": true
         },
-        "workspaceMode": "5",
-        "workspaceStyle": "kanji"
+        "workspaceMode": "active",
+        "workspaceStyle": "kanji",
+        "launcherLogoText": "crate",
+        "launcherLogoIcon": "crate"
       }
     },
     "theme": {
