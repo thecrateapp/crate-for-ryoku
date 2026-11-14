@@ -130,34 +130,6 @@
         0.53
       ]
     },
-    "preview-sheen": {
-      "open": [
-        "sh",
-        "-c",
-        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/crate-sheen.webp"
-      ]
-    },
-    "preview-horizon": {
-      "open": [
-        "sh",
-        "-c",
-        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/crate-horizon.webp"
-      ]
-    },
-    "preview-macro": {
-      "open": [
-        "sh",
-        "-c",
-        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/crate-macro.webp"
-      ]
-    },
-    "preview-clear": {
-      "open": [
-        "ryogami",
-        "wallpaper",
-        "preview-clear"
-      ]
-    },
     "crate-window": {
       "open": [
         "setsid",
@@ -242,47 +214,7 @@
       "action": "play"
     },
     {
-      "at": 1,
-      "do": "key",
-      "key": "m",
-      "mods": [
-        "super"
-      ]
-    },
-    {
       "at": 2.5,
-      "do": "surface",
-      "name": "preview-sheen",
-      "action": "open"
-    },
-    {
-      "at": 5,
-      "do": "surface",
-      "name": "preview-horizon",
-      "action": "open"
-    },
-    {
-      "at": 7.5,
-      "do": "surface",
-      "name": "preview-macro",
-      "action": "open"
-    },
-    {
-      "at": 10,
-      "do": "surface",
-      "name": "preview-clear",
-      "action": "open"
-    },
-    {
-      "at": 11.5,
-      "do": "key",
-      "key": "m",
-      "mods": [
-        "super"
-      ]
-    },
-    {
-      "at": 12.5,
       "do": "key",
       "key": "w",
       "mods": [
@@ -290,27 +222,27 @@
       ]
     },
     {
-      "at": 14,
+      "at": 4.0,
       "do": "key",
       "key": "Right"
     },
     {
-      "at": 15.2,
+      "at": 5.2,
       "do": "key",
       "key": "Right"
     },
     {
-      "at": 16.4,
+      "at": 6.4,
       "do": "key",
       "key": "Right"
     },
     {
-      "at": 18,
+      "at": 8.0,
       "do": "key",
       "key": "Escape"
     },
     {
-      "at": 19.5,
+      "at": 9.5,
       "do": "window",
       "run": [
         "kitty",
@@ -322,7 +254,7 @@
       ]
     },
     {
-      "at": 20.5,
+      "at": 10.5,
       "do": "window",
       "run": [
         "kitty",
@@ -334,7 +266,7 @@
       ]
     },
     {
-      "at": 21.5,
+      "at": 11.5,
       "do": "window",
       "run": [
         "kitty",
@@ -346,7 +278,7 @@
       ]
     },
     {
-      "at": 22.5,
+      "at": 12.5,
       "do": "window",
       "run": [
         "kitty",
@@ -358,37 +290,37 @@
       ]
     },
     {
-      "at": 28,
+      "at": 18.0,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 28.6,
+      "at": 18.6,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 29.2,
+      "at": 19.2,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 29.8,
+      "at": 19.8,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 31,
+      "at": 21.0,
       "do": "surface",
       "name": "crate-window",
       "action": "open"
     },
     {
-      "at": 35,
+      "at": 25.0,
       "do": "pointer",
       "from": [
         3408,
@@ -403,7 +335,7 @@
       "opens": "crate-mark"
     },
     {
-      "at": 40,
+      "at": 30.0,
       "do": "pointer",
       "from": [
         2377,
@@ -418,7 +350,7 @@
       "closes": "crate-mark"
     },
     {
-      "at": 41,
+      "at": 31.0,
       "do": "pointer",
       "from": [
         2377,
@@ -433,7 +365,7 @@
       "opens": "audio"
     },
     {
-      "at": 44.2,
+      "at": 34.2,
       "do": "pointer",
       "from": [
         3460,
@@ -448,7 +380,7 @@
       "closes": "audio"
     },
     {
-      "at": 45,
+      "at": 35.0,
       "do": "pointer",
       "from": [
         3460,
@@ -463,7 +395,7 @@
       "opens": "bluetooth"
     },
     {
-      "at": 48.2,
+      "at": 38.2,
       "do": "pointer",
       "from": [
         3397,
@@ -478,7 +410,7 @@
       "closes": "bluetooth"
     },
     {
-      "at": 49,
+      "at": 39.0,
       "do": "pointer",
       "from": [
         3397,
@@ -493,7 +425,7 @@
       "opens": "network"
     },
     {
-      "at": 52.2,
+      "at": 42.2,
       "do": "pointer",
       "from": [
         3355,
@@ -508,7 +440,7 @@
       "closes": "network"
     },
     {
-      "at": 53,
+      "at": 43.0,
       "do": "pointer",
       "from": [
         3355,
@@ -523,7 +455,7 @@
       "opens": "bell"
     },
     {
-      "at": 56.2,
+      "at": 46.2,
       "do": "pointer",
       "from": [
         3681,
@@ -538,7 +470,7 @@
       "closes": "bell"
     },
     {
-      "at": 57,
+      "at": 47.0,
       "do": "pointer",
       "from": [
         3681,
@@ -551,78 +483,78 @@
       "duration": 0.8
     },
     {
-      "at": 58,
+      "at": 48.0,
       "do": "surface",
       "name": "crate-window",
       "action": "close"
     },
     {
-      "at": 59.5,
+      "at": 49.5,
       "do": "surface",
       "name": "controls",
       "action": "open"
     },
     {
-      "at": 63.5,
+      "at": 53.5,
       "do": "surface",
       "name": "controls",
       "action": "close"
     },
     {
-      "at": 64.7,
+      "at": 54.7,
       "do": "surface",
       "name": "launcher",
       "action": "open"
     },
     {
-      "at": 65.3,
+      "at": 55.3,
       "do": "type",
       "text": "cr nitzer"
     },
     {
-      "at": 69.7,
+      "at": 59.7,
       "do": "surface",
       "name": "launcher",
       "action": "close"
     },
     {
-      "at": 70.9,
+      "at": 60.9,
       "do": "surface",
       "name": "gamebar",
       "action": "open"
     },
     {
-      "at": 74.9,
+      "at": 64.9,
       "do": "surface",
       "name": "gamebar",
       "action": "close"
     },
     {
-      "at": 76.10000000000001,
+      "at": 66.1,
       "do": "surface",
       "name": "kit",
       "action": "open"
     },
     {
-      "at": 80.10000000000001,
+      "at": 70.1,
       "do": "surface",
       "name": "kit",
       "action": "close"
     },
     {
-      "at": 81.30000000000001,
+      "at": 71.3,
       "do": "surface",
       "name": "qsbar-settings",
       "action": "open"
     },
     {
-      "at": 85.30000000000001,
+      "at": 75.3,
       "do": "surface",
       "name": "qsbar-settings",
       "action": "close"
     },
     {
-      "at": 86.50000000000001,
+      "at": 76.5,
       "do": "key",
       "key": "s",
       "mods": [
@@ -631,18 +563,18 @@
       ]
     },
     {
-      "at": 89.50000000000001,
+      "at": 79.5,
       "do": "key",
       "key": "Escape"
     },
     {
-      "at": 91.00000000000001,
+      "at": 81.0,
       "do": "notify",
       "title": "Crate",
       "body": "Now playing"
     },
     {
-      "at": 95.50000000000001,
+      "at": 85.5,
       "do": "wait"
     }
   ]
