@@ -228,19 +228,19 @@ Decided with the user on 2026-11-14:
 
 ## Wave 7: Remaining surfaces (task list)
 
-Inventory of 2026-11-14 (every module that opens its own window, checked for any crate adaptation): the user ruled that all of them migrate, in any order. Each surface follows the rulings in sections 1-2 and the Wave 3-5 patterns (kit primitives, Tokens roles, `Tokens.controlsCrate` gates, stock unchanged, one glass for floating panels, opaque large working windows, no Ryoku marginalia, kanji glosses kept), with a probe or scene for both looks.
+Inventory of 2026-11-14 (every module that opens its own window, checked for any crate adaptation): the user ruled that all of them migrate, in any order. Scope ruling (2026-11-14): Crate for Ryoku is a complete, closed package; it migrates what the Crate setup uses (QS Bar, the dynamic-island dock, the hero launcher and every shared surface) and NOT the alternative styles: the Python, Orpheus, Nomarchy and Kairos bars, the iRiS bar, the ii dock and the launcher's other variants (main, okshell, kairos, spotlight, python). Each surface follows the rulings in sections 1-2 and the Wave 3-5 patterns (kit primitives, Tokens roles, `Tokens.controlsCrate` gates, stock unchanged, one glass for floating panels, opaque large working windows, no Ryoku marginalia, kanji glosses kept), with a probe or scene for both looks.
 
-- [ ] **Game Bar** (`shell/modules/gamebar`, 23 files, kit in 10).
-- [ ] **Ask** (`shell/modules/ask`: AskBar, AskBubble; Rashin's question bar).
+- [ ] **Game Bar** (fork 78836dac + a5b36985 all Solar + e08105a2 16 px card padding; follow-ups in progress: a kit danger Btn for Stop, Tabs/Seg follow the bar scale; the user keeps glass over the game) (`shell/modules/gamebar`, 23 files, kit in 10).
+- [x] **Ask** (fork 96f3205c + d2dceaa0, merged cd99e741; drawers opaque; Chip gains swatch) (`shell/modules/ask`: AskBar, AskBubble; Rashin's question bar).
 - [x] **Capture overlays** (fork fef3f416, merged 41cededa; readout tags opaque popover, not glass: the camera layer redraws every frame) (`shell/modules/capture`: region, camera, keypress, recording).
-- [ ] **Ryoku launcher** (`shell/modules/launcher`: hero launcher, window rail; 39 literal colours). Crate Palette users skip it, but a fresh install shows it.
+- [x] **Ryoku launcher** (hero variant: fork d3444e4c, merged 8f47a7f7; ledger numerals hidden as marginalia; hero art kept as content) (`shell/modules/launcher`: hero launcher, window rail; 39 literal colours). Crate Palette users skip it, but a fresh install shows it.
 - [x] **Keys** and **Keys hint** (fork 7f8634a5 + d27b89b2 phone-tab Solar glyphs, merged 8926ddc4; the user keeps the blurred scrim behind Kit in both looks) (`shell/quickshell/keys`, `keys-hint`).
-- [ ] **Phone bridge** (`shell/modules/phone`).
-- [ ] **Ryopin** (`shell/quickshell/ryopin`, pinned windows).
-- [ ] **Visualizer** (`shell/modules/visualizer`; 5 literal colours).
+- [x] **Phone bridge** (no chrome: services only; its notifications are the Wave 2 cards. The card's last-resort Material icon still needs a crate glyph) (`shell/modules/phone`).
+- [x] **Ryopin** (fork 868cbd12, merged; strip is glass in the margin, card opaque, pin margin 44 px under crate) (`shell/quickshell/ryopin`, pinned windows).
+- [ ] **Visualizer** (fork 0b737130; follow-up in progress: keep the wallpaper relight under crate, per the user) (`shell/modules/visualizer`; 5 literal colours).
 - [ ] **Desktop widgets and edit mode** (`stage/modules/ii`: notes, clocks and the rest, the edit chrome; 244 files, 53 literal colours).
 - [ ] **iNiR shared surfaces** (`inir/modules`: context menu, popup tooltip, cheatsheet, close confirm, media controls, overlay, background).
-- [ ] **iRiS bar** (`inir/modules/iris`, the alternative bar style; 184 files).
+- [-] **iRiS bar**: out of scope (alternative style, scope ruling above).
 - [ ] **QS Bar image and media pickers** (three layouts each; deferred since Wave 3).
 - [ ] The overview backdrop (`shell/modules/wallpaper`) has no chrome of its own; confirm and close.
 
