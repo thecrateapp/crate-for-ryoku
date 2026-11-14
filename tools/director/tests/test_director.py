@@ -241,3 +241,50 @@ def test_a_pointer_glide_moves_in_eased_frames_over_its_duration():
 def test_a_glide_needs_a_start_point():
     with pytest.raises(director.DirectorError, match="glide needs 'from'"):
         load({"name": "t", "output": "t.mkv", "steps": [{"at": 0, "do": "pointer", "to": [1, 1], "duration": 1}]})
+
+
+EDP = {"name": "eDP-1", "x": 1408, "y": 1440, "width": 3840, "height": 2400, "scale": 1.6}
+
+
+def test_a_good_take_writes_marks_for_the_cut(tmp_path):
+    take = tmp_path / "t.mkv"
+    data = {
+        "name": "t",
+        "output": "t.mkv",
+        "surfaces": {
+            "launcher": {"open": ["a"], "close": ["b"], "focus": [0.3, 0.05, 0.4, 0.3]},
+        },
+        "steps": [
+            {"at": 1, "do": "surface", "name": "launcher", "action": "open"},
+            {"at": 2, "do": "pointer", "to": [1408 + 1200, 1440 + 750], "click": True},
+            {"at": 4, "do": "surface", "name": "launcher", "action": "close"},
+        ],
+    }
+    fake = Fake()
+    director.run(load(data), fake.env(), record=str(take), geometry=EDP)
+    marks = json.loads((tmp_path / "t.marks.json").read_text())
+    assert marks["output"] == EDP
+    assert marks["events"] == [
+        {"t": 1.0, "step": 1, "kind": "open", "surface": "launcher", "focus": [0.3, 0.05, 0.4, 0.3]},
+        {"t": 2.0, "step": 2, "kind": "click", "point": [0.5, 0.5]},
+        {"t": 4.0, "step": 3, "kind": "close", "surface": "launcher"},
+    ]
+
+
+def test_marks_keep_the_real_time_after_a_cue(tmp_path):
+    data = {
+        "name": "t",
+        "output": "t.mkv",
+        "steps": [{"at": 0, "do": "cue", "message": "x"}, {"at": 1, "do": "notify", "title": "C", "body": "b"}],
+    }
+    fake = Fake()
+    director.run(load(data), fake.env(), record=str(tmp_path / "t.mkv"), geometry=EDP)
+    marks = json.loads((tmp_path / "t.marks.json").read_text())
+    assert marks["events"] == [{"t": 6.0, "step": 2, "kind": "notify"}]
+
+
+def test_a_failed_take_writes_no_marks(tmp_path):
+    fake = Fake(fail=lambda argv: argv[0] == "ryoku-shell")
+    with pytest.raises(director.DirectorError):
+        director.run(director.Timeline.load(EXAMPLE), fake.env(), record=str(tmp_path / "t.mkv"), geometry=EDP)
+    assert not (tmp_path / "t.marks.json").exists()

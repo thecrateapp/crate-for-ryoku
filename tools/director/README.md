@@ -18,6 +18,11 @@ If a command fails, an app is missing, the recorder dies, or you press Ctrl+C, t
 run stops, the recorder stops, and the take is renamed `NAME.failed.mkv`: a broken
 take never keeps the real name. Takes go in `takes/`, which git ignores.
 
+With `--output`, a good take also gets `NAME.marks.json` for the cut (tools/cut):
+the output's geometry and, per step, the real time since the recorder started
+(cues included), with the surface's `focus` (a 0..1 rectangle on the output,
+declared per surface in the timeline) or the click point. A failed take gets none.
+
 ## Timeline
 
 ```json

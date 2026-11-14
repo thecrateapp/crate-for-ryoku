@@ -217,7 +217,41 @@ def failed_path(take: Path) -> Path:
     return take.with_name(f"{take.stem}.failed{take.suffix}")
 
 
-def run(timeline: Timeline, env: Env, record: str | None = None, output: str | None = None) -> None:
+def marks_path(take: Path) -> Path:
+    """The cut's sidecar for a take: `hero.mkv` gets `hero.marks.json`."""
+    return take.with_name(f"{take.stem}.marks.json")
+
+
+def _fraction(point: list[float], geometry: dict[str, Any]) -> list[float]:
+    """Layout coordinates to a 0..1 position on the recorded output."""
+    width = geometry["width"] / geometry["scale"]
+    height = geometry["height"] / geometry["scale"]
+    return [round((point[0] - geometry["x"]) / width, 4), round((point[1] - geometry["y"]) / height, 4)]
+
+
+def _mark(step: Step, timeline: Timeline, t: float, geometry: dict[str, Any]) -> dict[str, Any] | None:
+    d = step.data
+    base = {"t": round(t, 3), "step": step.index}
+    if step.kind == "surface":
+        event = {**base, "kind": d["action"], "surface": d["name"]}
+        focus = timeline.surfaces[d["name"]].get("focus")
+        if focus and d["action"] == "open":
+            event["focus"] = focus
+        return event
+    if step.kind == "pointer" and d.get("click"):
+        return {**base, "kind": "click", "point": _fraction(d["to"], geometry)}
+    if step.kind == "notify":
+        return {**base, "kind": "notify"}
+    return None
+
+
+def run(
+    timeline: Timeline,
+    env: Env,
+    record: str | None = None,
+    output: str | None = None,
+    geometry: dict[str, Any] | None = None,
+) -> None:
     take = Path(record) if record else None
     recorder = None
     if take is not None:
@@ -228,6 +262,7 @@ def run(timeline: Timeline, env: Env, record: str | None = None, output: str | N
         except OSError as error:
             raise DirectorError(f"cannot start the recorder: {error}") from error
     finished = False
+    events: list[dict[str, Any]] = []
     try:
         start = env.clock()
         shift = 0.0  # time spent waiting on cues pushes the rest of the timeline back
@@ -235,6 +270,10 @@ def run(timeline: Timeline, env: Env, record: str | None = None, output: str | N
             env.sleep(start + shift + step.at - env.clock())
             if recorder is not None and not recorder.alive():
                 raise DirectorError(f"the recorder stopped before step {step.index}")
+            if geometry is not None:
+                event = _mark(step, timeline, env.clock() - start, geometry)
+                if event is not None:
+                    events.append(event)
             if step.kind == "cue":
                 before = env.clock()
                 env.prompt(step.data["message"])
@@ -259,6 +298,9 @@ def run(timeline: Timeline, env: Env, record: str | None = None, output: str | N
                 elif env.run(argv) != 0:
                     raise DirectorError(failure)
         finished = True
+        if take is not None and geometry is not None:
+            marks = {"take": take.name, "output": geometry, "events": events}
+            marks_path(take).write_text(json.dumps(marks, indent=2) + "\n")
     finally:
         if recorder is not None:
             recorder.stop()
@@ -318,6 +360,18 @@ def _prompt(message: str) -> None:
         signal.signal(signal.SIGUSR1, previous)
 
 
+def monitor_geometry(name: str) -> dict[str, Any]:
+    """The recorded output's layout position, pixel size and scale, from Hyprland."""
+    try:
+        monitors = json.loads(subprocess.run(["hyprctl", "monitors", "-j"], capture_output=True, text=True, timeout=5).stdout)
+    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as error:
+        raise DirectorError(f"cannot read the monitors: {error}") from error
+    for m in monitors:
+        if m.get("name") == name:
+            return {k: m[k] for k in ("name", "x", "y", "width", "height", "scale")}
+    raise DirectorError(f"no monitor named {name!r}")
+
+
 def system_env() -> Env:
     return Env(run=_run, spawn=_Process, clock=time.monotonic, sleep=lambda s: time.sleep(max(0.0, s)), prompt=_prompt)
 
@@ -335,7 +389,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.dry_run:
             print("\n".join(dry_run(timeline)))
             return 0
-        run(timeline, system_env(), record=args.record, output=args.output)
+        geometry = monitor_geometry(args.output) if args.record and args.output else None
+        run(timeline, system_env(), record=args.record, output=args.output, geometry=geometry)
     except DirectorError as error:
         print(f"director: {error}", file=sys.stderr)
         return 1
