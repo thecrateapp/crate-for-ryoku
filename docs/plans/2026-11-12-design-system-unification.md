@@ -190,9 +190,24 @@ keeps its 2 px focus border (about 250 callers). Two Ryostore probes (`ryostore-
 - [ ] **PluginKit:** `Singletons/Theme.qml` font, mono, line and radius from Tokens; `MicroLabel` → Label; `WaveMeter` stays as a distinct visual, documented as allowed.
 - [ ] **crate-mark:** use the kit Beam, Chip, IconButton and Label (dogfooding); its local copies go.
 
-- [ ] **Reload cover** (`ryoku/shell/quickshell/reload-cover`, the "SHELL RELOADING" / "LOADING DESKTOP" screen; asked for by the user 2026-11-14): under crate, colours, mono face and type from Tokens instead of the literal `#d8e8f5` / `#ff735d` and JetBrainsMono, and the Crate mark instead of the Ryoku `assets/logo.png`, shipped as a crate-for-ryoku rice asset so a fresh install gets it without importing anything. Stock unchanged; a user's own cover (Hub > Desktop > Reload cover, `brand.json` `reloadCover`) still wins.
-
 ## Wave 6: Guard and close-out
+
+Decided with the user on 2026-11-14:
+- The reload cover takes its mark from the theme (option 1), not from the rice's brand layer or a rice reload-cover asset.
+- The cover carries a Japanese gloss in all three states: 再読込 (shell reload), 起動中 (boot), 失敗 (failure), shown when `showJapaneseGloss` is on.
+- The Ryogami picker stays as shipped in Wave 5: no 力 seal under crate.
+- The refreshed Crate rice ships no brand layer: applying it keeps the user's own name and mark (力 by default).
+
+- [ ] **Reload cover** (`ryoku/shell/quickshell/reload-cover`, the "SHELL RELOADING" / "LOADING DESKTOP" screen; asked for by the user 2026-11-14). Under `Tokens.controlsCrate` only:
+  - iris and hold fill `Tokens.paper` instead of black;
+  - the mark comes from a new theme style key `coverMark` (an SVG path relative to the theme directory; crate-for-ryoku ships `theme/crate/cover-mark.svg`, the monochrome Crate mark), drawn emblem-sized (about 96 px) and tinted with the theme's ink, in place of the 928 px-wide Ryoku wordmark `assets/logo.png`;
+  - the status line is a kit `Label` (mono 11, tracking 0.14 em, subtle) with its gloss;
+  - an indeterminate `Beam` under the line during the "hold" phase only (real waiting, not decoration);
+  - the failure line in the theme's error role, mono.
+
+  Stock unchanged; a user's own cover (Hub > Desktop > Reload cover, `brand.json` `reloadCover`) still wins. Boot covers map before the shell: an offscreen probe proves the first frame already carries the theme under both looks. Tests: Go sanitiser test and `tst_themestyle.qml` case for `coverMark`; a reload-cover probe for Crate and Default.
+- [ ] **Bar marks CRATE and the Crate glyph** (asked for by the user 2026-11-14): `crate` joins `launcherLogoTextOptions` (the "CRATE" wordmark) and `launcherLogoIconOptions` (the monochrome Crate mark), right after `ryoku`, in both looks, selectable in QS Bar Settings > Identity. The Crate mark is not a font glyph, so a `LauncherMark.qml` in qsbar/modules draws font glyphs as text and `crate` as the logo's outline path (the one crate-mark's `CrateLogo.qml` uses), tinted with the seal; the bar and the Identity picker both use it. Tests: an offscreen probe (both lists hold `crate`; vector for `crate`, text otherwise) and Go `bar set launcher launcherLogoText|launcherLogoIcon crate` cases.
+- [ ] **Crate rice refresh:** `rice/crate/rice.json` was captured on Ryoku 1.0.7, before Waves 0 to 5 (radius 8 instead of 6, border 2, an older bar). Re-capture it from the approved live desktop (the user's bar as it is now: launcher first on the left, crate-mark on the right after `quick`; not crate-mark first), with the "CRATE" wordmark on (`launcherLogoMode` text, `launcherLogoText` crate). Strip anything personal, keep it without a brand layer, and prove it on a fresh, session-isolated apply. The contact sheet below is taken from that fresh apply, not from the development machine.
 
 - [ ] **`tools/design-lint`** (a Python script in the Ryoku repo), run by `.githooks/pre-commit`. It flags new QML outside `ui/` that:
   - defines a slider (`QQC.Slider`) or a progress bar (a Rectangle `width: … * value` pattern);
