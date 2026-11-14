@@ -190,6 +190,8 @@ keeps its 2 px focus border (about 250 callers). Two Ryostore probes (`ryostore-
 - [ ] **PluginKit:** `Singletons/Theme.qml` font, mono, line and radius from Tokens; `MicroLabel` → Label; `WaveMeter` stays as a distinct visual, documented as allowed.
 - [ ] **crate-mark:** use the kit Beam, Chip, IconButton and Label (dogfooding); its local copies go.
 
+- [ ] **Reload cover** (`ryoku/shell/quickshell/reload-cover`, the "SHELL RELOADING" / "LOADING DESKTOP" screen; asked for by the user 2026-11-14): under crate, colours, mono face and type from Tokens instead of the literal `#d8e8f5` / `#ff735d` and JetBrainsMono, and the Crate mark instead of the Ryoku `assets/logo.png`, shipped as a crate-for-ryoku rice asset so a fresh install gets it without importing anything. Stock unchanged; a user's own cover (Hub > Desktop > Reload cover, `brand.json` `reloadCover`) still wins.
+
 ## Wave 6: Guard and close-out
 
 - [ ] **`tools/design-lint`** (a Python script in the Ryoku repo), run by `.githooks/pre-commit`. It flags new QML outside `ui/` that:
