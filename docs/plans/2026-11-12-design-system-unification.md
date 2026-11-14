@@ -238,14 +238,23 @@ Inventory of 2026-11-14 (every module that opens its own window, checked for any
 - [x] **Phone bridge** (no chrome: services only; its notifications are the Wave 2 cards. The card's last-resort Material icon still needs a crate glyph) (`shell/modules/phone`).
 - [x] **Ryopin** (fork 868cbd12, merged; strip is glass in the margin, card opaque, pin margin 44 px under crate) (`shell/quickshell/ryopin`, pinned windows).
 - [x] **Visualizer** (fork 0b737130 + 74160cfd wallpaper relight kept, merged 9b082546) (`shell/modules/visualizer`; 5 literal colours).
-- [ ] **Shima dock** (the Crate setup's dock: `dock.design = shima`, drawn by inir/modules/iris/dock/IrisDockSurface; in progress). The Crate rice now carries the dock's look (shima, bottom, autohide, frost, labels, no magnify) without pinned apps; the fork keeps the user's pins when a rice names none (70c017ed).
+- [x] **Shima dock** (the Crate setup's dock: `dock.design = shima`, drawn by inir/modules/iris/dock/IrisDockSurface; in progress). The Crate rice now carries the dock's look (shima, bottom, autohide, frost, labels, no magnify) without pinned apps; the fork keeps the user's pins when a rice names none (70c017ed).
 - [x] **QS Bar image and media pickers** (fork f1d18832, merged f44ed8a7; tanzaku and hearthstone scrims glass; carousel slices keep their skewed corners).
 - [x] **iNiR shared surfaces**: none can show in the Crate setup (iRiS bar or ii dock only); the notification card's fallback thumbnail is a kit glyph (fork f40f6e99, merged 214e272e).
-- [ ] **Desktop widgets and edit mode** (`stage/modules/ii`: notes, clocks and the rest, the edit chrome; 244 files, 53 literal colours).
+- [x] **Desktop widgets and edit mode** (Stage: edit chrome, widget frame and every family, ~130 Solar glyphs; merged f356bd54) (`stage/modules/ii`: notes, clocks and the rest, the edit chrome; 244 files, 53 literal colours).
 - [-] **iRiS bar**: out of scope (alternative style, scope ruling above).
-- [ ] The overview backdrop (`shell/modules/wallpaper`) has no chrome of its own; confirm and close.
+- [x] The overview backdrop has no chrome of its own.
 
 ## Ordering and verification
 
 Wave 0 → Wave 1 → Waves 2 and 3 (independent once the kit exists) → Wave 4 → Wave 5 → Wave 6 → Wave 7.
 Each wave ends with packages installed live and a capture review with the user before the next starts.
+
+## V1 closed (2026-11-14)
+
+Diego closed V1 after testing fork packages 1.0.9.r6294.gfca21d8 live. Late fixes in that batch: every QS Bar
+panel is the one glass whatever the bar's opacity (ef1f28f8); one shared glyph for the current audio output in the
+bar, the volume panel and the media panel (a90ccf68, 4761a687); the shima dock under crate is a minimal glass body
+behind the icons, no edge, plates or separator (fca21d8a). The live kit overlay is off: changes ship as matching
+packages. Next: publishing (pushes, AUR, Ryostore, a release) on Diego's go, then the ryoku.cratemusic.app site
+(crate repo docs/plans/2026-11-14-ryoku-site-plan.md).
