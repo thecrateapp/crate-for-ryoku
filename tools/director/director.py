@@ -26,6 +26,10 @@ from typing import Any, Callable
 KINDS = ("surface", "window", "notify", "play", "pointer", "nudge", "type", "key", "wait", "cue")
 PLAY_ACTIONS = ("play", "pause", "play-pause", "next", "previous", "stop")
 RECORDER = ["wf-recorder", "-r", "60"]
+# Hardware H.264 on a VAAPI render node: software x264 at 4K60 takes about four cores and
+# makes the desktop it records stutter. QP 18 keeps UI text sharp.
+VAAPI_CODEC = ["-c", "h264_vaapi"]
+VAAPI_QUALITY = ["-p", "rc_mode=CQP", "-p", "qp=18"]
 COMMAND_TIMEOUT = 15
 GLIDE_FPS = 60
 
@@ -303,12 +307,20 @@ def run(
     output: str | None = None,
     geometry: dict[str, Any] | None = None,
     audio: str | None = None,
+    vaapi: str | None = None,
 ) -> None:
     take = Path(record) if record else None
     recorder = None
     if take is not None:
         take.parent.mkdir(parents=True, exist_ok=True)
-        argv = [*RECORDER, *(["-o", output] if output else []), *([f"--audio={audio}"] if audio else []), "-f", str(take)]
+        argv = [
+            *RECORDER,
+            *(["-o", output] if output else []),
+            *([f"--audio={audio}"] if audio else []),
+            *([*VAAPI_CODEC, "-d", vaapi, *VAAPI_QUALITY] if vaapi else []),
+            "-f",
+            str(take),
+        ]
         try:
             recorder = env.spawn(argv)
         except OSError as error:
@@ -461,7 +473,10 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument("--record", metavar="OUT.mkv", help="record the screen with wf-recorder while running")
     parser.add_argument("--output", metavar="NAME", help="record only this output (wf-recorder -o), e.g. DP-1")
     parser.add_argument("--audio", action="store_true", help="also record what plays on the default output (its monitor)")
+    parser.add_argument("--vaapi", metavar="DEVICE", help="encode on this VAAPI render node, e.g. /dev/dri/renderD129")
     args = parser.parse_args(argv)
+    if args.vaapi and not args.record:
+        parser.error("--vaapi needs --record")
     try:
         timeline = Timeline.load(args.timeline)
         if args.dry_run:
@@ -469,7 +484,15 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         geometry = monitor_geometry(args.output) if args.record and args.output else None
         audio = default_sink_monitor() if args.record and args.audio else None
-        run(timeline, system_env(), record=args.record, output=args.output, geometry=geometry, audio=audio)
+        run(
+            timeline,
+            system_env(),
+            record=args.record,
+            output=args.output,
+            geometry=geometry,
+            audio=audio,
+            vaapi=args.vaapi,
+        )
     except DirectorError as error:
         print(f"director: {error}", file=sys.stderr)
         return 1

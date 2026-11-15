@@ -409,6 +409,24 @@ def test_record_can_capture_the_desktop_audio(tmp_path):
     assert fake.calls[0][1] == ["wf-recorder", "-r", "60", "--audio=sink.monitor", "-f", str(take)]
 
 
+def test_record_can_encode_on_a_vaapi_device(tmp_path):
+    fake = Fake()
+    take = tmp_path / "t.mp4"
+    data = {"name": "t", "output": "t.mp4", "steps": []}
+    director.run(load(data), fake.env(), record=str(take), vaapi="/dev/dri/renderD129")
+    assert fake.calls[0][1] == [
+        "wf-recorder", "-r", "60",
+        "-c", "h264_vaapi", "-d", "/dev/dri/renderD129", "-p", "rc_mode=CQP", "-p", "qp=18",
+        "-f", str(take),
+    ]
+
+
+def test_main_rejects_vaapi_without_record(capsys):
+    with pytest.raises(SystemExit):
+        director.main(["timeline.json", "--vaapi", "/dev/dri/renderD129"])
+    assert "--vaapi needs --record" in capsys.readouterr().err
+
+
 TEARDOWN = {
     "name": "t",
     "output": "t.mp4",
