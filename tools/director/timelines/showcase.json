@@ -627,6 +627,45 @@
     },
     {
       "at": 87.0,
+      "do": "pointer",
+      "from": [
+        3408,
+        2540
+      ],
+      "to": [
+        1456,
+        1993
+      ],
+      "duration": 0.8
+    },
+    {
+      "at": 87.9,
+      "do": "pointer",
+      "from": [
+        1456,
+        1993
+      ],
+      "to": [
+        1456,
+        2328
+      ],
+      "duration": 2.2
+    },
+    {
+      "at": 90.3,
+      "do": "pointer",
+      "from": [
+        1456,
+        2328
+      ],
+      "to": [
+        3408,
+        2540
+      ],
+      "duration": 0.8
+    },
+    {
+      "at": 91.6,
       "do": "key",
       "key": "s",
       "mods": [
@@ -636,25 +675,25 @@
       "opens": "ryoshot"
     },
     {
-      "at": 90.0,
+      "at": 94.6,
       "do": "key",
       "key": "Escape",
       "closes": "ryoshot"
     },
     {
-      "at": 91.5,
+      "at": 96.1,
       "do": "notify",
       "title": "Crate",
       "body": "Now playing"
     },
     {
-      "at": 95.5,
+      "at": 100.1,
       "do": "surface",
       "name": "wallpaper-groove",
       "action": "open"
     },
     {
-      "at": 96.0,
+      "at": 100.6,
       "do": "wait"
     }
   ]
