@@ -11,7 +11,8 @@ tools/director/director.py tools/director/timelines/hero.json \
 
 `--dry-run` prints each step's time and the exact commands. `--record` starts
 `wf-recorder -r 60 [-o OUTPUT] -f OUT` first (creating the folder) and stops it with
-SIGINT after the last step. `--output` records one monitor, so the terminal can sit
+SIGINT after the last step. `--audio` also records what plays on the default output (its PipeWire
+monitor), so notifications and any other sound end up in the take too. `--output` records one monitor, so the terminal can sit
 on another.
 
 If a command fails, an app is missing, the recorder dies, or you press Ctrl+C, the

@@ -400,3 +400,10 @@ def test_a_surface_with_private_data_passes_its_redact_boxes_to_the_cut(tmp_path
     events = json.loads((tmp_path / "t.marks.json").read_text())["events"]
     assert events[0]["redact"] == boxes
     assert "redact" not in events[1]
+
+
+def test_record_can_capture_the_desktop_audio(tmp_path):
+    fake = Fake()
+    take = tmp_path / "t.mp4"
+    director.run(load({"name": "t", "output": "t.mp4", "steps": []}), fake.env(), record=str(take), audio="sink.monitor")
+    assert fake.calls[0][1] == ["wf-recorder", "-r", "60", "--audio=sink.monitor", "-f", str(take)]

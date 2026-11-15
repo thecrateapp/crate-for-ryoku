@@ -289,12 +289,13 @@ def run(
     record: str | None = None,
     output: str | None = None,
     geometry: dict[str, Any] | None = None,
+    audio: str | None = None,
 ) -> None:
     take = Path(record) if record else None
     recorder = None
     if take is not None:
         take.parent.mkdir(parents=True, exist_ok=True)
-        argv = [*RECORDER, *(["-o", output] if output else []), "-f", str(take)]
+        argv = [*RECORDER, *(["-o", output] if output else []), *([f"--audio={audio}"] if audio else []), "-f", str(take)]
         try:
             recorder = env.spawn(argv)
         except OSError as error:
@@ -405,6 +406,17 @@ def _prompt(message: str) -> None:
         signal.signal(signal.SIGUSR1, previous)
 
 
+def default_sink_monitor() -> str:
+    """The PipeWire/Pulse monitor source of the default output: everything that plays."""
+    try:
+        sink = subprocess.run(["pactl", "get-default-sink"], capture_output=True, text=True, timeout=5).stdout.strip()
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise DirectorError(f"cannot read the default output: {error}") from error
+    if not sink:
+        raise DirectorError("no default audio output")
+    return f"{sink}.monitor"
+
+
 def monitor_geometry(name: str) -> dict[str, Any]:
     """The recorded output's layout position, pixel size and scale, from Hyprland."""
     try:
@@ -428,6 +440,7 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument("--dry-run", action="store_true", help="print the resolved commands with their times")
     mode.add_argument("--record", metavar="OUT.mkv", help="record the screen with wf-recorder while running")
     parser.add_argument("--output", metavar="NAME", help="record only this output (wf-recorder -o), e.g. DP-1")
+    parser.add_argument("--audio", action="store_true", help="also record what plays on the default output (its monitor)")
     args = parser.parse_args(argv)
     try:
         timeline = Timeline.load(args.timeline)
@@ -435,7 +448,8 @@ def main(argv: list[str] | None = None) -> int:
             print("\n".join(dry_run(timeline)))
             return 0
         geometry = monitor_geometry(args.output) if args.record and args.output else None
-        run(timeline, system_env(), record=args.record, output=args.output, geometry=geometry)
+        audio = default_sink_monitor() if args.record and args.audio else None
+        run(timeline, system_env(), record=args.record, output=args.output, geometry=geometry, audio=audio)
     except DirectorError as error:
         print(f"director: {error}", file=sys.stderr)
         return 1
