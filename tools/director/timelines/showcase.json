@@ -124,10 +124,10 @@
     },
     "crate-mark": {
       "focus": [
-        0.36,
+        0.68,
         0.02,
         0.21,
-        0.53
+        0.58
       ]
     },
     "crate-window": {
@@ -342,44 +342,56 @@
       ]
     },
     {
-      "at": 22.5,
+      "at": 21.9,
+      "do": "surface",
+      "name": "controls",
+      "action": "open"
+    },
+    {
+      "at": 25.7,
+      "do": "surface",
+      "name": "controls",
+      "action": "close"
+    },
+    {
+      "at": 26.5,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 23.1,
+      "at": 27.1,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 23.7,
+      "at": 27.7,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 24.3,
+      "at": 28.3,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 25.5,
+      "at": 29.5,
       "do": "surface",
       "name": "crate-window",
       "action": "open"
     },
     {
-      "at": 29.5,
+      "at": 33.5,
       "do": "pointer",
       "from": [
         3408,
         2540
       ],
       "to": [
-        2377,
+        3112,
         1460
       ],
       "duration": 0.9,
@@ -387,14 +399,14 @@
       "opens": "crate-mark"
     },
     {
-      "at": 34.5,
+      "at": 38.5,
       "do": "pointer",
       "from": [
-        2377,
+        3112,
         1460
       ],
       "to": [
-        2377,
+        3112,
         1460
       ],
       "duration": 0.1,
@@ -402,10 +414,10 @@
       "closes": "crate-mark"
     },
     {
-      "at": 35.5,
+      "at": 39.5,
       "do": "pointer",
       "from": [
-        2377,
+        3112,
         1460
       ],
       "to": [
@@ -417,7 +429,7 @@
       "opens": "audio"
     },
     {
-      "at": 38.7,
+      "at": 42.7,
       "do": "pointer",
       "from": [
         3460,
@@ -432,7 +444,7 @@
       "closes": "audio"
     },
     {
-      "at": 38.8,
+      "at": 42.8,
       "do": "pointer",
       "from": [
         3460,
@@ -447,7 +459,7 @@
       "opens": "bluetooth"
     },
     {
-      "at": 42.0,
+      "at": 46.0,
       "do": "pointer",
       "from": [
         3397,
@@ -462,7 +474,7 @@
       "closes": "bluetooth"
     },
     {
-      "at": 42.1,
+      "at": 46.1,
       "do": "pointer",
       "from": [
         3397,
@@ -477,7 +489,7 @@
       "opens": "network"
     },
     {
-      "at": 45.3,
+      "at": 49.3,
       "do": "pointer",
       "from": [
         3355,
@@ -492,7 +504,7 @@
       "closes": "network"
     },
     {
-      "at": 45.4,
+      "at": 49.4,
       "do": "pointer",
       "from": [
         3355,
@@ -507,7 +519,7 @@
       "opens": "bell"
     },
     {
-      "at": 48.6,
+      "at": 52.6,
       "do": "pointer",
       "from": [
         3681,
@@ -522,7 +534,13 @@
       "closes": "bell"
     },
     {
-      "at": 51.5,
+      "at": 55.0,
+      "do": "surface",
+      "name": "launcher",
+      "action": "open"
+    },
+    {
+      "at": 55.5,
       "do": "pointer",
       "from": [
         3681,
@@ -535,42 +553,18 @@
       "duration": 0.8
     },
     {
-      "at": 52.5,
-      "do": "surface",
-      "name": "crate-window",
-      "action": "close"
-    },
-    {
-      "at": 54.0,
-      "do": "surface",
-      "name": "controls",
-      "action": "open"
-    },
-    {
-      "at": 58.0,
-      "do": "surface",
-      "name": "controls",
-      "action": "close"
-    },
-    {
-      "at": 59.2,
-      "do": "surface",
-      "name": "launcher",
-      "action": "open"
-    },
-    {
-      "at": 59.8,
+      "at": 55.6,
       "do": "type",
       "text": "cr nitzer"
     },
     {
-      "at": 64.2,
+      "at": 60.0,
       "do": "surface",
       "name": "launcher",
       "action": "close"
     },
     {
-      "at": 65.4,
+      "at": 61.2,
       "do": "key",
       "key": "space",
       "mods": [
@@ -579,54 +573,60 @@
       "opens": "rashin-ask"
     },
     {
-      "at": 66.3,
+      "at": 62.1,
       "do": "type",
       "text": "how do I change the dock style?"
     },
     {
-      "at": 70.2,
+      "at": 66.0,
       "do": "key",
       "key": "Escape",
       "closes": "rashin-ask"
     },
     {
-      "at": 71.4,
+      "at": 67.2,
       "do": "surface",
       "name": "gamebar",
       "action": "open"
     },
     {
-      "at": 75.4,
+      "at": 71.2,
       "do": "surface",
       "name": "gamebar",
       "action": "close"
     },
     {
-      "at": 76.6,
+      "at": 72.4,
       "do": "surface",
       "name": "kit",
       "action": "open"
     },
     {
-      "at": 80.6,
+      "at": 76.4,
       "do": "surface",
       "name": "kit",
       "action": "close"
     },
     {
-      "at": 81.8,
+      "at": 77.6,
       "do": "surface",
       "name": "qsbar-settings",
       "action": "open"
     },
     {
-      "at": 85.8,
+      "at": 81.6,
       "do": "surface",
       "name": "qsbar-settings",
       "action": "close"
     },
     {
-      "at": 87.0,
+      "at": 82.0,
+      "do": "surface",
+      "name": "crate-window",
+      "action": "close"
+    },
+    {
+      "at": 82.8,
       "do": "pointer",
       "from": [
         3408,
@@ -639,7 +639,7 @@
       "duration": 0.8
     },
     {
-      "at": 87.9,
+      "at": 83.7,
       "do": "pointer",
       "from": [
         1456,
@@ -652,7 +652,7 @@
       "duration": 2.2
     },
     {
-      "at": 90.3,
+      "at": 86.1,
       "do": "pointer",
       "from": [
         1456,
@@ -665,7 +665,7 @@
       "duration": 0.8
     },
     {
-      "at": 91.6,
+      "at": 87.4,
       "do": "key",
       "key": "s",
       "mods": [
@@ -675,25 +675,25 @@
       "opens": "ryoshot"
     },
     {
-      "at": 94.6,
+      "at": 90.4,
       "do": "key",
       "key": "Escape",
       "closes": "ryoshot"
     },
     {
-      "at": 96.1,
+      "at": 91.9,
       "do": "notify",
       "title": "Crate",
       "body": "Now playing"
     },
     {
-      "at": 100.1,
+      "at": 95.9,
       "do": "surface",
       "name": "wallpaper-groove",
       "action": "open"
     },
     {
-      "at": 100.6,
+      "at": 96.4,
       "do": "wait"
     }
   ]
