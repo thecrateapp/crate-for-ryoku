@@ -199,7 +199,7 @@ BRAND_FIT = {
 # silhouette in cyan, so a cut-out subpath becomes a cyan inlay. Absent: all ink.
 BRAND_ACCENT = {
     "tabler/brand-chrome": (1,), "tabler/brand-firefox": (1,), "tabler/brand-mongodb": (0,),
-    "tabler/brand-slack": (0,), "tabler/brand-steam": (1,),
+    "tabler/brand-slack": (0,), "tabler/brand-steam": (1,), "tabler/brand-whatsapp": (1,),
     "simple-icons/cachyos": (1, 2, 3), "simple-icons/cmake": (3,), "simple-icons/electron": (5,),
     "simple-icons/jetbrains": (1,), "simple-icons/localsend": (1, 2, 3, 4, 5, 6, 7, 8),
     "simple-icons/mpv": (4,), "simple-icons/nvidia": (0,), "simple-icons/obsidian": (2,),

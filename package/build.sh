@@ -27,6 +27,7 @@ cp "$SRC"/icons/{crateize.py,build_icons.py,app_glyphs.py,solar-line-duotone.jso
 cp "$SRC"/package/systemd/crate-icons-auto.{path,service} "$OUT/systemd/"
 cp "$SRC/package/crate-presence.sh" "$OUT/crate-presence.sh"
 mkdir -p "$OUT/shell" && cp "$SRC/shell/crate-prompt.fish" "$SRC/shell/eza-theme.yml" "$OUT/shell/"
+mkdir -p "$OUT/apps/zapfast" && cp "$SRC/apps/zapfast/Crate.json" "$OUT/apps/zapfast/"
 cp -a "$SRC/plugin/crate-mark" "$OUT/plugin/crate-mark"
 # the Crate Palette launcher, without its tests and tools
 mkdir -p "$OUT/launcher/crate-palette"

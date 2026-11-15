@@ -28,7 +28,7 @@ APPS = {
     # talk
     "slack": "HashtagSquare", "org.telegram.desktop": "Plain", "org.mozilla.Thunderbird": "Letter",
     "org.gnome.Evolution-alarm-notify": "Bell", "org.gnome.Contacts": "UserId",
-    "chatgpt": "ChatRoundLine", "claude-desktop": "Stars",
+    "chatgpt": "ChatRoundLine", "claude-desktop": "Stars", "zapfast": "ChatRoundDots",
     # code
     "CMakeSetup": "CodeScan", "antigravity": "CodeSquare", "gvim": "CodeFile", "nvim": "Code",
     "jetbrains-toolbox": "Box", "postman": "Rocket", "mongodb-compass": "Database", "designer": "RulerPen",
@@ -114,6 +114,8 @@ BRANDS = {
     "slack": _tabler("slack"), "com.slack.Slack": _tabler("slack"),
     "org.telegram.desktop": _tabler("telegram"), "telegram": _tabler("telegram"),
     "telegram-desktop": _tabler("telegram"),
+    # ZapFast is a WhatsApp client: it wears WhatsApp's mark, the one people look for
+    "zapfast": _tabler("whatsapp"),
     "steam": _tabler("steam"), "com.valvesoftware.Steam": _tabler("steam"),
     "chatgpt": _tabler("openai"),
     "tidal-hifi": _tabler("tidal"), "com.mastermindzh.tidal-hifi": _tabler("tidal"),

@@ -238,6 +238,13 @@ else
   say "eza: you have your own $EZA_THEME; left as it is"
 fi
 
+# ZapFast (WhatsApp client) palette: a theme file it lists as "Crate" under
+# Settings > Appearance > Theme; picked up live, chosen by the user
+if command -v zapfast >/dev/null || [ -d "$CFG/zapfast" ]; then
+  mkdir -p "$CFG/zapfast/themes" && cp "$HERE/apps/zapfast/Crate.json" "$CFG/zapfast/themes/Crate.json"
+  say "ZapFast: Crate theme (Settings > Appearance > Theme > Crate)"
+fi
+
 # what is installed, and a marker command Ryostore's bundle detects this
 # per-user setup by (crate-for-ryoku-installed prints the version)
 echo "$VERSION" > "$STATE/version"
