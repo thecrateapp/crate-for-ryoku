@@ -241,7 +241,35 @@
         0.2
       ]
     },
-    "ryoshot": {}
+    "ryoshot": {},
+    "preview-crate": {
+      "open": [
+        "sh",
+        "-c",
+        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/crate.webp"
+      ]
+    },
+    "preview-sunset": {
+      "open": [
+        "sh",
+        "-c",
+        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/wallhaven-w55m8x.jpg"
+      ]
+    },
+    "preview-handoff": {
+      "open": [
+        "sh",
+        "-c",
+        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/crate-handoff.webp"
+      ]
+    },
+    "preview-clear": {
+      "open": [
+        "ryogami",
+        "wallpaper",
+        "preview-clear"
+      ]
+    }
   },
   "steps": [
     {
@@ -272,9 +300,21 @@
       "key": "Right"
     },
     {
+      "at": 4.35,
+      "do": "surface",
+      "name": "preview-crate",
+      "action": "open"
+    },
+    {
       "at": 5.8,
       "do": "key",
       "key": "Right"
+    },
+    {
+      "at": 5.95,
+      "do": "surface",
+      "name": "preview-sunset",
+      "action": "open"
     },
     {
       "at": 7.4,
@@ -282,10 +322,33 @@
       "key": "Right"
     },
     {
-      "at": 9.4,
+      "at": 7.55,
+      "do": "surface",
+      "name": "preview-handoff",
+      "action": "open"
+    },
+    {
+      "at": 9.0,
+      "do": "key",
+      "key": "Left"
+    },
+    {
+      "at": 9.15,
+      "do": "surface",
+      "name": "preview-sunset",
+      "action": "open"
+    },
+    {
+      "at": 10.4,
       "do": "key",
       "key": "Escape",
       "closes": "wallpaper-browser"
+    },
+    {
+      "at": 12.6,
+      "do": "surface",
+      "name": "preview-clear",
+      "action": "open"
     },
     {
       "at": 14.0,
