@@ -267,31 +267,25 @@
       "opens": "wallpaper-browser"
     },
     {
-      "at": 4.0,
+      "at": 4.2,
       "do": "key",
       "key": "Right"
     },
     {
-      "at": 5.2,
+      "at": 5.8,
       "do": "key",
       "key": "Right"
     },
     {
-      "at": 6.6,
+      "at": 7.4,
       "do": "key",
-      "key": "Return"
+      "key": "Right"
     },
     {
-      "at": 9.6,
+      "at": 9.4,
       "do": "key",
       "key": "Escape",
       "closes": "wallpaper-browser"
-    },
-    {
-      "at": 12.4,
-      "do": "surface",
-      "name": "wallpaper-groove",
-      "action": "open"
     },
     {
       "at": 14.0,
