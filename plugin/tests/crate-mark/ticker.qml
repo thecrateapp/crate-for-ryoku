@@ -181,6 +181,8 @@ ShellRoot {
         const transport = named("crateTransport")
         check(transport.visible, "a track brings the transport to the bar")
         check(named("barPlay").glyph === "pause", "playing shows pause")
+        check(named("barPrevious").iconSize === 12 && named("barNext").iconSize === 12 && named("barPlay").iconSize === 13,
+            "transport glyphs sit between the ticker's text and the media widget's icons")
         check(widget.implicitWidth <= widget.widthBudget + 1, "the transport stays inside the bar budget")
         const panelToggles = api.toggles
         named("barPlay").clicked()

@@ -37,7 +37,7 @@ Item {
     readonly property bool canAnimate: root.active && root.visible && !(service && service.reduceMotion)
     // previous, play/pause and next sit after the ticker when a track is loaded and
     // the bar can fit them beside the mark; the ticker gives up the width
-    readonly property real buttonSize: 22 * root.s
+    readonly property real buttonSize: 20 * root.s
     readonly property real transportWidth: 3 * root.buttonSize
     readonly property bool showTransport: root.nowPlaying === "track" && root.hasTrack && service && !service.stopped
         && 15 * root.s + 6 * root.s + root.transportWidth <= root.budget
@@ -158,7 +158,7 @@ Item {
                 objectName: "barPrevious"
                 width: root.buttonSize
                 height: root.buttonSize
-                iconSize: 14 * root.s
+                iconSize: 12 * root.s
                 glyph: "skip_previous"
                 glyphFont: "Material Symbols Rounded"
                 enabled: !(root.service && root.service.player) || root.service.player.canGoPrevious
@@ -168,7 +168,7 @@ Item {
                 objectName: "barPlay"
                 width: root.buttonSize
                 height: root.buttonSize
-                iconSize: 15 * root.s
+                iconSize: 13 * root.s
                 glyph: root.playing ? "pause" : "play_arrow"
                 glyphFont: "Material Symbols Rounded"
                 on: true
@@ -178,7 +178,7 @@ Item {
                 objectName: "barNext"
                 width: root.buttonSize
                 height: root.buttonSize
-                iconSize: 14 * root.s
+                iconSize: 12 * root.s
                 glyph: "skip_next"
                 glyphFont: "Material Symbols Rounded"
                 enabled: !(root.service && root.service.player) || root.service.player.canGoNext
