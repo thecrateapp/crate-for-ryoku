@@ -241,35 +241,7 @@
         0.2
       ]
     },
-    "ryoshot": {},
-    "preview-crate": {
-      "open": [
-        "sh",
-        "-c",
-        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/crate.webp"
-      ]
-    },
-    "preview-sunset": {
-      "open": [
-        "sh",
-        "-c",
-        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/wallhaven-w55m8x.jpg"
-      ]
-    },
-    "preview-handoff": {
-      "open": [
-        "sh",
-        "-c",
-        "ryogami wallpaper preview --screen eDP-1 ~/Pictures/Wallpapers/crate-handoff.webp"
-      ]
-    },
-    "preview-clear": {
-      "open": [
-        "ryogami",
-        "wallpaper",
-        "preview-clear"
-      ]
-    }
+    "ryoshot": {}
   },
   "steps": [
     {
@@ -295,15 +267,22 @@
       "opens": "wallpaper-browser"
     },
     {
+      "at": 3.0,
+      "do": "pointer",
+      "from": [
+        3408,
+        2540
+      ],
+      "to": [
+        2560,
+        2160
+      ],
+      "duration": 0.6
+    },
+    {
       "at": 4.2,
       "do": "key",
       "key": "Right"
-    },
-    {
-      "at": 4.35,
-      "do": "surface",
-      "name": "preview-crate",
-      "action": "open"
     },
     {
       "at": 5.8,
@@ -311,32 +290,14 @@
       "key": "Right"
     },
     {
-      "at": 5.95,
-      "do": "surface",
-      "name": "preview-sunset",
-      "action": "open"
-    },
-    {
       "at": 7.4,
       "do": "key",
       "key": "Right"
     },
     {
-      "at": 7.55,
-      "do": "surface",
-      "name": "preview-handoff",
-      "action": "open"
-    },
-    {
       "at": 9.0,
       "do": "key",
       "key": "Left"
-    },
-    {
-      "at": 9.15,
-      "do": "surface",
-      "name": "preview-sunset",
-      "action": "open"
     },
     {
       "at": 10.4,
@@ -345,10 +306,17 @@
       "closes": "wallpaper-browser"
     },
     {
-      "at": 12.6,
-      "do": "surface",
-      "name": "preview-clear",
-      "action": "open"
+      "at": 10.8,
+      "do": "pointer",
+      "from": [
+        2560,
+        2160
+      ],
+      "to": [
+        3408,
+        2540
+      ],
+      "duration": 0.6
     },
     {
       "at": 14.0,
