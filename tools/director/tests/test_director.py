@@ -382,3 +382,21 @@ def test_a_shortcut_that_opens_a_surface_marks_its_focus(tmp_path):
         {"t": 1.0, "step": 1, "kind": "open", "surface": "ask", "focus": [0.33, 0.16, 0.34, 0.2]},
         {"t": 3.0, "step": 2, "kind": "close", "surface": "ask"},
     ]
+
+
+def test_a_surface_with_private_data_passes_its_redact_boxes_to_the_cut(tmp_path):
+    boxes = [[0.776, 0.085, 0.138, 0.03], [0.776, 0.256, 0.138, 0.175]]
+    data = {
+        "name": "t",
+        "output": "t.mp4",
+        "surfaces": {"network": {"focus": [0.77, 0.02, 0.15, 0.5], "redact": boxes}},
+        "steps": [
+            {"at": 1, "do": "pointer", "to": [3355, 1460], "click": True, "opens": "network"},
+            {"at": 3, "do": "pointer", "to": [3355, 1460], "click": True, "closes": "network"},
+        ],
+    }
+    fake = Fake()
+    director.run(load(data), fake.env(), record=str(tmp_path / "t.mp4"), geometry=EDP)
+    events = json.loads((tmp_path / "t.marks.json").read_text())["events"]
+    assert events[0]["redact"] == boxes
+    assert "redact" not in events[1]

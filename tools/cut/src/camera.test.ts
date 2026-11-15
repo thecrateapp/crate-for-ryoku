@@ -62,6 +62,13 @@ describe("cameraAt", () => {
     expect(cameraAt(7, marks)).toEqual(BASE);
   });
 
+  it("gives windows opening in a run one breath, not one each", () => {
+    const run: Mark[] = [4, 5, 6, 7].map((t) => ({ t, step: 0, kind: "window" }) as Mark);
+    // one breath: in once, then back out after the last window, no dip back to 1 in between
+    for (let t = 4.6; t <= 7.5; t += 1 / 60) expect(cameraAt(t, run).scale).toBeGreaterThan(1.05);
+    expect(cameraAt(10, run)).toEqual(BASE);
+  });
+
   it("closes on the screen tilting away when the take's length is known", () => {
     const end = cameraAt(30, [], 30);
     expect(end.scale).toBeLessThan(0.9);

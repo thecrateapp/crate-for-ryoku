@@ -2,6 +2,7 @@ import { Video } from "@remotion/media";
 import { AbsoluteFill, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { cameraAt, type Mark } from "./camera";
 import { framing } from "./framing";
+import { redactionsAt, toPixels } from "./redact";
 
 export type Marks = {
   take: string;
@@ -20,7 +21,8 @@ export const Cut = ({ take, marks }: CutProps) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   if (!marks) return <AbsoluteFill style={{ background: "#0a0a0f" }} />;
-  const camera = cameraAt(frame / fps, marks.events, marks.duration);
+  const t = frame / fps;
+  const camera = cameraAt(t, marks.events, marks.duration);
   const box = framing(camera, marks.output, { width, height });
   // Below full size the desktop is a screen floating over Crate's ground.
   const floating = Math.min(1, Math.max(0, (1 - camera.scale) / 0.2));
@@ -49,6 +51,24 @@ export const Cut = ({ take, marks }: CutProps) => {
             boxShadow: `0 ${40 * floating}px ${120 * floating}px rgba(0, 0, 0, ${0.6 * floating}), 0 0 0 1px rgba(241, 245, 249, ${0.08 * floating})`,
           }}
         />
+        {redactionsAt(t, marks.events).map((b, i) => {
+          const r = toPixels(b, box);
+          return (
+            <div
+              key={i}
+              style={{
+                position: "absolute",
+                left: r.left,
+                top: r.top,
+                width: r.width,
+                height: r.height,
+                borderRadius: 6,
+                backdropFilter: "blur(14px) saturate(0.6)",
+                background: "rgba(10, 10, 15, 0.25)",
+              }}
+            />
+          );
+        })}
       </AbsoluteFill>
     </AbsoluteFill>
   );

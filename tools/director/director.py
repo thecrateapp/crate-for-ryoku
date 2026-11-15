@@ -248,6 +248,15 @@ def _fraction(point: list[float], geometry: dict[str, Any]) -> list[float]:
     return [round((point[0] - geometry["x"]) / width, 4), round((point[1] - geometry["y"]) / height, 4)]
 
 
+def _with_surface_details(event: dict[str, Any], surface: dict[str, Any]) -> dict[str, Any]:
+    """An opening carries the surface's `focus` (what the camera frames) and its `redact`
+    boxes (private data the cut blurs while it is open)."""
+    for key in ("focus", "redact"):
+        if surface.get(key):
+            event[key] = surface[key]
+    return event
+
+
 def _mark(step: Step, timeline: Timeline, t: float, geometry: dict[str, Any]) -> dict[str, Any] | None:
     d = step.data
     if step.kind == "pointer" and "duration" in d:
@@ -255,17 +264,13 @@ def _mark(step: Step, timeline: Timeline, t: float, geometry: dict[str, Any]) ->
     base = {"t": round(t, 3), "step": step.index}
     if step.kind == "surface":
         event = {**base, "kind": d["action"], "surface": d["name"]}
-        focus = timeline.surfaces[d["name"]].get("focus")
-        if focus and d["action"] == "open":
-            event["focus"] = focus
-        return event
+        return _with_surface_details(event, timeline.surfaces[d["name"]]) if d["action"] == "open" else event
     if (step.kind == "pointer" and d.get("click")) or step.kind == "key":
         # A click or shortcut that opens or closes a surface (the crate-mark pill, Super+W)
         # marks it like a surface step, so the cut frames the panel.
         if "opens" in d:
             event = {**base, "kind": "open", "surface": d["opens"]}
-            focus = timeline.surfaces[d["opens"]].get("focus")
-            return {**event, "focus": focus} if focus else event
+            return _with_surface_details(event, timeline.surfaces[d["opens"]])
         if "closes" in d:
             return {**base, "kind": "close", "surface": d["closes"]}
         if step.kind == "key":

@@ -11,7 +11,15 @@
  */
 
 export type Mark =
-  | { t: number; step: number; kind: "open"; surface: string; focus?: [number, number, number, number] }
+  | {
+      t: number;
+      step: number;
+      kind: "open";
+      surface: string;
+      focus?: [number, number, number, number];
+      /** Private data on the surface (0..1 boxes on the output) the cut blurs while it is open. */
+      redact?: [number, number, number, number][];
+    }
   | { t: number; step: number; kind: "close"; surface: string }
   | { t: number; step: number; kind: "click"; point: [number, number] }
   | { t: number; step: number; kind: "notify" }
@@ -64,6 +72,8 @@ interface Shot {
   start: number;
   end: number;
   target: Camera;
+  /** A reveal's last window: windows opening in a run share one breath. */
+  last?: number;
 }
 
 const ease = (kind: Ease, u: number) => {
@@ -123,7 +133,13 @@ function shotsOf(marks: Mark[]): Shot[] {
         target: framed(CLICK_SCALE, mark.point[0], mark.point[1]),
       });
     } else if (mark.kind === "window" || (mark.kind === "open" && !mark.focus)) {
-      shots.push({ kind: "reveal", start: mark.t, end: mark.t + REVEAL_IN + REVEAL_OUT, target: BASE });
+      const run = shots.find((s) => s.kind === "reveal" && mark.t - (s.last ?? s.start) <= REVEAL_IN + REVEAL_OUT);
+      if (run) {
+        run.last = mark.t;
+        run.end = mark.t + REVEAL_IN + REVEAL_OUT;
+      } else {
+        shots.push({ kind: "reveal", start: mark.t, last: mark.t, end: mark.t + REVEAL_IN + REVEAL_OUT, target: BASE });
+      }
     }
   });
   return shots.sort((a, b) => a.start - b.start);
@@ -172,9 +188,11 @@ function keyframes(marks: Mark[], duration?: number): Key[] {
     if (shot.kind === "reveal") {
       if (held && shot.start < held.end + RAMP_OUT) continue; // a surface owns the frame
       pullBack();
+      const last = shot.last ?? shot.start;
       add(shot.start, BASE, "linear");
       add(shot.start + REVEAL_IN, { ...BASE, scale: REVEAL_SCALE, tiltX: 2 }, "sine");
-      add(shot.start + REVEAL_IN + REVEAL_OUT, BASE, "sine");
+      if (last > shot.start) add(last + REVEAL_IN, { ...BASE, scale: REVEAL_SCALE * 1.03, tiltX: 1 }, "linear");
+      add(last + REVEAL_IN + REVEAL_OUT, BASE, "sine");
       continue;
     }
     const arrive = shot.start + RAMP_IN;
