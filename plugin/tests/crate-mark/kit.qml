@@ -5,9 +5,12 @@ import Ryoku.Ui.Singletons
 import "content" as Mark
 
 // The panel on the shell kit, in the crate and the stock look: the progress beam,
-// the transport and close buttons, the chips and the labels are the kit's own
-// (through Ryoku.PluginKit), the seek readout follows the drag, and the play
-// button toggles without a script error.
+// the transport and close buttons, the chips, the equalizer switch and the labels
+// are the kit's own (through Ryoku.PluginKit), the seek readout follows the drag,
+// the play button toggles without a script error and its glyph sits centred, the
+// cover is a record that spins only while it plays, and with the shell's spectrum
+// (pluginApi.spectrum) a ring of marks around it asks for the analysis only while
+// the panel shows a playing track.
 ShellRoot {
     id: scene
     property int closes: 0
@@ -45,7 +48,8 @@ ShellRoot {
         function togglePlaying() { ++toggles }
         function seekTo(t) { seeked = t }
         function eqMode(k) { modes = modes.concat([k]) }
-        function eqEnabled(on) {}
+        property var eqSet: undefined
+        function eqEnabled(on) { eqSet = on }
         function eqPreset(p) {}
         function eqGains(g) {}
         function setShuffle(on) {}
@@ -60,6 +64,14 @@ ShellRoot {
         property string pluginDir: ""
         readonly property var mainInstance: svc
         function closePanel() { ++scene.closes }
+        readonly property var spectrum: QtObject {
+            readonly property int bars: 24
+            readonly property var levels: Array.from({ length: 24 }, (_, i) => (i % 6) / 6)
+            property var owners: []
+            function setActive(owner, on) {
+                owners = on ? owners.filter((o) => o !== owner).concat([owner]) : owners.filter((o) => o !== owner)
+            }
+        }
     }
 
     FloatingWindow {
@@ -101,8 +113,26 @@ ShellRoot {
             check(!find(panel, "nextButton").enabled && find(panel, "previousButton").enabled, "transport follows the player's abilities");
 
             const toggle = find(panel, "eqToggle");
-            check(toggle.radius === Tokens.radius && toggle.implicitHeight === 32 && toggle.on, "the equalizer toggle is the straight kit chip");
-            check(Qt.colorEqual(toggle.color, Tokens.mark), "an on chip is filled with the mark");
+            check(toggle.implicitWidth === 34 && toggle.implicitHeight === 18 && toggle.on, "the equalizer on/off is the kit switch");
+            toggle.activate();
+            check(svc.eqSet === false, "the switch turns the equalizer off");
+
+            const glyph = find(panel, "playGlyph");
+            check(glyph && glyph.anchors.horizontalCenterOffset === 0, "the play glyph sits on the ring's centre (Solar's own optical offset)");
+
+            const disc = find(panel, "coverDisc");
+            check(disc && disc.width === disc.height && disc.width >= 64, "the cover is a round record");
+            check(!disc.spinning, "reduced motion holds the record still");
+            svc.reduceMotion = false;
+            check(disc.spinning, "a playing record spins");
+            const ring = find(panel, "spectrumRing");
+            check(ring && ring.visible && ring.marks === 24, "the shell's spectrum rings the record, one mark per band");
+            check(api.spectrum.owners.length === 1, "the panel asks for the analysis while it shows a playing track");
+            svc.playing = false;
+            check(!disc.spinning, "a paused record stops");
+            check(api.spectrum.owners.length === 0, "paused, the panel releases the analysis");
+            svc.playing = true;
+            svc.reduceMotion = true;
             const genre = find(panel, "eqMode-genre");
             genre.clicked();
             check(svc.modes.length === 1 && svc.modes[0] === "genre", "a mode chip sets the mode");
@@ -123,7 +153,7 @@ ShellRoot {
         id: stock
         interval: 400
         onTriggered: {
-            check(find(panel, "eqToggle").implicitHeight === 24, "the chips follow the stock kit");
+            check(find(panel, "eqToggle").implicitWidth === 54 && find(panel, "eqToggle").implicitHeight === 24, "the switch follows the stock kit");
             check(find(panel, "shuffleButton").implicitWidth === 26, "the icon buttons follow the stock kit");
             check(find(panel, "stateLabel").font.family === Tokens.ui, "the labels follow the stock kit");
             console.log("CRATE-MARK-KIT-PASS");

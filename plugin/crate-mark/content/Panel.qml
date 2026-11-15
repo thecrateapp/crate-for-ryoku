@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Ryoku.PluginKit
 import Ryoku.PluginKit.Singletons
 
@@ -188,9 +189,12 @@ Item {
                     ctx.stroke();
                 }
             }
+            // Solar's play path already sits right of its 24-unit grid's centre, the
+            // optical correction a play triangle needs; no extra offset on top
             SolarFill {
+                objectName: "playGlyph"
                 anchors.centerIn: parent
-                anchors.horizontalCenterOffset: pb.isPlaying ? 0 : 1.5
+                anchors.horizontalCenterOffset: 0
                 width: 16
                 height: 16
                 path: pb.isPlaying ? root.iconPause : root.iconPlay
@@ -258,28 +262,142 @@ Item {
                 visible: root.hasTrack
                 width: parent.width
                 spacing: 12
-                Rectangle {
+                // the record, as the shell's Now playing draws it: the cover on a
+                // disc with grooves and a spindle, a turn every 24 s while it plays;
+                // the shell's spectrum (pluginApi.spectrum) rings it in hairline marks
+                Item {
                     id: cover
-                    width: 48
-                    height: 48
-                    radius: 4
-                    color: root.raised
-                    clip: true
-                    CrateLogo {
-                        visible: art.status !== Image.Ready
-                        anchors.centerIn: parent
-                        height: 18
-                        color: root.textFaint
-                    }
-                    Image {
-                        id: art
+                    objectName: "coverRecord"
+                    readonly property real discSize: 76
+                    readonly property var spectrum: root.pluginApi && root.pluginApi.spectrum ? root.pluginApi.spectrum : null
+                    readonly property bool listening: !!cover.spectrum && root.playing && root.active && root.visible
+                    width: 100
+                    height: 100
+                    function listen(on) { if (cover.spectrum) cover.spectrum.setActive(cover, on); }
+                    onListeningChanged: cover.listen(cover.listening)
+                    Component.onCompleted: if (cover.listening) cover.listen(true)
+                    Component.onDestruction: cover.listen(false)
+
+                    Item {
+                        id: ring
+                        objectName: "spectrumRing"
+                        visible: !!cover.spectrum
                         anchors.fill: parent
-                        source: root.service ? root.service.artUrl : ""
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        cache: false
-                        sourceSize.width: 96
-                        sourceSize.height: 96
+                        readonly property int marks: ringMarks.count
+                        Repeater {
+                            id: ringMarks
+                            model: cover.spectrum ? cover.spectrum.bars : 0
+                            Item {
+                                required property int index
+                                readonly property real level: {
+                                    const lv = cover.spectrum ? cover.spectrum.levels : null;
+                                    return lv && lv[index] !== undefined ? lv[index] : 0;
+                                }
+                                x: cover.width / 2
+                                y: cover.height / 2
+                                rotation: index * 360 / Math.max(1, ringMarks.count)
+                                Rectangle {
+                                    x: -width / 2
+                                    y: -cover.discSize / 2 - 3 - height
+                                    width: 2
+                                    height: Math.max(2, parent.level * ((cover.width - cover.discSize) / 2 - 5))
+                                    radius: 1
+                                    antialiasing: true
+                                    color: root.accent
+                                    opacity: root.playing ? 0.35 + parent.level * 0.65 : 0.25
+                                    Behavior on height { NumberAnimation { duration: 70; easing.type: Easing.OutCubic } }
+                                }
+                            }
+                        }
+                    }
+
+                    Item {
+                        id: disc
+                        objectName: "coverDisc"
+                        anchors.centerIn: parent
+                        width: cover.discSize
+                        height: cover.discSize
+                        readonly property bool still: !root.service || !!root.service.reduceMotion
+                        readonly property bool spinning: root.playing && root.active && root.visible && !disc.still
+                        NumberAnimation on rotation {
+                            id: spin
+                            from: 0
+                            to: 360
+                            duration: 24000
+                            loops: Animation.Infinite
+                            running: root.visible && !disc.still
+                            // Qt refuses pause() on a stopped animation, so pausing only
+                            // happens while it runs
+                            paused: spin.running && !disc.spinning
+                        }
+                        Rectangle {
+                            id: discMask
+                            anchors.fill: parent
+                            radius: width / 2
+                            visible: false
+                            layer.enabled: true
+                        }
+                        Item {
+                            anchors.fill: parent
+                            layer.enabled: true
+                            layer.effect: MultiEffect {
+                                maskEnabled: true
+                                maskSource: discMask
+                            }
+                            Rectangle { anchors.fill: parent; color: root.raised }
+                            CrateLogo {
+                                visible: art.status !== Image.Ready
+                                anchors.centerIn: parent
+                                height: 18
+                                color: root.textFaint
+                            }
+                            Image {
+                                id: art
+                                anchors.fill: parent
+                                source: root.service ? root.service.artUrl : ""
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                cache: false
+                                sourceSize.width: 152
+                                sourceSize.height: 152
+                                visible: status === Image.Ready
+                            }
+                        }
+                        // grooves
+                        Repeater {
+                            model: [0.84, 0.66, 0.48]
+                            Rectangle {
+                                required property real modelData
+                                anchors.centerIn: parent
+                                width: disc.width * modelData
+                                height: width
+                                radius: width / 2
+                                color: "transparent"
+                                border.width: 1
+                                border.color: Qt.rgba(0, 0, 0, 0.28)
+                                antialiasing: true
+                            }
+                        }
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: width / 2
+                            color: "transparent"
+                            border.width: 1
+                            border.color: root.playing ? root.accentHi : root.hairline
+                            antialiasing: true
+                            Behavior on border.color { ColorAnimation { duration: 400 } }
+                        }
+                        // spindle
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 16
+                            height: 16
+                            radius: 8
+                            color: root.canvas
+                            border.width: 1
+                            border.color: root.accentHi
+                            antialiasing: true
+                        }
                     }
                 }
                 Column {
@@ -413,13 +531,13 @@ Item {
                     font.capitalization: Font.AllUppercase
                 }
             }
-            Chip {
+            Sw {
                 objectName: "eqToggle"
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: (root.eq && root.eq.enabled) ? "On" : "Off"
                 on: root.eq ? root.eq.enabled : false
-                onClicked: root.service.eqEnabled(!(root.eq && root.eq.enabled))
+                Accessible.name: "Equalizer"
+                onToggled: (v) => root.service.eqEnabled(v)
             }
         }
 

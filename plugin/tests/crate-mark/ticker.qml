@@ -14,6 +14,12 @@ ShellRoot {
         property bool reduceMotion: false
         property string title: "Umbral"
         property string artist: ""
+        property int toggles: 0
+        property int nexts: 0
+        property int previouses: 0
+        function togglePlaying() { ++toggles }
+        function next() { ++nexts }
+        function previous() { ++previouses }
     }
     QtObject {
         id: api
@@ -170,10 +176,27 @@ ShellRoot {
         check(logo.visible && !bars.visible && !viewport.visible, "off preference")
 
         api.pluginSettings = ({})
+        playback.playing = true
+        tick()
+        const transport = named("crateTransport")
+        check(transport.visible, "a track brings the transport to the bar")
+        check(named("barPlay").glyph === "pause", "playing shows pause")
+        check(widget.implicitWidth <= widget.widthBudget + 1, "the transport stays inside the bar budget")
+        const panelToggles = api.toggles
+        named("barPlay").clicked()
+        named("barNext").clicked()
+        named("barPrevious").clicked()
+        check(playback.toggles === 1 && playback.nexts === 1 && playback.previouses === 1, "the bar transport drives the player")
+        check(api.toggles === panelToggles, "the transport does not open the panel")
+        const play = named("barPlay")
+        input.mouseClick(play, play.width / 2, play.height / 2, Qt.LeftButton)
+        check(playback.toggles === 2 && api.toggles === panelToggles, "a pointer click on play reaches the button, not the panel")
+
         playback.hasTrack = false
         playback.playing = false
         tick()
         check(logo.visible && !bars.visible && !viewport.visible, "idle, no track")
+        check(!named("crateTransport").visible, "no track, no transport")
         input.mouseClick(widget, widget.width / 2, widget.height / 2, Qt.LeftButton)
         check(api.toggles === 1 && !playback.playing, "click opens the panel without starting playback")
         widget.open = true

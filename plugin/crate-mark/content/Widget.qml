@@ -1,8 +1,10 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import Ryoku.PluginKit
 import Ryoku.PluginKit.Singletons
 
-// Crate mark, playing bars and a width-budgeted artist/title ticker.
+// Crate mark, playing bars, a width-budgeted artist/title ticker and, with a track,
+// the transport (previous, play/pause, next) as compact kit icon buttons.
 // Without Crate installed the mark collapses to nothing. (The Ryoku host still
 // keeps a few pixels for any plugin slot, so Crate for Ryoku also hides the
 // whole slot through `ryoku-shell bar hide crate-mark`; see README.)
@@ -33,6 +35,12 @@ Item {
     readonly property bool showBars: root.nowPlaying !== "off" && root.playing
     readonly property bool showTrack: root.nowPlaying === "track" && root.hasTrack && !service.stopped
     readonly property bool canAnimate: root.active && root.visible && !(service && service.reduceMotion)
+    // previous, play/pause and next sit after the ticker when a track is loaded and
+    // the bar can fit them beside the mark; the ticker gives up the width
+    readonly property real buttonSize: 22 * root.s
+    readonly property real transportWidth: 3 * root.buttonSize
+    readonly property bool showTransport: root.nowPlaying === "track" && root.hasTrack && service && !service.stopped
+        && 15 * root.s + 6 * root.s + root.transportWidth <= root.budget
 
     // The playing bars step through their rise and fall at ~8 frames a second, a
     // meter's cadence, instead of animating every display frame: three bars on a
@@ -126,6 +134,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             readonly property real remaining: root.budget
                 - logo.width - row.spacing
+                - (root.showTransport ? root.transportWidth + row.spacing : 0)
                 - (wordmark.visible ? wordmark.implicitWidth + row.spacing : 0)
                 - (bars.visible ? bars.width + row.spacing : 0)
             visible: root.showTrack && remaining > 0
@@ -139,10 +148,50 @@ Item {
             continuous: true
             elideWhenStill: true
         }
+
+        Row {
+            id: transport
+            objectName: "crateTransport"
+            visible: root.showTransport
+            anchors.verticalCenter: parent.verticalCenter
+            IconButton {
+                objectName: "barPrevious"
+                width: root.buttonSize
+                height: root.buttonSize
+                iconSize: 14 * root.s
+                glyph: "skip_previous"
+                glyphFont: "Material Symbols Rounded"
+                enabled: !(root.service && root.service.player) || root.service.player.canGoPrevious
+                onClicked: root.service.previous()
+            }
+            IconButton {
+                objectName: "barPlay"
+                width: root.buttonSize
+                height: root.buttonSize
+                iconSize: 15 * root.s
+                glyph: root.playing ? "pause" : "play_arrow"
+                glyphFont: "Material Symbols Rounded"
+                on: true
+                onClicked: root.service.togglePlaying()
+            }
+            IconButton {
+                objectName: "barNext"
+                width: root.buttonSize
+                height: root.buttonSize
+                iconSize: 14 * root.s
+                glyph: "skip_next"
+                glyphFont: "Material Symbols Rounded"
+                enabled: !(root.service && root.service.player) || root.service.player.canGoNext
+                onClicked: root.service.next()
+            }
+        }
     }
 
     MouseArea {
         id: area
+        // under the row, so the transport buttons take their own clicks; the mark
+        // and the ticker accept no pointer, so a click on them still lands here
+        z: -1
         anchors.fill: parent
         enabled: root.installed
         hoverEnabled: true
