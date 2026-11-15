@@ -243,6 +243,8 @@ fi
 if command -v zapfast >/dev/null || [ -d "$CFG/zapfast" ]; then
   mkdir -p "$CFG/zapfast/themes" && cp "$HERE/apps/zapfast/Crate.json" "$CFG/zapfast/themes/Crate.json"
   say "ZapFast: Crate theme (Settings > Appearance > Theme > Crate)"
+  mkdir -p "$DATA/crate-for-ryoku/zapfast" && cp "$HERE/apps/zapfast/chat.webp" "$DATA/crate-for-ryoku/zapfast/chat.webp"
+  say "ZapFast: chat wallpaper $DATA/crate-for-ryoku/zapfast/chat.webp (Settings > Appearance > Wallpaper)"
 fi
 
 # what is installed, and a marker command Ryostore's bundle detects this
