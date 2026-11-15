@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-KINDS = ("surface", "window", "notify", "play", "pointer", "type", "key", "wait", "cue")
+KINDS = ("surface", "window", "notify", "play", "pointer", "nudge", "type", "key", "wait", "cue")
 PLAY_ACTIONS = ("play", "pause", "play-pause", "next", "previous", "stop")
 RECORDER = ["wf-recorder", "-r", "60"]
 COMMAND_TIMEOUT = 15
@@ -163,6 +163,10 @@ def commands(step: Step, timeline: Timeline) -> list[tuple[str, list[str]]]:
         return [("run", ["playerctl", "-p", d.get("player", "crate"), d["action"]])]
     if step.kind == "type":
         return [("run", ["wtype", "-d", str(TYPE_DELAY_MS), d["text"]])]
+    if step.kind == "nudge":
+        # a real device motion (hyprctl only warps): hover follows what moved under it
+        return [("run", ["ydotool", "mousemove", "-x", "4", "-y", "0"]),
+                ("run", ["ydotool", "mousemove", "-x", "-4", "-y", "0"])]
     if step.kind == "key":
         codes = [KEYCODES[m] for m in d.get("mods", [])] + [KEYCODES[d["key"]]]
         press = [f"{c}:1" for c in codes]

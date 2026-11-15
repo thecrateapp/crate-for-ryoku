@@ -300,14 +300,26 @@
       "duration": 0.6
     },
     {
+      "at": 3.7,
+      "do": "nudge"
+    },
+    {
       "at": 5.2,
       "do": "key",
       "key": "Right"
     },
     {
+      "at": 5.8,
+      "do": "nudge"
+    },
+    {
       "at": 7.7,
       "do": "key",
       "key": "Right"
+    },
+    {
+      "at": 8.3,
+      "do": "nudge"
     },
     {
       "at": 10.4,

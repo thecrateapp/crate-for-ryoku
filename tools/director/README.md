@@ -49,6 +49,7 @@ Steps run in order at `at` seconds from the start; times never go backwards.
 | `notify` | `title`, `body`, optional `app` (Crate) | `notify-send -a app title body` |
 | `play` | `action` (play, pause, play-pause, next, previous, stop), optional `player` (crate) | `playerctl -p player action` |
 | `pointer` | `to: [x, y]` (layout coordinates), optional `click` | `hyprctl dispatch movecursor x y`, `ydotool click 0xC0` |
+| `nudge` | | a 4 px real pointer motion and back (`ydotool mousemove`), so hover fires on what moved under a still pointer |
 | `wait` | | nothing; holds the timeline |
 | `cue` | `message` | prints the message and waits for Enter |
 

@@ -443,3 +443,12 @@ def test_a_failing_teardown_does_not_hide_the_step_failure():
 def test_teardown_steps_are_validated_when_loading():
     with pytest.raises(director.DirectorError, match="teardown 1: unknown do 'dance'"):
         load(dict(TEARDOWN, teardown=[{"do": "dance"}]))
+
+
+def test_nudge_moves_the_real_pointer_a_hair_and_back_so_hover_fires():
+    # hyprctl warps the cursor without a motion event; a surface that moves under a
+    # still pointer (Ryogami's Duel cards) only notices a real device motion
+    data = {"name": "t", "output": "t.mp4", "steps": [{"at": 0, "do": "nudge"}]}
+    assert director.dry_run(load(data)) == [
+        "   0.00  nudge: ydotool mousemove -x 4 -y 0; ydotool mousemove -x -4 -y 0",
+    ]
