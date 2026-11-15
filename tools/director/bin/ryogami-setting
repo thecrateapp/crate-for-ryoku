@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""Set one Ryogami setting through its daemon (the same settings.set RPC its picker
+uses), so the daemon validates it and its file stays its own.
+
+    ryogami-setting transition.shader silk_fade
+"""
+import json
+import os
+import socket
+import sys
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) != 3:
+        print(__doc__.strip(), file=sys.stderr)
+        return 2
+    key, value = argv[1], argv[2]
+    path = os.path.join(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"), "ryogami.sock")
+    request = {"method": "settings.set", "params": {"values": {key: value}}, "id": 1}
+    try:
+        with socket.socket(socket.AF_UNIX) as sock:
+            sock.settimeout(5)
+            sock.connect(path)
+            sock.sendall((json.dumps(request) + "\n").encode())
+            reply = b""
+            while not reply.endswith(b"\n"):
+                chunk = sock.recv(65536)
+                if not chunk:
+                    break
+                reply += chunk
+    except OSError as error:
+        print(f"ryogami-setting: {path}: {error}", file=sys.stderr)
+        return 1
+    answer = json.loads(reply.decode().splitlines()[0]) if reply else {}
+    if answer.get("error") or not answer.get("result", {}).get("ok"):
+        print(f"ryogami-setting: {key}={value}: {answer.get('error') or answer}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

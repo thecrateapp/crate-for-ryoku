@@ -19,7 +19,7 @@ import signal
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
@@ -61,6 +61,8 @@ class Timeline:
     output: str
     surfaces: dict[str, dict[str, list[str]]]
     steps: list[Step]
+    # run when the take ends, however it ends: put back what the steps changed
+    teardown: list[Step] = field(default_factory=list)
 
     @staticmethod
     def load(path: str | Path) -> "Timeline":
@@ -93,7 +95,14 @@ class Timeline:
             previous = at
             _validate(index, kind, raw, surfaces)
             steps.append(Step(index, at, kind, raw))
-        return Timeline(data["name"], data["output"], surfaces, steps)
+        teardown: list[Step] = []
+        for index, raw in enumerate(data.get("teardown", []), start=1):
+            kind = raw.get("do")
+            if kind not in KINDS or kind in ("cue", "wait"):
+                raise DirectorError(f"teardown {index}: unknown do {kind!r}")
+            _validate(index, kind, raw, surfaces)
+            teardown.append(Step(index, 0.0, kind, raw))
+        return Timeline(data["name"], data["output"], surfaces, steps, teardown)
 
 
 def _validate(index: int, kind: str, raw: dict[str, Any], surfaces: dict) -> None:
@@ -348,6 +357,13 @@ def run(
             marks = {"take": take.name, "output": geometry, "duration": duration, "events": events}
             marks_path(take).write_text(json.dumps(marks, indent=2) + "\n")
     finally:
+        # never let a teardown failure hide why the take stopped
+        for step in timeline.teardown:
+            for mode, argv in commands(step, timeline):
+                try:
+                    env.spawn(argv) if mode == "spawn" else env.run(argv)
+                except OSError:
+                    pass
         if recorder is not None:
             recorder.stop()
         # A take that did not reach the end is never left under its real name.

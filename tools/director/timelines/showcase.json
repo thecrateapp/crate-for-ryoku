@@ -241,7 +241,21 @@
         0.2
       ]
     },
-    "ryoshot": {}
+    "ryoshot": {},
+    "transition-silk": {
+      "open": [
+        "tools/director/bin/ryogami-setting",
+        "transition.shader",
+        "silk_fade"
+      ]
+    },
+    "transition-random": {
+      "open": [
+        "tools/director/bin/ryogami-setting",
+        "transition.shader",
+        "random"
+      ]
+    }
   },
   "steps": [
     {
@@ -251,6 +265,12 @@
         3408,
         2540
       ]
+    },
+    {
+      "at": 0.1,
+      "do": "surface",
+      "name": "transition-silk",
+      "action": "open"
     },
     {
       "at": 0.2,
@@ -285,28 +305,28 @@
       "key": "Right"
     },
     {
-      "at": 5.8,
+      "at": 6.7,
       "do": "key",
       "key": "Right"
     },
     {
-      "at": 7.4,
+      "at": 9.2,
       "do": "key",
       "key": "Right"
     },
     {
-      "at": 9.0,
+      "at": 11.7,
       "do": "key",
       "key": "Left"
     },
     {
-      "at": 10.4,
+      "at": 14.4,
       "do": "key",
       "key": "Escape",
       "closes": "wallpaper-browser"
     },
     {
-      "at": 10.8,
+      "at": 14.8,
       "do": "pointer",
       "from": [
         2560,
@@ -319,7 +339,7 @@
       "duration": 0.6
     },
     {
-      "at": 14.0,
+      "at": 18.0,
       "do": "window",
       "run": [
         "kitty",
@@ -331,7 +351,7 @@
       ]
     },
     {
-      "at": 15.0,
+      "at": 19.0,
       "do": "window",
       "run": [
         "kitty",
@@ -343,7 +363,7 @@
       ]
     },
     {
-      "at": 16.0,
+      "at": 20.0,
       "do": "window",
       "run": [
         "kitty",
@@ -355,7 +375,7 @@
       ]
     },
     {
-      "at": 17.0,
+      "at": 21.0,
       "do": "window",
       "run": [
         "kitty",
@@ -367,49 +387,49 @@
       ]
     },
     {
-      "at": 21.9,
+      "at": 25.9,
       "do": "surface",
       "name": "controls",
       "action": "open"
     },
     {
-      "at": 25.7,
+      "at": 29.7,
       "do": "surface",
       "name": "controls",
       "action": "close"
     },
     {
-      "at": 26.5,
+      "at": 30.5,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 27.1,
+      "at": 31.1,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 27.7,
+      "at": 31.7,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 28.3,
+      "at": 32.3,
       "do": "surface",
       "name": "terminal",
       "action": "close"
     },
     {
-      "at": 29.5,
+      "at": 33.5,
       "do": "surface",
       "name": "crate-window",
       "action": "open"
     },
     {
-      "at": 33.5,
+      "at": 37.5,
       "do": "pointer",
       "from": [
         3408,
@@ -424,7 +444,7 @@
       "opens": "crate-mark"
     },
     {
-      "at": 38.5,
+      "at": 42.5,
       "do": "pointer",
       "from": [
         3112,
@@ -439,7 +459,7 @@
       "closes": "crate-mark"
     },
     {
-      "at": 39.5,
+      "at": 43.5,
       "do": "pointer",
       "from": [
         3112,
@@ -454,7 +474,7 @@
       "opens": "audio"
     },
     {
-      "at": 42.7,
+      "at": 46.7,
       "do": "pointer",
       "from": [
         3460,
@@ -469,7 +489,7 @@
       "closes": "audio"
     },
     {
-      "at": 42.8,
+      "at": 46.8,
       "do": "pointer",
       "from": [
         3460,
@@ -484,7 +504,7 @@
       "opens": "bluetooth"
     },
     {
-      "at": 46.0,
+      "at": 50.0,
       "do": "pointer",
       "from": [
         3397,
@@ -499,7 +519,7 @@
       "closes": "bluetooth"
     },
     {
-      "at": 46.1,
+      "at": 50.1,
       "do": "pointer",
       "from": [
         3397,
@@ -514,7 +534,7 @@
       "opens": "network"
     },
     {
-      "at": 49.3,
+      "at": 53.3,
       "do": "pointer",
       "from": [
         3355,
@@ -529,7 +549,7 @@
       "closes": "network"
     },
     {
-      "at": 49.4,
+      "at": 53.4,
       "do": "pointer",
       "from": [
         3355,
@@ -544,7 +564,7 @@
       "opens": "bell"
     },
     {
-      "at": 52.6,
+      "at": 56.6,
       "do": "pointer",
       "from": [
         3681,
@@ -559,7 +579,7 @@
       "closes": "bell"
     },
     {
-      "at": 52.9,
+      "at": 56.9,
       "do": "pointer",
       "from": [
         3681,
@@ -572,24 +592,24 @@
       "duration": 0.8
     },
     {
-      "at": 55.0,
+      "at": 59.0,
       "do": "surface",
       "name": "launcher",
       "action": "open"
     },
     {
-      "at": 55.6,
+      "at": 59.6,
       "do": "type",
       "text": "cr nitzer"
     },
     {
-      "at": 60.0,
+      "at": 64.0,
       "do": "surface",
       "name": "launcher",
       "action": "close"
     },
     {
-      "at": 61.2,
+      "at": 65.2,
       "do": "key",
       "key": "space",
       "mods": [
@@ -598,60 +618,60 @@
       "opens": "rashin-ask"
     },
     {
-      "at": 62.1,
+      "at": 66.1,
       "do": "type",
       "text": "how do I change the dock style?"
     },
     {
-      "at": 66.0,
+      "at": 70.0,
       "do": "key",
       "key": "Escape",
       "closes": "rashin-ask"
     },
     {
-      "at": 67.2,
-      "do": "surface",
-      "name": "gamebar",
-      "action": "open"
-    },
-    {
       "at": 71.2,
       "do": "surface",
       "name": "gamebar",
-      "action": "close"
+      "action": "open"
     },
     {
-      "at": 72.4,
+      "at": 75.2,
       "do": "surface",
-      "name": "kit",
-      "action": "open"
+      "name": "gamebar",
+      "action": "close"
     },
     {
       "at": 76.4,
       "do": "surface",
       "name": "kit",
-      "action": "close"
+      "action": "open"
     },
     {
-      "at": 77.6,
+      "at": 80.4,
       "do": "surface",
-      "name": "qsbar-settings",
-      "action": "open"
+      "name": "kit",
+      "action": "close"
     },
     {
       "at": 81.6,
       "do": "surface",
       "name": "qsbar-settings",
+      "action": "open"
+    },
+    {
+      "at": 85.6,
+      "do": "surface",
+      "name": "qsbar-settings",
       "action": "close"
     },
     {
-      "at": 82.0,
+      "at": 86.0,
       "do": "surface",
       "name": "crate-window",
       "action": "close"
     },
     {
-      "at": 82.8,
+      "at": 86.8,
       "do": "pointer",
       "from": [
         3408,
@@ -664,7 +684,7 @@
       "duration": 0.8
     },
     {
-      "at": 83.7,
+      "at": 87.7,
       "do": "pointer",
       "from": [
         1456,
@@ -677,7 +697,7 @@
       "duration": 2.2
     },
     {
-      "at": 86.1,
+      "at": 90.1,
       "do": "pointer",
       "from": [
         1456,
@@ -690,7 +710,7 @@
       "duration": 0.8
     },
     {
-      "at": 87.4,
+      "at": 91.4,
       "do": "key",
       "key": "s",
       "mods": [
@@ -700,26 +720,33 @@
       "opens": "ryoshot"
     },
     {
-      "at": 90.4,
+      "at": 94.4,
       "do": "key",
       "key": "Escape",
       "closes": "ryoshot"
     },
     {
-      "at": 91.9,
+      "at": 95.9,
       "do": "notify",
       "title": "Crate",
       "body": "Now playing"
     },
     {
-      "at": 95.9,
+      "at": 99.9,
       "do": "surface",
       "name": "wallpaper-groove",
       "action": "open"
     },
     {
-      "at": 96.4,
+      "at": 100.4,
       "do": "wait"
+    }
+  ],
+  "teardown": [
+    {
+      "do": "surface",
+      "name": "transition-random",
+      "action": "open"
     }
   ]
 }

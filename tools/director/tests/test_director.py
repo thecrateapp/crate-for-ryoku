@@ -407,3 +407,39 @@ def test_record_can_capture_the_desktop_audio(tmp_path):
     take = tmp_path / "t.mp4"
     director.run(load({"name": "t", "output": "t.mp4", "steps": []}), fake.env(), record=str(take), audio="sink.monitor")
     assert fake.calls[0][1] == ["wf-recorder", "-r", "60", "--audio=sink.monitor", "-f", str(take)]
+
+
+TEARDOWN = {
+    "name": "t",
+    "output": "t.mp4",
+    "surfaces": {"x": {"open": ["boom"]}},
+    "steps": [{"at": 0, "do": "notify", "title": "C", "body": "a"}],
+    "teardown": [{"do": "notify", "title": "C", "body": "restore"}],
+}
+
+
+def test_teardown_runs_after_the_last_step():
+    fake = Fake()
+    director.run(load(TEARDOWN), fake.env())
+    bodies = [argv[-1] for kind, argv, _ in fake.calls if argv[0] == "notify-send"]
+    assert bodies == ["a", "restore"]
+
+
+def test_teardown_runs_even_when_a_step_fails():
+    data = dict(TEARDOWN, steps=[{"at": 0, "do": "surface", "name": "x", "action": "open"}])
+    fake = Fake(fail=lambda argv: argv[0] == "boom")
+    with pytest.raises(director.DirectorError, match="step 1 failed"):
+        director.run(load(data), fake.env())
+    assert any(argv[-1] == "restore" for _, argv, _ in fake.calls), "the setting is put back"
+
+
+def test_a_failing_teardown_does_not_hide_the_step_failure():
+    data = dict(TEARDOWN, steps=[{"at": 0, "do": "surface", "name": "x", "action": "open"}])
+    fake = Fake(fail=lambda argv: argv[0] in ("boom", "notify-send"))
+    with pytest.raises(director.DirectorError, match="step 1 failed"):
+        director.run(load(data), fake.env())
+
+
+def test_teardown_steps_are_validated_when_loading():
+    with pytest.raises(director.DirectorError, match="teardown 1: unknown do 'dance'"):
+        load(dict(TEARDOWN, teardown=[{"do": "dance"}]))
