@@ -20,7 +20,7 @@ export const Root = () => (
     component={Cut}
     fps={FPS}
     width={1920}
-    height={1080}
+    height={1200}
     durationInFrames={FPS}
     defaultProps={{ take: "sample" } satisfies CutProps}
     calculateMetadata={loadMarks}

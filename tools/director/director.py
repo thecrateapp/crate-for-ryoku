@@ -121,9 +121,6 @@ def _validate(index: int, kind: str, raw: dict[str, Any], surfaces: dict) -> Non
         need("to")
         if "duration" in raw and "from" not in raw:
             raise DirectorError(f"step {index}: a pointer glide needs 'from'")
-        for key in ("opens", "closes"):
-            if key in raw and raw[key] not in surfaces:
-                raise DirectorError(f"step {index}: unknown surface {raw[key]!r}")
     elif kind == "type":
         need("text")
     elif kind == "key":
@@ -133,6 +130,10 @@ def _validate(index: int, kind: str, raw: dict[str, Any], surfaces: dict) -> Non
                 raise DirectorError(f"step {index}: unknown key {name!r}")
     elif kind == "cue":
         need("message")
+    if kind in ("pointer", "key"):
+        for key in ("opens", "closes"):
+            if key in raw and raw[key] not in surfaces:
+                raise DirectorError(f"step {index}: unknown surface {raw[key]!r}")
 
 
 def commands(step: Step, timeline: Timeline) -> list[tuple[str, list[str]]]:
@@ -258,18 +259,22 @@ def _mark(step: Step, timeline: Timeline, t: float, geometry: dict[str, Any]) ->
         if focus and d["action"] == "open":
             event["focus"] = focus
         return event
-    if step.kind == "pointer" and d.get("click"):
-        # A click that opens or closes a surface (the crate-mark pill) marks it like a
-        # surface step, so the cut frames the panel rather than the click.
+    if (step.kind == "pointer" and d.get("click")) or step.kind == "key":
+        # A click or shortcut that opens or closes a surface (the crate-mark pill, Super+W)
+        # marks it like a surface step, so the cut frames the panel.
         if "opens" in d:
             event = {**base, "kind": "open", "surface": d["opens"]}
             focus = timeline.surfaces[d["opens"]].get("focus")
             return {**event, "focus": focus} if focus else event
         if "closes" in d:
             return {**base, "kind": "close", "surface": d["closes"]}
+        if step.kind == "key":
+            return None
         return {**base, "kind": "click", "point": _fraction(d["to"], geometry)}
     if step.kind == "notify":
         return {**base, "kind": "notify"}
+    if step.kind == "window":
+        return {**base, "kind": "window"}
     return None
 
 

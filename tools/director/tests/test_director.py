@@ -355,3 +355,30 @@ def test_a_slow_glide_drops_frames_to_land_on_time():
     assert moves[-1][2] <= 1.55, "the last move is not late"
     notify = [c for c in fake.calls if c[1][0] == "notify-send"][0]
     assert notify[2] == pytest.approx(1.6), "the next step keeps its time"
+
+
+def test_window_steps_are_marked_for_a_reveal(tmp_path):
+    data = {"name": "t", "output": "t.mp4", "steps": [{"at": 2, "do": "window", "run": ["kitty"]}]}
+    fake = Fake()
+    director.run(load(data), fake.env(), record=str(tmp_path / "t.mp4"), geometry=EDP)
+    events = json.loads((tmp_path / "t.marks.json").read_text())["events"]
+    assert events == [{"t": 2.0, "step": 1, "kind": "window"}]
+
+
+def test_a_shortcut_that_opens_a_surface_marks_its_focus(tmp_path):
+    data = {
+        "name": "t",
+        "output": "t.mp4",
+        "surfaces": {"ask": {"focus": [0.33, 0.16, 0.34, 0.2]}},
+        "steps": [
+            {"at": 1, "do": "key", "key": "space", "mods": ["alt"], "opens": "ask"},
+            {"at": 3, "do": "key", "key": "Escape", "closes": "ask"},
+        ],
+    }
+    fake = Fake()
+    director.run(load(data), fake.env(), record=str(tmp_path / "t.mp4"), geometry=EDP)
+    events = json.loads((tmp_path / "t.marks.json").read_text())["events"]
+    assert events == [
+        {"t": 1.0, "step": 1, "kind": "open", "surface": "ask", "focus": [0.33, 0.16, 0.34, 0.2]},
+        {"t": 3.0, "step": 2, "kind": "close", "surface": "ask"},
+    ]

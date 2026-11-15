@@ -13,8 +13,8 @@ npm run studio                                             # preview, scrub, tun
 npx remotion render Cut out/hero.mp4 --props='{"take":"hero"}'
 ```
 
-The take is recorded 3840 x 2400 (16:10) on eDP-1 and cut to 1920 x 1080 (16:9) at
-60 fps, so a 2x zoom keeps full detail. Takes and renders are git-ignored.
+The take is recorded 3840 x 2400 (16:10) on eDP-1 and cut to 1920 x 1200 (16:10, so
+the bar and dock are never trimmed) at 60 fps; a 2x zoom keeps full detail. Takes and renders are git-ignored.
 
 | File | What |
 |---|---|
@@ -22,8 +22,11 @@ The take is recorded 3840 x 2400 (16:10) on eDP-1 and cut to 1920 x 1080 (16:9) 
 | `src/framing.ts` | camera to pixels: covers 16:9, never shows an empty edge (tested) |
 | `src/Cut.tsx`, `src/Root.tsx` | the composition; `calculateMetadata` loads the marks |
 
-Camera timing: 0.8 s sine ease into and out of a surface (max 2.2x, 85 % margin);
-a click outside a surface punches in to 1.25x for 1.2 s. `npm test` runs the camera
+The camera is a small shot grammar, not one move: a 3D opening and closing (the
+desktop as a tilted screen over Crate's ground), arrivals that take turns (push,
+swing with a 3D turn, rise), a slow Ken Burns drift while a surface is held, a
+travelling move straight to the next surface when it follows within 1.6 s, and a
+breath (in, then back out) when windows appear. `npm test` runs the camera
 and framing tests.
 
 Remotion is free for individuals and companies of up to three people; see

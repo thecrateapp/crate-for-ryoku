@@ -29,3 +29,11 @@ describe("framing", () => {
     }
   });
 });
+
+describe("framing below full size", () => {
+  it("centres a smaller-than-frame screen (the 3D intro and outro)", () => {
+    const f = framing({ scale: 0.8, x: 0.5, y: 0.5 }, SRC, OUT);
+    expect(f.left).toBeCloseTo((1920 - f.width) / 2);
+    expect(f.top).toBeCloseTo((1080 - f.height) / 2);
+  });
+});

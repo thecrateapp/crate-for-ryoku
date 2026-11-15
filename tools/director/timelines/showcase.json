@@ -204,7 +204,24 @@
         "-c",
         "ryogami wallpaper set ~/Pictures/Wallpapers/crate-groove.webp"
       ]
-    }
+    },
+    "wallpaper-browser": {
+      "focus": [
+        0.03,
+        0.0,
+        0.94,
+        0.72
+      ]
+    },
+    "rashin-ask": {
+      "focus": [
+        0.33,
+        0.16,
+        0.34,
+        0.2
+      ]
+    },
+    "ryoshot": {}
   },
   "steps": [
     {
@@ -226,7 +243,8 @@
       "key": "w",
       "mods": [
         "super"
-      ]
+      ],
+      "opens": "wallpaper-browser"
     },
     {
       "at": 4.0,
@@ -246,7 +264,8 @@
     {
       "at": 9.6,
       "do": "key",
-      "key": "Escape"
+      "key": "Escape",
+      "closes": "wallpaper-browser"
     },
     {
       "at": 12.4,
@@ -532,68 +551,90 @@
     },
     {
       "at": 65.4,
+      "do": "key",
+      "key": "space",
+      "mods": [
+        "alt"
+      ],
+      "opens": "rashin-ask"
+    },
+    {
+      "at": 66.3,
+      "do": "type",
+      "text": "how do I change the dock style?"
+    },
+    {
+      "at": 70.2,
+      "do": "key",
+      "key": "Escape",
+      "closes": "rashin-ask"
+    },
+    {
+      "at": 71.4,
       "do": "surface",
       "name": "gamebar",
       "action": "open"
     },
     {
-      "at": 69.4,
+      "at": 75.4,
       "do": "surface",
       "name": "gamebar",
       "action": "close"
     },
     {
-      "at": 70.6,
+      "at": 76.6,
       "do": "surface",
       "name": "kit",
       "action": "open"
     },
     {
-      "at": 74.6,
+      "at": 80.6,
       "do": "surface",
       "name": "kit",
       "action": "close"
     },
     {
-      "at": 75.8,
+      "at": 81.8,
       "do": "surface",
       "name": "qsbar-settings",
       "action": "open"
     },
     {
-      "at": 79.8,
+      "at": 85.8,
       "do": "surface",
       "name": "qsbar-settings",
       "action": "close"
     },
     {
-      "at": 81.0,
+      "at": 87.0,
       "do": "key",
       "key": "s",
       "mods": [
         "super",
         "shift"
-      ]
+      ],
+      "opens": "ryoshot"
     },
     {
-      "at": 84.0,
+      "at": 90.0,
       "do": "key",
-      "key": "Escape"
+      "key": "Escape",
+      "closes": "ryoshot"
     },
     {
-      "at": 85.5,
+      "at": 91.5,
       "do": "notify",
       "title": "Crate",
       "body": "Now playing"
     },
     {
-      "at": 89.5,
+      "at": 95.5,
       "do": "surface",
       "name": "wallpaper-groove",
       "action": "open"
     },
     {
-      "at": 90.0,
+      "at": 96.0,
       "do": "wait"
     }
   ]
