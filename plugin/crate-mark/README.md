@@ -27,11 +27,16 @@ Crate appears or disappears, so a mark you hid yourself stays hidden.
 
 ## The panel
 
-- **Now playing:** cover, the title as an all-caps JetBrains Mono ticker (it scrolls
-  only while Crate plays and the title is too long: 2 s pause, 20 ms per pixel, 0.9 s
-  pause), artist and album, progress (click to seek), and
-  shuffle / previous / play-pause / next / repeat.
-- **Equalizer:** on/off; the mode, as in Crate's player: Smart (the server's curve for
+- **On the bar:** the mark, the playing bars, the artist and title ticker and, with a
+  track, previous / play-pause / next.
+- **Now playing:** the cover on a record, as the shell's Now playing draws it (it turns
+  once every 24 s while Crate plays; still with reduced motion), ringed by the shell's
+  audio spectrum when the Ryoku shell shares it (`pluginApi.spectrum`; the analysis
+  runs only while the panel shows a playing track), the title as an all-caps
+  JetBrains Mono ticker (it scrolls only while Crate plays and the title is too long:
+  2 s pause, 20 ms per pixel, 0.9 s pause), artist and album, progress (click to
+  seek), and shuffle / previous / play-pause / next / repeat.
+- **Equalizer:** on/off (the kit switch); the mode, as in Crate's player: Smart (the server's curve for
   the track, with its source: your preset, a curator preset, the genre taxonomy, audio
   analysis), Genre (the track's genre preset), Adaptive (from audio analysis features),
   or Manual; the preset in Manual (‹ ›); and the 10-band curve, editable in Manual.
