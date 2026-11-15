@@ -59,6 +59,9 @@ if [ "$KEEP" = 0 ]; then
   fi
   rm -f -- "$STATE/crate-present"
   rm -f -- "$CFG/fish/conf.d/crate-prompt.fish" "$HOME/.local/bin/crate-for-ryoku-installed" "$STATE/version"
+  # the ZapFast palette, only while it is still Crate's (a file of yours by that name stays)
+  zf="$CFG/zapfast/themes/Crate.json"
+  if grep -q '"window": "#0a0a0f"' "$zf" 2>/dev/null && grep -q '"accent": "#06b6d4"' "$zf"; then rm -f -- "$zf"; fi
   if head -1 "$CFG/eza/theme.yml" 2>/dev/null | grep -q -E '^# crate-(rice|for-ryoku): eza'; then rm -f -- "$CFG/eza/theme.yml"; fi
   # drop only the rice's "cr" launcher entry
   if [ -f "$CFG/ryoku/launcher-scripts.json" ]; then

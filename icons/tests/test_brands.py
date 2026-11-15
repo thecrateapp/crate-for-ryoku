@@ -20,7 +20,7 @@ import build_icons  # noqa: E402
 import crateize  # noqa: E402
 
 TABLER = ["brand-firefox", "brand-chrome", "brand-slack", "brand-telegram", "brand-steam",
-          "brand-openai", "brand-tidal", "brand-mongodb"]
+          "brand-openai", "brand-tidal", "brand-mongodb", "brand-whatsapp"]
 SIMPLE = ["claude", "thunderbird", "obsidian", "postman", "jetbrains", "phpstorm", "webstorm",
           "onlyoffice", "mpv", "vim", "wine", "nvidia", "qemu", "cmake", "electron", "localsend", "cachyos"]
 
@@ -39,6 +39,7 @@ PALETTE = {build_icons.FG, build_icons.MUTED, build_icons.CYAN, build_icons.CYAN
     ("chatgpt", "chatgpt.desktop", ("tabler", "brand-openai")),
     ("tidal-hifi", "tidal-hifi.desktop", ("tabler", "brand-tidal")),
     ("mongodb-compass", "mongodb-compass.desktop", ("tabler", "brand-mongodb")),
+    ("zapfast", "zapfast.desktop", ("tabler", "brand-whatsapp")),
     ("claude-desktop", "com.anthropic.Claude.desktop", ("simple-icons", "claude")),
     ("org.mozilla.Thunderbird", "org.mozilla.Thunderbird.desktop", ("simple-icons", "thunderbird")),
     ("CMakeSetup", "cmake-gui.desktop", ("simple-icons", "cmake")),

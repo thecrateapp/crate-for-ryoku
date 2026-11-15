@@ -27,6 +27,7 @@ cp "$SRC"/icons/{crateize.py,build_icons.py,app_glyphs.py,solar-line-duotone.jso
 cp "$SRC"/package/systemd/crate-icons-auto.{path,service} "$OUT/systemd/"
 cp "$SRC/package/crate-presence.sh" "$OUT/crate-presence.sh"
 mkdir -p "$OUT/shell" && cp "$SRC/shell/crate-prompt.fish" "$SRC/shell/eza-theme.yml" "$OUT/shell/"
+mkdir -p "$OUT/apps/zapfast" && cp "$SRC/apps/zapfast/Crate.json" "$OUT/apps/zapfast/"
 cp -a "$SRC/plugin/crate-mark" "$OUT/plugin/crate-mark"
 # the Crate Palette launcher, without its tests and tools
 mkdir -p "$OUT/launcher/crate-palette"
@@ -34,6 +35,10 @@ mkdir -p "$OUT/launcher/crate-palette"
 bash "$SRC/wallpaper/render.sh" "$SRC/build/wallpapers"
 # Groove and Sheen only: an older render of a retired wallpaper in build/ is not shipped
 cp "$SRC"/build/wallpapers/crate-{groove,sheen}-*.webp "$OUT/wallpapers/"
+# ZapFast's chat wallpaper: Groove quieted behind the conversation
+chat_wall=$SRC/build/wallpapers/zapfast-chat.webp
+[ -s "$chat_wall" ] || python3 "$SRC/wallpaper/chat.py" "$SRC/build/wallpapers/crate-groove-3840x2400.webp" "$chat_wall"
+cp "$chat_wall" "$OUT/apps/zapfast/chat.webp"
 cp "$SRC/package/install.sh" "$SRC/package/uninstall.sh" "$SRC/package/README.md" "$SRC/package/VERSION" "$OUT/"
 cp "$SRC/LICENSE" "$SRC/NOTICE" "$OUT/"
 mkdir -p "$OUT/bin" && cp "$SRC/bin/crate-for-ryoku" "$OUT/bin/" && chmod +x "$OUT/bin/crate-for-ryoku"
