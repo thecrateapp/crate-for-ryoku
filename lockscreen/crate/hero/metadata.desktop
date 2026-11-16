@@ -1,0 +1,8 @@
+[SddmGreeterTheme]
+Name=Crate Hero
+Description=Crate lock screen: the clock first
+Author=Crate
+Type=sddm-theme
+MainScript=Main.qml
+ConfigFile=theme.conf
+QtVersion=6

@@ -1,0 +1,3 @@
+module common
+singleton CratePalette 1.0 CratePalette.qml
+Background 1.0 Background.qml

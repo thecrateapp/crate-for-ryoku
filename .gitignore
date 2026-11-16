@@ -15,3 +15,7 @@ build/
 
 # Screencast takes recorded by tools/director
 tools/director/takes/
+
+# Lock-screen assets built by lockscreen/build-assets.sh
+lockscreen/crate/common/fonts/
+lockscreen/crate/common/backgrounds/
