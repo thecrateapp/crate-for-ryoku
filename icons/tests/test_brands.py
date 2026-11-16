@@ -20,7 +20,8 @@ import build_icons  # noqa: E402
 import crateize  # noqa: E402
 
 TABLER = ["brand-firefox", "brand-chrome", "brand-slack", "brand-telegram", "brand-steam",
-          "brand-openai", "brand-tidal", "brand-mongodb", "brand-whatsapp"]
+          "brand-openai", "brand-tidal", "brand-mongodb", "brand-whatsapp",
+          "brand-discord", "brand-vscode", "brand-github"]
 SIMPLE = ["claude", "thunderbird", "obsidian", "postman", "jetbrains", "phpstorm", "webstorm",
           "onlyoffice", "mpv", "vim", "wine", "nvidia", "qemu", "cmake", "electron", "localsend", "cachyos"]
 
@@ -48,6 +49,37 @@ PALETTE = {build_icons.FG, build_icons.MUTED, build_icons.CYAN, build_icons.CYAN
 ])
 def test_brand_by_icon_name(icon, entry, want):
     assert app_glyphs.brand_for(icon, entry) == want
+
+
+# Icon= names and desktop files as the Arch, AUR and Flathub packages ship them
+@pytest.mark.parametrize("icon,entry,want", [
+    ("discord", "discord.desktop", ("tabler", "brand-discord")),
+    ("discord-ptb", "discord-ptb.desktop", ("tabler", "brand-discord")),
+    ("discord-canary", "discord-canary.desktop", ("tabler", "brand-discord")),
+    ("com.discordapp.Discord", "com.discordapp.Discord.desktop", ("tabler", "brand-discord")),
+    ("vesktop", "vesktop.desktop", ("tabler", "brand-discord")),
+    ("dev.vencord.Vesktop", "dev.vencord.Vesktop.desktop", ("tabler", "brand-discord")),
+    ("vscode", "code.desktop", ("tabler", "brand-vscode")),
+    ("visual-studio-code", "code.desktop", ("tabler", "brand-vscode")),  # by the desktop file
+    ("com.visualstudio.code.oss", "code-oss.desktop", ("tabler", "brand-vscode")),
+    ("com.visualstudio.code", "com.visualstudio.code.desktop", ("tabler", "brand-vscode")),
+    ("github-desktop", "github-desktop.desktop", ("tabler", "brand-github")),
+    ("io.github.shiftey.Desktop", "io.github.shiftey.Desktop.desktop", ("tabler", "brand-github")),
+])
+def test_more_brands_by_their_packaged_names(icon, entry, want):
+    assert app_glyphs.brand_for(icon, entry) == want
+
+
+def test_vscodium_is_not_drawn_as_vs_code():
+    assert app_glyphs.brand_for("vscodium", "codium.desktop") is None
+
+
+def test_github_splits_its_one_path_to_draw_the_arm_in_cyan():
+    g = build_icons.brand_glyph("tabler/brand-github", 1.5)
+    shapes = re.findall(r"<path\b[^>]*/>", g)
+    assert len(shapes) == 2
+    assert build_icons.CYAN_HI in shapes[-1] and 'd="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3"' in shapes[-1]
+    assert build_icons.CYAN_HI not in shapes[0] and shapes[0].count(" d=\"M") == 1
 
 
 def test_brand_by_desktop_file_when_the_icon_name_is_unknown():

@@ -120,6 +120,18 @@ BRANDS = {
     "chatgpt": _tabler("openai"),
     "tidal-hifi": _tabler("tidal"), "com.mastermindzh.tidal-hifi": _tabler("tidal"),
     "mongodb-compass": _tabler("mongodb"),
+    # Icon= names from the Arch packages (discord, discord-ptb, discord-canary),
+    # Flathub, and Vesktop, a Discord client that wears Discord's mark like ZapFast
+    "discord": _tabler("discord"), "discord-ptb": _tabler("discord"), "discord-canary": _tabler("discord"),
+    "com.discordapp.Discord": _tabler("discord"), "vesktop": _tabler("discord"),
+    "dev.vencord.Vesktop": _tabler("discord"),
+    # Visual Studio Code: the Microsoft build (visual-studio-code-bin: code.desktop,
+    # Icon=vscode), Arch's Code - OSS (code-oss.desktop, Icon=com.visualstudio.code.oss)
+    # and Flathub. VSCodium has a mark of its own and is left to its category glyph.
+    "vscode": _tabler("vscode"), "code": _tabler("vscode"), "com.visualstudio.code": _tabler("vscode"),
+    "code-oss": _tabler("vscode"), "com.visualstudio.code.oss": _tabler("vscode"),
+    # GitHub Desktop (github-desktop, github-desktop-bin) and its Flathub build
+    "github-desktop": _tabler("github"), "io.github.shiftey.Desktop": _tabler("github"),
     # Simple Icons silhouettes
     "claude-desktop": _si("claude"), "com.anthropic.Claude": _si("claude"), "claude": _si("claude"),
     "org.mozilla.Thunderbird": _si("thunderbird"), "thunderbird": _si("thunderbird"),
