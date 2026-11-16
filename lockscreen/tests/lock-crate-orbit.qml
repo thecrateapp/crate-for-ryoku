@@ -81,6 +81,16 @@ ShellRoot {
             main.start();
         }
     }
+    // First paint: the dial is already on its real minute, never spinning in from zero.
+    Timer {
+        interval: 40; running: true
+        onTriggered: {
+            var dial = find(host.item, "orbitDial");
+            if (!dial) return fail("no orbitDial at first paint");
+            var d = (((dial.ringRotation - dial.targetRotation) % 360) + 360) % 360;
+            if (d > 0.01 && d < 359.99) return fail("dial not at target on first paint: " + dial.ringRotation + " vs " + dial.targetRotation);
+        }
+    }
     Timer {
         id: main
         interval: 900

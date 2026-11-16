@@ -42,7 +42,18 @@ for name in groove sheen; do
   [ -s "$dst" ] && continue
   png=$(mktemp --suffix=.png)
   python3 "$REPO/wallpaper/$name.py" 3840 2400 "$png"
-  python3 -c 'import sys; from PIL import Image; Image.open(sys.argv[1]).save(sys.argv[2], "WEBP", lossless=True, quality=100, method=6)' "$png" "$dst"
+  # Lock-screen copies only: the desktop wallpapers stay as generated. A gamma lift (blacks stay 0)
+  # brings the dark art to a visible wallpaper level; dither hides banding in the lifted gradients.
+  python3 - "$png" "$dst" <<'PY'
+import sys
+import numpy as np
+from PIL import Image
+GAMMA = 0.68
+img = np.asarray(Image.open(sys.argv[1]).convert("RGB"), dtype=np.float32) / 255.0
+out = np.power(img, GAMMA) * 255.0
+out += np.random.default_rng(7).uniform(-0.5, 0.5, out.shape).astype(np.float32)
+Image.fromarray(np.clip(np.rint(out), 0, 255).astype(np.uint8)).save(sys.argv[2], "WEBP", lossless=True, quality=100, method=6)
+PY
   rm -f -- "$png"
   echo "built $dst"
 done

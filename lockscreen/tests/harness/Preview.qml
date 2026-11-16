@@ -81,6 +81,9 @@ ShellRoot {
     function ready() {
         var it = host.item;
         if (!it || !it.fontsReady) return false;
+        // A dial still turning (orbit) is not a faithful frame: wait until it sits on its target.
+        var dial = find(it, "orbitDial");
+        if (dial && Math.abs(dial.ringRotation - dial.targetRotation) > 0.01) return false;
         return imagesReady(it);
     }
     // Every Image in the tree (wallpaper, cover) has finished loading.
