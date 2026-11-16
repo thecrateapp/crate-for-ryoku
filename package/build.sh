@@ -4,7 +4,7 @@
 #   dist/crate-for-ryoku-<version>.tar.gz  (with SHA256SUMS inside)
 # The icon theme is regenerated from build_icons.py and the Crate logo; the
 # wallpapers are rendered by wallpaper/render.sh into build/ (kept between
-# builds).
+# builds). The lock skins are built by build-lockscreen.sh with fresh assets.
 set -euo pipefail
 
 SRC=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -17,6 +17,7 @@ LOGO=$SRC/brand/crate-logo.svg
 case $OUT in "$SRC"/dist/crate-for-ryoku-*) ;; *) echo "refusing to build into $OUT" >&2; exit 1 ;; esac
 rm -rf -- "$OUT" "$OUT.tar.gz"
 mkdir -p "$OUT"/{rice,theme,icons,plugin,wallpapers,systemd}
+bash "$SRC/package/build-lockscreen.sh" "$OUT/lockscreen"
 
 cp -a "$SRC/rice/crate" "$OUT/rice/crate"
 cp -a "$SRC/theme/crate" "$OUT/theme/crate"
@@ -45,10 +46,11 @@ cp "$SRC"/build/wallpapers/crate-{groove,sheen}-*.webp "$OUT/wallpapers/"
 chat_wall=$SRC/build/wallpapers/zapfast-chat.webp
 [ -s "$chat_wall" ] || python3 "$SRC/wallpaper/chat.py" "$SRC/build/wallpapers/crate-groove-3840x2400.webp" "$chat_wall"
 cp "$chat_wall" "$OUT/apps/zapfast/chat.webp"
+cp "$SRC/package/lock-skins.sh" "$OUT/lock-skins.sh"
 cp "$SRC/package/install.sh" "$SRC/package/uninstall.sh" "$SRC/package/apps.sh" "$SRC/package/README.md" "$SRC/package/VERSION" "$OUT/"
 cp "$SRC/LICENSE" "$SRC/NOTICE" "$OUT/"
 mkdir -p "$OUT/bin" && cp "$SRC/bin/crate-for-ryoku" "$OUT/bin/" && chmod +x "$OUT/bin/crate-for-ryoku"
-chmod +x "$OUT/install.sh" "$OUT/uninstall.sh" "$OUT/apps.sh" "$OUT/crate-presence.sh"
+chmod +x "$OUT/install.sh" "$OUT/uninstall.sh" "$OUT/apps.sh" "$OUT/lock-skins.sh" "$OUT/crate-presence.sh"
 
 if command -v ryoku >/dev/null; then
   ryoku plugin validate "$OUT/plugin/crate-mark"
@@ -57,6 +59,7 @@ bash -n "$OUT/install.sh"
 bash -n "$OUT/uninstall.sh"
 bash -n "$OUT/apps.sh"
 bash -n "$OUT/crate-presence.sh"
+bash -n "$OUT/lock-skins.sh"
 bash -n "$OUT/bin/crate-for-ryoku"
 python3 -m py_compile "$OUT"/icons/{crateize,build_icons,app_glyphs}.py && rm -rf -- "$OUT/icons/__pycache__"
 

@@ -48,6 +48,11 @@ target=${PREV_ICON_THEME:-Papirus-Dark}
 say "icon theme -> $target"
 ryoku-hub desktop icon-theme set "$target" || warn "could not set $target; choose one in Ryoku Settings > App icon theme"
 
+# the lock skin is part of the look (after the rice restore above, which may already have set one)
+if [ "$KEEP" = 1 ]; then
+  bash "$(dirname "${BASH_SOURCE[0]}")/lock-skins.sh" restore
+fi
+
 # the app themes: Firefox's chrome/ goes back to yours; Obsidian vaults lose
 # only the copies still exactly as installed (apps.sh keeps the record)
 if [ "$KEEP" = 0 ]; then
@@ -67,6 +72,8 @@ if [ "$KEEP" = 0 ]; then
     rm -f -- "$CFG/systemd/user/crate-icons-auto.path" "$CFG/systemd/user/crate-icons-auto.service"
     command -v systemctl >/dev/null && systemctl --user daemon-reload 2>/dev/null || true
   fi
+  # the lock skin back (after the rice restore above), then Crate's skins go
+  bash "$(dirname "${BASH_SOURCE[0]}")/lock-skins.sh" uninstall
   rm -f -- "$STATE/crate-present"
   rm -f -- "$CFG/fish/conf.d/crate-prompt.fish" "$HOME/.local/bin/crate-for-ryoku-installed" "$STATE/version"
   # the ZapFast palette, only while it is still Crate's (a file of yours by that name stays)

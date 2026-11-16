@@ -16,6 +16,7 @@ Built for and tested on Ryoku 1.0.7 (Hyprland 0.57.2, Quickshell 0.3.2).
 | `icons/crateize.py`, `systemd/` | grades every other app's own icon into the Crate palette, on your machine, and regrades when apps are installed | `~/.local/share/icons/crate-icons-auto`, `~/.config/systemd/user/crate-icons-auto.*` |
 | `plugin/crate-mark/` | QS Bar plugin: the Crate logo after the launcher; its panel (like the bar's volume panel) has now playing, Crate's volume and Crate's equalizer | installed with `ryoku plugin add` |
 | `crate-presence.sh` | shows the bar mark only while the Crate app is installed (`ryoku-shell bar show/hide crate-mark`) | `~/.local/share/crate-for-ryoku/`, run by the watcher |
+| `lockscreen/crate/{hero,orbit}/` | the Crate lock skins (self-contained: shared module, Bricolage Grotesque and JetBrains Mono, Groove and Sheen backgrounds, `preview.gif`); the rice selects `crate/hero` | `~/.local/share/qylock/themes/crate/` |
 | `wallpapers/` | Groove, Sheen, Horizon, Handoff, Macro at 3840x2160 and 3840x2400, lossless WebP | `~/Pictures/Wallpapers/crate-*.webp` |
 | `apps/obsidian/Crate/` | the Crate Obsidian theme (fonts inlined) | `<vault>/.obsidian/themes/Crate` in every vault Obsidian knows; you pick it in Settings > Appearance > Themes |
 | `apps/firefox/chrome/` | Crate's `userChrome.css`/`userContent.css`, opt-in (`--firefox-chrome`) | the profile's `chrome/`; the old one is kept as `chrome.before-crate` and put back by uninstall |
@@ -26,7 +27,7 @@ Built for and tested on Ryoku 1.0.7 (Hyprland 0.57.2, Quickshell 0.3.2).
 
 ```bash
 ./install.sh            # everything, then switches to the rice
-./install.sh --help     # --no-apply, --no-icons, --no-auto-icons, --no-plugin, --no-wallpapers, --reapply
+./install.sh --help     # --no-lockscreen, --no-apply, --no-icons, --no-auto-icons, --no-plugin, --no-wallpapers, --reapply
 ./install.sh --firefox-chrome   # also replace Firefox's userChrome.css (WhiteSur, say) with Crate's
 ./install.sh --no-obsidian      # leave your Obsidian vaults alone
 ```
@@ -35,7 +36,7 @@ It only uses Ryoku's own commands: `ryoku plugin add`, `ryoku-hub rice apply cra
 `ryoku-shell theme crate`, `ryoku-hub desktop icon-theme set crate-icons` and
 `ryoku-shell reload`. Nothing needs root.
 
-Before switching, it records your current icon theme and rice in
+Before switching, it records the lock skin you use now in `previous-lock` (only when it is not a Crate skin; uninstall, `--keep-files` included, sets it back, or `clockwork/orbital` when that skin is gone; it writes only the session lock's `~/.config/qylock/theme`, so the sign-in screen keeps its skin until you pick another in Ryoku Settings > Lockscreen), and it records your current icon theme and rice in
 `~/.local/state/crate-for-ryoku/previous.env` and keeps a copy of Ryoku's `.previous`
 snapshot there. If Crate is already the active rice it does not apply it again,
 so `.previous` keeps pointing at the look you had before Crate.
@@ -52,7 +53,7 @@ so `.previous` keeps pointing at the look you had before Crate.
 
 ```bash
 ./uninstall.sh              # restores the previous look, removes theme, icons, rice and plugin
-./uninstall.sh --keep-files # only restores the look
+./uninstall.sh --keep-files # only restores the look (lock skin included)
 ./uninstall.sh --purge      # also deletes the crate-*.webp wallpapers
 ```
 
@@ -62,6 +63,7 @@ so `.previous` keeps pointing at the look you had before Crate.
 - `ttf-jetbrains-mono-nerd` (the QS Bar font).
 - For the graded app icons: `python-numpy`, `python-pillow`, `librsvg`. Without them `install.sh`
   skips that step and apps keep their Papirus icons.
+- For the lock skins' WebP backgrounds: `qt6-imageformats` (the pacman package depends on it).
 
 ## Known limits (Ryoku 1.0.7)
 

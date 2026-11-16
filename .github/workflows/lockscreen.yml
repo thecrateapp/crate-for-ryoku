@@ -1,0 +1,70 @@
+name: lockscreen
+
+# The Crate lock skins (offscreen Quickshell tests and the package build) plus the repo's python tests.
+on:
+  push:
+    paths:
+      - "lockscreen/**"
+      - "package/**"
+      - "wallpaper/**"
+      - "icons/**"
+      - "tools/director/**"
+      - "rice/**"
+      - "packaging/**"
+      - "theme/**"
+      - "tools/cut/public/fonts/**"
+      - "shell/**"
+      - "apps/**"
+      - ".github/workflows/lockscreen.yml"
+  pull_request:
+    paths:
+      - "lockscreen/**"
+      - "package/**"
+      - "wallpaper/**"
+      - "icons/**"
+      - "tools/director/**"
+      - "rice/**"
+      - "packaging/**"
+      - "theme/**"
+      - "tools/cut/public/fonts/**"
+      - "shell/**"
+      - "apps/**"
+      - ".github/workflows/lockscreen.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lockscreen-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    timeout-minutes: 30
+    env:
+      QT_QPA_PLATFORM: offscreen
+      XDG_RUNTIME_DIR: /tmp/xdg-runtime
+      # cold Quickshell starts under software GL on a small runner can exceed the local defaults
+      LOCK_TEST_TIMEOUT: 60s
+    steps:
+      - name: Install packages
+        run: |
+          pacman -Sy --noconfirm archlinux-keyring
+          pacman -Su --noconfirm --needed \
+            git quickshell qt6-declarative qt6-5compat qt6-imageformats mesa \
+            python python-fonttools python-brotli python-pillow python-cairo python-numpy python-pytest \
+            librsvg fontconfig
+          mkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR"
+
+      - uses: actions/checkout@v4
+
+      - name: Lock screen tests
+        run: bash lockscreen/tests/run.sh
+
+      - name: Lock skin packaging
+        run: bash lockscreen/tests/package-lock-skins.sh
+
+      - name: Python tests
+        run: python3 -m pytest icons/tests wallpaper/tests tools/director/tests -q
