@@ -11,6 +11,9 @@ QtObject {
     signal loginFailed()
     signal loginSucceeded()
     signal keyTimedOut()
+    // Optional PAM text. The real shim has no such signal today; skins connect with ignoreUnknownSignals.
+    signal errorMessage(string message)
+    signal informationMessage(string message)
     property var calls: []
     function login(user, password, sessionIndex) { calls.push(["login", user, password, sessionIndex]) }
     function loginKeyPin(user, pin) { calls.push(["loginKeyPin", user, pin]) }

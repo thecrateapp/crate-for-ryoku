@@ -11,7 +11,12 @@ QtObject {
         "wrongPassword": "Wrong password",
         "securityKeyPin": "Enter the security key PIN",
         "touchKey": "Touch the security key",
-        "fingerprint": "Scan your fingerprint"
+        "fingerprint": "Scan your fingerprint",
+        "SECURITY KEY PIN": "SECURITY KEY PIN",
+        "TOUCH THE SECURITY KEY": "TOUCH THE SECURITY KEY",
+        "or touch the reader": "or touch the reader",
+        "scan denied, type your password": "scan denied, type your password",
+        "CHECKING": "CHECKING"
     })
     function tr(key) {
         return en[key] !== undefined ? en[key] : key;

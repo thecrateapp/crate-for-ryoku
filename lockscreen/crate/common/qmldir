@@ -1,3 +1,6 @@
 module common
 singleton CratePalette 1.0 CratePalette.qml
 Background 1.0 Background.qml
+PasswordField 1.0 PasswordField.qml
+AuthHint 1.0 AuthHint.qml
+ErrorLine 1.0 ErrorLine.qml
