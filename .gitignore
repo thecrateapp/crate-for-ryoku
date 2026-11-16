@@ -19,3 +19,6 @@ tools/director/takes/
 # Lock-screen assets built by lockscreen/build-assets.sh
 lockscreen/crate/common/fonts/
 lockscreen/crate/common/backgrounds/
+
+# Lock-screen preview shots (lockscreen/preview.sh --shot)
+lockscreen/shots/
