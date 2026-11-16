@@ -101,9 +101,9 @@ SkinRoot {
             readonly property string ampm: root.clock24h ? "" : marker.toUpperCase()
             spacing: Math.round(CratePalette.s(16, root.uiScale))
             // Five glyphs run to about 2.9 em at Bricolage 800 with tight tracking: shrink to the room
-            // left of the auth column, never above s(300).
+            // left of the auth column, never above s(240) (s(300) read too big on a live screen).
             readonly property real fitPx: Math.max(Math.round(CratePalette.s(24, root.uiScale)),
-                Math.min(Math.round(CratePalette.s(300, root.uiScale)), (clockBlock.maxWidth - (ampmText.visible ? Math.round(CratePalette.s(120, root.uiScale)) : 0)) / 2.9))
+                Math.min(Math.round(CratePalette.s(240, root.uiScale)), (clockBlock.maxWidth - (ampmText.visible ? Math.round(CratePalette.s(120, root.uiScale)) : 0)) / 2.9))
             height: Math.round(fitPx * 1.2)
             Repeater {
                 model: clock.text.length

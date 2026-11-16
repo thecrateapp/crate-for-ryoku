@@ -140,3 +140,31 @@ There is no Hub UI for skin options; they are edited by hand for now.
 
 - Transport controls on the lock screen; Caps Lock detection; a Hub UI for skin options;
   changing qylock or Ryoku itself; installing the SDDM greeter automatically.
+
+## Revision 2026-11-16 (live review)
+
+Diego's review of the installed skins changed three things. Where this section disagrees with the
+sections above, this section wins.
+
+- **Hero clock ~20% smaller.** The cap goes from s(300) to s(240) (about 240 px at 1200 px of
+  height). The fit-to-room shrink and the overlap guarantees are unchanged.
+- **Orbit: two rings that turn with real time.** Minutes on the inner ring (radius s(320)),
+  seconds on a new outer ring (s(470)). Both turn continuously from the clock sampled every
+  frame (milliseconds included), so the current minute and second pass a reading window at three
+  o'clock. Ticks and mono numbers every five are built once; the current value on each ring is a
+  cyan-hi spotlight label and tick, everything else stays faint. The hour shrinks with the rings
+  (s(300) to s(220)). First paint is real state; one FrameAnimation drives the rings.
+- **Orbit: windup and reveal, in Crate's language.** This replaces "no windup animation" above.
+  Enter with a password calls `sddm.login` at once and winds the rings up while PAM works
+  (InQuint over 1600 ms, cyan streaks trailing the rings, ring hairlines and the reading window
+  warming to cyan). `loginFailed` stops the push and the rings coast back onto real time (no spin
+  is faked past the answer), with ACCESS DENIED. `loginSucceeded` fades and scales the UI out
+  over 520 ms while the rings whip round; a sensor win first winds up for 900 ms. No white blast,
+  no sparks. Under reduced motion the rings stand on the real second, nothing winds up and a
+  success is a plain fade. If the lock surface is shown again (`surfaceRevealed`), or is still up
+  well after the reveal, the UI comes back.
+- **The lock shell holds the surface for the reveal.** Orbit's `theme.conf` sets
+  `unlockRevealMs=720` (520 ms reveal) and `unlockSensorRevealMs=1600` (900 ms windup + 520 ms
+  reveal). Ryoku's `lock_shell.qml` reads these keys (generic support added separately); skins
+  without them, like hero, keep the 100 ms default.
+- **Preview.** `preview.sh` gains a `windup` state (orbit: a mid-windup frame).

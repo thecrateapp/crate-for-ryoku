@@ -1,6 +1,6 @@
 [SddmGreeterTheme]
 Name=Crate Orbit
-Description=Crate lock screen: the hour inside a minute dial
+Description=Crate lock screen: the hour inside minute and seconds rings
 Author=Crate
 Type=sddm-theme
 MainScript=Main.qml

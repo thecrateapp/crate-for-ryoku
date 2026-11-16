@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Preview a Crate lock skin without locking anything. Windowed by default; --shot renders offscreen.
 #   preview.sh <crate/hero|crate/orbit> [state] [--shot out.png] [--size WxH]
-# States: idle typing checking error fp-scanning fp-success fp-fail key-pin key-touch no-music sddm
+# States: idle typing checking windup error fp-scanning fp-success fp-fail key-pin key-touch no-music sddm
 # Uses the test fakes (tests/harness) in a plain window: it never creates a session lock.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 skins="crate/hero crate/orbit"
-states="idle typing checking error fp-scanning fp-success fp-fail key-pin key-touch no-music sddm"
+states="idle typing checking windup error fp-scanning fp-success fp-fail key-pin key-touch no-music sddm"
 usage() {
     echo "usage: preview.sh <crate/hero|crate/orbit> [${states// /|}] [--shot out.png] [--size WxH]" >&2
     exit 2

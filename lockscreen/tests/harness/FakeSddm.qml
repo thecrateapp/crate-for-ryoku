@@ -5,6 +5,8 @@ QtObject {
     property var fingerprintHint: ""
     property string fingerprintState: ""
     property bool fingerprintReady: false
+    // True when the sensor, not a typed password, won the last unlock.
+    property bool fingerprintUnlock: false
     property string keyState: ""
     // Mirrors the shim: a PIN request is dropped (state off) unless the skin draws key prompts.
     function requestKeyState(state) { keyState = (state === "pin" && !keyPrompts) ? "off" : state }
@@ -15,6 +17,8 @@ QtObject {
     signal loginFailed()
     signal loginSucceeded()
     signal keyTimedOut()
+    // The lock shell emits it when the secure surface is shown (again).
+    signal surfaceRevealed()
     // Optional PAM text. The real shim has no such signal today; skins connect with ignoreUnknownSignals.
     signal errorMessage(string message)
     signal informationMessage(string message)

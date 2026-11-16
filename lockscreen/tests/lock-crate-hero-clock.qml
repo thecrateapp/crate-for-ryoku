@@ -60,7 +60,7 @@ ShellRoot {
         if (!hero.fontsReady) return fail(label + ": fonts not ready");
         if (Math.abs(hero.uiScale - hero.height / 1200) > 1e-9) return fail(label + ": uiScale is not height / 1200");
         var clk = find(hero, "clock");
-        if (Math.abs(clk.fitPx - Math.round(300 * hero.uiScale)) > 1) return fail(label + ": clock size " + clk.fitPx + " is not 300 * uiScale");
+        if (Math.abs(clk.fitPx - Math.round(240 * hero.uiScale)) > 1) return fail(label + ": clock size " + clk.fitPx + " is not 240 * uiScale");
         var cb = find(hero, "clockBlock");
         if (cb.width > cb.maxWidth) return fail(label + ": clock block " + cb.width + " wider than its room " + cb.maxWidth);
         var np0 = find(hero, "nowPlaying");

@@ -31,9 +31,10 @@ ShellRoot {
     function fail(msg) { console.error("FAIL: " + msg); Qt.quit(); }
     function find(i, n) { return Checks.find(i, n); }
     function eq(a, b, what) { return Checks.eq({ fail: root.fail }, a, b, what); }
-    // Any object whose name says it is orbital's windup or ring blast.
+    // Any object whose name says it is orbital's white blast or its sparks (orbit winds up with
+    // cyan streaks instead; see lock-crate-orbit-motion).
     function strays(item) {
-        if (/windup|blast/i.test(String(item.objectName))) return item.objectName;
+        if (/blast|spark/i.test(String(item.objectName))) return item.objectName;
         for (var i = 0; i < item.children.length; i++) {
             var r = strays(item.children[i]);
             if (r) return r;
@@ -172,6 +173,9 @@ ShellRoot {
             find(unlock, "unlockLink").activated();
             if (!eq(Checks.count(fake, "login"), before + 1, "unlock login calls")) return;
             fake.loginSucceeded();
+            // The success plays the reveal; the lock surface showing again brings the resting UI
+            // back, which the rest of this test inspects.
+            fake.surfaceRevealed();
 
             settle.start();
         }

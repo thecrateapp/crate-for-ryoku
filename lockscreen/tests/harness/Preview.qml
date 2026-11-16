@@ -66,6 +66,8 @@ ShellRoot {
         switch (root.state) {
         case "typing": f.text = "hunter2hunter"; break;
         case "checking": f.text = "hunter2hunter"; f.submit(); break;
+        // PAM still working: orbit's rings wind up (the shot waits for a mid-windup frame).
+        case "windup": f.text = "hunter2hunter"; f.submit(); break;
         case "error": f.text = "hunter2"; f.submit(); fake.loginFailed(); break;
         case "fp-scanning": case "fp-success": case "fp-fail":
             fake.fingerprintReady = true;
@@ -81,9 +83,12 @@ ShellRoot {
     function ready() {
         var it = host.item;
         if (!it || !it.fontsReady) return false;
-        // A dial still turning (orbit) is not a faithful frame: wait until it sits on its target.
         var dial = find(it, "orbitDial");
-        if (dial && Math.abs(dial.ringRotation - dial.targetRotation) > 0.01) return false;
+        // Orbit winding up (checking, windup): wait for a mid-windup frame, streaks out.
+        if (dial && it.motionState === "windup") {
+            if (it.windupProgress < 0.55) return false;
+        // Otherwise a dial still turning is not a faithful frame: wait until it sits on its target.
+        } else if (dial && (it.motionState !== "idle" || Math.abs(dial.ringRotation - dial.targetRotation) > 0.01)) return false;
         return imagesReady(it);
     }
     // Every Image in the tree (wallpaper, cover) has finished loading.

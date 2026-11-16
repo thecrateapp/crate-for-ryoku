@@ -4,7 +4,7 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-states="${STATES:-idle typing checking error fp-scanning fp-success fp-fail key-pin key-touch no-music sddm}"
+states="${STATES:-idle typing checking windup error fp-scanning fp-success fp-fail key-pin key-touch no-music sddm}"
 size="1366x768"
 fail() { echo "FAIL: $*"; exit 1; }
 
