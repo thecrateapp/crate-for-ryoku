@@ -30,6 +30,14 @@ assert im.format == "GIF" and im.n_frames >= 3 and im.info.get("loop", 1) == 0, 
 assert im.size[0] / im.size[1] > 1.5
 PY
 done
+# SDDM never has Quickshell or Ryoku: only the session-lock Mpris adapter (loaded by file from a
+# Loader that SDDM never activates) may import them; CratePalette loads Ryoku tokens dynamically.
+for skin in hero orbit; do
+    s="$dist/lockscreen/crate/$skin"
+    hits=$(grep -rlE '^[[:space:]]*import[[:space:]]+(Quickshell|Ryoku)' "$s" --include='*.qml' | sed "s#^$s/##" | sort)
+    [ "$hits" = "common/NowPlayingMpris.qml" ] || fail "$skin: Quickshell/Ryoku imported outside common/NowPlayingMpris.qml: ${hits:-none}"
+done
+
 # the vendored background is the lifted one, not a stale darker file
 python3 - "$dist/lockscreen/crate/hero/common/backgrounds/groove.webp" <<'PY' || fail "stale or dark groove background"
 import sys
@@ -66,6 +74,16 @@ themes="$XDG_DATA_HOME/qylock/themes/crate"
 state="$XDG_STATE_HOME/crate-for-ryoku"
 active="$XDG_CONFIG_HOME/qylock/theme"
 set_active() { mkdir -p "$(dirname "$active")"; printf '%s\n' "$1" > "$active"; }
+active_is() { [ -f "$active" ] && [ "$(cat "$active")" = "$1" ]; }
+# skins other than Crate's, as Ryoku keeps them per user
+other_skin() { mkdir -p "$XDG_DATA_HOME/qylock/themes/$1"; echo 'import QtQuick' > "$XDG_DATA_HOME/qylock/themes/$1/Main.qml"; }
+other_skin windows_7
+other_skin clockwork/orbital
+# the session skin is put back by hand: ryoku-hub lock set would also re-skin the SDDM greeter
+# through pkexec, and an uninstall must never raise a privilege prompt
+no_hub_lock() { if grep -q 'ryoku-hub lock' "$log"; then fail "$1 called ryoku-hub lock: $(grep 'ryoku-hub lock' "$log")"; fi; }
+clean_cfg() { [ "$(ls -A "$(dirname "$active")")" = "$(basename "$active")" ] || [ -z "$(ls -A "$(dirname "$active")")" ] \
+    || fail "temp files left in $(dirname "$active"): $(ls -A "$(dirname "$active")")"; }
 install() { bash "$pkg/install.sh" --no-apply --no-icons --no-plugin --no-wallpapers "$@" > "$tmp/install.log" 2>&1 \
     || { cat "$tmp/install.log"; fail "install.sh failed"; }; }
 uninstall() { : > "$log"; bash "$pkg/uninstall.sh" "$@" > "$tmp/uninstall.log" 2>&1 \
@@ -83,7 +101,9 @@ install
 
 # 3b. uninstall while a Crate skin is active restores the recorded skin, then removes ours
 uninstall
-grep -qx 'ryoku-hub lock set windows_7' "$log" || fail "uninstall did not run: ryoku-hub lock set windows_7 ($(grep 'lock' "$log" || echo none))"
+active_is windows_7 || fail "uninstall did not restore windows_7 (theme: $(cat "$active" 2>/dev/null || echo none))"
+no_hub_lock uninstall
+clean_cfg
 [ ! -e "$themes/hero" ] && [ ! -e "$themes/orbit" ] || fail "skins left after uninstall"
 [ ! -e "$state/previous-lock" ] || fail "previous-lock left after uninstall"
 
@@ -93,20 +113,43 @@ install
 [ ! -e "$state/previous-lock" ] || fail "previous-lock written without a previous skin"
 set_active crate/orbit
 uninstall
-grep -qx 'ryoku-hub lock set clockwork/orbital' "$log" || fail "no fallback to clockwork/orbital"
+active_is clockwork/orbital || fail "no fallback to clockwork/orbital (theme: $(cat "$active" 2>/dev/null || echo none))"
+no_hub_lock "uninstall (nothing recorded)"
+
+# 3c'. the recorded skin is gone: clockwork/orbital; with orbital gone too, no theme file at all
+# (qylock's lock.sh then falls back to its own orbital)
+set_active windows_7
+install
+rm -r "$XDG_DATA_HOME/qylock/themes/windows_7"
+set_active crate/hero
+uninstall
+active_is clockwork/orbital || fail "missing previous skin did not fall back to clockwork/orbital (theme: $(cat "$active" 2>/dev/null || echo none))"
+set_active windows_7
+install
+rm -r "$XDG_DATA_HOME/qylock/themes/clockwork"
+set_active crate/hero
+uninstall
+[ ! -e "$active" ] || fail "theme file left naming a missing skin: $(cat "$active")"
+no_hub_lock "uninstall (missing skins)"
+clean_cfg
+other_skin windows_7
+other_skin clockwork/orbital
 
 # 3d. a skin that is not ours stays: no lock set
 set_active windows_7
 install
 uninstall
-if grep -q 'lock set' "$log"; then fail "uninstall changed a skin that is not Crate's"; fi
+active_is windows_7 || fail "uninstall changed a skin that is not Crate's"
+no_hub_lock "uninstall (not Crate's)"
 [ ! -e "$themes/hero" ] || fail "skins left after uninstall (non-crate active)"
 
-# 3e. --keep-files keeps skins and the active skin
-set_active crate/hero
+# 3e. --keep-files reverts the look (the lock skin is part of it) and keeps the skins installed
+set_active windows_7
 install
+set_active crate/hero
 uninstall --keep-files
-if grep -q 'lock set' "$log"; then fail "--keep-files changed the lock skin"; fi
+active_is windows_7 || fail "--keep-files did not revert the lock skin (theme: $(cat "$active" 2>/dev/null || echo none))"
+no_hub_lock "uninstall --keep-files"
 installed || fail "--keep-files removed the skins"
 
 # 4. the rice selects crate/hero

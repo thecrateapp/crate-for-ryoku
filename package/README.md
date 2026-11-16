@@ -30,7 +30,7 @@ It only uses Ryoku's own commands: `ryoku plugin add`, `ryoku-hub rice apply cra
 `ryoku-shell theme crate`, `ryoku-hub desktop icon-theme set crate-icons` and
 `ryoku-shell reload`. Nothing needs root.
 
-Before switching, it records the lock skin you use now in `previous-lock` (only when it is not a Crate skin; uninstall sets it back, or `clockwork/orbital`), and it records your current icon theme and rice in
+Before switching, it records the lock skin you use now in `previous-lock` (only when it is not a Crate skin; uninstall, `--keep-files` included, sets it back, or `clockwork/orbital` when that skin is gone; it writes only the session lock's `~/.config/qylock/theme`, so the sign-in screen keeps its skin until you pick another in Ryoku Settings > Lockscreen), and it records your current icon theme and rice in
 `~/.local/state/crate-for-ryoku/previous.env` and keeps a copy of Ryoku's `.previous`
 snapshot there. If Crate is already the active rice it does not apply it again,
 so `.previous` keeps pointing at the look you had before Crate.
@@ -47,7 +47,7 @@ so `.previous` keeps pointing at the look you had before Crate.
 
 ```bash
 ./uninstall.sh              # restores the previous look, removes theme, icons, rice and plugin
-./uninstall.sh --keep-files # only restores the look
+./uninstall.sh --keep-files # only restores the look (lock skin included)
 ./uninstall.sh --purge      # also deletes the crate-*.webp wallpapers
 ```
 
