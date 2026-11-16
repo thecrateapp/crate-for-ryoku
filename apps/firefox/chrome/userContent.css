@@ -112,6 +112,26 @@
     letter-spacing: 0.12em !important;
   }
 
+  /* Firefox's components declare their tokens again on :host (the Nova
+     redesign makes the selected settings entry a filled accent pill and the
+     search field a full pill), so the overrides go on the host elements:
+     the selected entry is a faint cyan wash with a 2 px cyan mark on the
+     left, and every corner is 6 px. */
+  :root,
+  moz-page-nav,
+  moz-page-nav-button,
+  moz-input-search,
+  moz-input-text {
+    --page-nav-button-background-color-selected: rgba(6, 182, 212, 0.1) !important;
+    --page-nav-button-text-color-selected: var(--crate-accent-hi) !important;
+    --page-nav-button-indicator-background-color: var(--crate-accent) !important;
+    --page-nav-button-indicator-width: 2px !important;
+    --page-nav-button-border-radius: 6px !important;
+    --page-nav-button-border-radius-focused: 6px !important;
+    --input-border-radius: 6px !important;
+    --input-search-border-radius: 6px !important;
+  }
+
   /* hairlines, not shadows, on cards and the new tab search box */
   .card,
   .top-site-outer .tile,

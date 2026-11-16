@@ -103,6 +103,17 @@ def test_firefox_chrome_layer_ships_its_fonts(out):
     assert (chrome / "fonts/OFL-roboto.txt").is_file()
 
 
+def test_firefox_settings_nav_is_a_cyan_mark_not_a_pill(out):
+    text = (out / "firefox/chrome/userContent.css").read_text()
+    # the overrides sit on the component hosts, where Nova redeclares them
+    assert re.search(r"moz-page-nav-button,\s*moz-input-search", text)
+    decls = dict(re.findall(r"(--[\w-]+):\s*([^;]+?)\s*!important;", text))
+    assert decls["--page-nav-button-background-color-selected"] == "rgba(6, 182, 212, 0.1)"
+    assert decls["--page-nav-button-indicator-width"] == "2px"
+    assert decls["--page-nav-button-border-radius"] == "6px"
+    assert decls["--input-search-border-radius"] == "6px"
+
+
 def test_chrome_theme_has_a_fixed_id_and_crate_colours(out):
     m = json.load(open(out / "chrome/crate-theme/manifest.json"))
     assert build.chrome_id(m["key"]) == "jddiejdibphncbpfehopofclalbeghbc"
