@@ -87,13 +87,16 @@ Item {
                 }
                 Image {
                     id: art
+                    objectName: "nowPlayingArt"
                     anchors.fill: parent
                     source: root.artUrl
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     sourceSize: Qt.size(width * 2, height * 2)
                     visible: status === Image.Ready
-                    layer.enabled: true
+                    // The software scenegraph (offscreen shots, GPU-less systems) cannot run effects:
+                    // draw the cover unmasked there.
+                    layer.enabled: GraphicsInfo.api !== GraphicsInfo.Software
                     layer.effect: MultiEffect {
                         maskEnabled: true
                         maskSource: coverMask

@@ -32,7 +32,10 @@ function auth(t) {
     var err = find(host.item, "errorLine");
     var hint = find(host.item, "authHint");
     if (!f) return t.fail("no passwordField"), false;
-    if (!err) return t.fail("no errorLine"), false;
+    // deniedOnly skins (orbit) show "ACCESS DENIED" and never a second error line.
+    var denied = find(host.item, "accessDenied");
+    if (t.deniedOnly ? (!denied || err) : !err) return t.fail(t.deniedOnly ? "deniedOnly skin needs accessDenied and no errorLine" : "no errorLine"), false;
+    function errShown() { return t.deniedOnly ? denied.visible : err.visible; }
     if (!hint) return t.fail("no authHint"), false;
     if (!f.activeFocus) return t.fail("password field is not focused on load"), false;
     if (fake.keyPrompts !== true) return t.fail("skin did not set sddm.keyPrompts in session lock"), false;
@@ -57,27 +60,28 @@ function auth(t) {
     fake.loginFailed();
     if (!eq(t, f.state, "error", "state after loginFailed")) return false;
     if (!eq(t, f.text, "", "field text after loginFailed")) return false;
-    if (!err.visible) return t.fail("error line hidden after failure"), false;
-    if (!eq(t, String(err.color).toLowerCase(), "#ef4444", "error colour")) return false;
-    if (!eq(t, err.text, "Authentication failure", "PAM text")) return false;
+    if (!errShown()) return t.fail("error line hidden after failure"), false;
+    var shownErr = t.deniedOnly ? denied : err;
+    if (!eq(t, String(shownErr.color).toLowerCase(), "#ef4444", "error colour")) return false;
+    if (!eq(t, shownErr.text, t.deniedOnly ? "ACCESS DENIED" : "Authentication failure", "error text")) return false;
     if (!f.activeFocus) return t.fail("field lost focus after failure"), false;
 
     // Review focus 1: typing clears the red state.
     f.text = "h";
     if (!eq(t, f.state, "typing", "state after typing again")) return false;
-    if (err.visible) return t.fail("error line still visible while typing"), false;
+    if (errShown()) return t.fail("error line still visible while typing"), false;
 
     // Success leaves no error.
     f.input.accepted();
     fake.loginSucceeded();
-    if (err.visible) return t.fail("error visible after success"), false;
+    if (errShown()) return t.fail("error visible after success"), false;
 
     // Failure without a PAM message falls back to the English line.
     fake.errorMessage("");
     f.text = "x";
     f.input.accepted();
     fake.loginFailed();
-    if (!eq(t, err.text, t.i18n.tr("wrongPassword"), "fallback text")) return false;
+    if (!eq(t, shownErr.text, t.deniedOnly ? "ACCESS DENIED" : t.i18n.tr("wrongPassword"), "fallback text")) return false;
 
     // Security key PIN.
     fake.requestKeyState("pin");

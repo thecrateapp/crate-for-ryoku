@@ -25,7 +25,7 @@ ShellRoot {
         interval: 600; running: true
         onTriggered: {
             if (!host.item) return fail("theme did not load");
-            var t = { fail: root.fail, host: host, fake: fake, i18n: root.i18n };
+            var t = { deniedOnly: String(Quickshell.env("SKIN")) === "crate/orbit", fail: root.fail, host: host, fake: fake, i18n: root.i18n };
             if (!Checks.auth(t)) return;
             console.log("PASS: " + String(Quickshell.env("SKIN")) + " password field, hints and auth states");
             Qt.quit();

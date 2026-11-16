@@ -16,5 +16,5 @@ Item {
         cache: false
         sourceSize.width: 1920
     }
-    Rectangle { anchors.fill: parent; color: Qt.rgba(10 / 255, 10 / 255, 15 / 255, 0.35) }
+    Rectangle { anchors.fill: parent; color: Qt.rgba(10 / 255, 10 / 255, 15 / 255, 0.05) }
 }

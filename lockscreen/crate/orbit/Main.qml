@@ -203,13 +203,6 @@ SkinRoot {
                 font.letterSpacing: Math.round(CratePalette.s(12, root.uiScale)) * 0.14
             }
         }
-        ErrorLine {
-            uiScale: root.uiScale
-            width: parent.width
-            horizontalAlignment: Text.AlignRight
-            shown: passwordField.state === "error"
-            text: passwordField.errorText
-        }
         AuthHint {
             uiScale: root.uiScale
             width: parent.width

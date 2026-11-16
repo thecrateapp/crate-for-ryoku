@@ -40,6 +40,29 @@ ShellRoot {
                 createComponent: function (u) { return Qt.createComponent(u); } };
             if (!Checks.nowPlaying(t)) return;
             console.log("PASS: " + String(Quickshell.env("SKIN")) + " now playing");
+            artStage.start_();
+        }
+    }
+
+    function find(item, name) { return Checks.find(item, name); }
+    // Cover art: the offscreen harness runs the software scenegraph, where the masked layer
+    // cannot render; the cover must still draw (plain Image) and be Ready.
+    Timer {
+        id: artStage
+        interval: 800
+        function start_() {
+            if (String(Quickshell.env("SKIN")).indexOf("hero") < 0) { Qt.quit(); return; }
+            host.item.playerOverride = player;
+            player.artUrl = Qt.resolvedUrl("harness/cover.png");
+            player.playing = true;
+            start();
+        }
+        onTriggered: {
+            var art = Checks.find(host.item, "nowPlayingArt");
+            if (!art) return root.fail("no cover image");
+            if (art.status !== Image.Ready) return root.fail("cover image not ready: " + art.status);
+            if (!art.visible) return root.fail("cover image not visible");
+            console.log("PASS: " + String(Quickshell.env("SKIN")) + " cover image visible and ready");
             Qt.quit();
         }
     }

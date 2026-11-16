@@ -138,8 +138,7 @@ ShellRoot {
             var field = find(o, "passwordField");
             var fr = Checks.rect(field);
             if (!eq(Math.round(fr.x + fr.w), Math.round(o.width - o.margin), "field right edge")) return;
-            var err = find(o, "errorLine");
-            if (!eq(err.horizontalAlignment, Text.AlignRight, "error line alignment")) return;
+            if (find(o, "errorLine")) return fail("orbit must not have a second error line");
             var unlock = find(o, "unlockAction");
             if (!unlock) return fail("no unlock action");
             if (!eq(find(unlock, "unlockLink").text, "Unlock", "unlock text")) return;
@@ -154,6 +153,7 @@ ShellRoot {
             fake.loginFailed();
             if (!eq(denied.visible, true, "access denied after failure")) return;
             if (!eq(denied.text, "ACCESS DENIED", "access denied text")) return;
+            if (find(o, "errorLine")) return fail("second error line appeared");
             if (!eq(String(denied.color).toLowerCase(), "#ef4444", "access denied colour")) return;
             field.text = "g";
             if (denied.visible) return fail("access denied still shown while typing");
