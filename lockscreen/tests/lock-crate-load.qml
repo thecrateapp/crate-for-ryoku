@@ -13,7 +13,9 @@ ShellRoot {
     // NO_TOKENS runs a session lock with no Ryoku module: tokens must stay unlinked, constants apply.
     readonly property bool noTokens: String(Quickshell.env("NO_TOKENS")) === "1"
     TestHost { id: lockHost; skin: root.sddmOnly ? "" : root.skin; sddm: fake }
-    TestHost { id: sddmHost; skin: root.skin; sddm: ({}) }
+    // Real SDDM has no fingerprintHint; keyPrompts is only present so the test can see it untouched.
+    QtObject { id: sddmObj; property bool keyPrompts: false }
+    TestHost { id: sddmHost; skin: root.skin; sddm: sddmObj }
     TestHost { id: sheenHost; skin: root.skin; sddm: ({}); config: ({ background: "sheen" }) }
 
     function find(item, name) {
@@ -40,6 +42,7 @@ ShellRoot {
             if ((!root.sddmOnly && !lockHost.item) || !sddmHost.item || !sheenHost.item) return fail("theme did not load");
             if (root.sddmOnly) {
                 if (sddmHost.item.sessionLock !== false || sddmHost.item.tokensLinked) return fail("SDDM mode touched Ryoku tokens");
+                if (sddmObj.keyPrompts !== false) return fail("keyPrompts changed outside session lock");
                 if (!sddmHost.item.fontsReady) return fail("display font not loaded");
                 var sbg = find(sheenHost.item, "background");
                 if (!sbg || !String(sbg.source).endsWith("sheen.webp")) return fail("config.background=sheen did not pick sheen.webp");

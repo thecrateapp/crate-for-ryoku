@@ -6,8 +6,12 @@ QtObject {
     property string fingerprintState: ""
     property bool fingerprintReady: false
     property string keyState: ""
+    // Mirrors the shim: a PIN request is dropped (state off) unless the skin draws key prompts.
+    function requestKeyState(state) { keyState = (state === "pin" && !keyPrompts) ? "off" : state }
+    function usePassword() { calls.push(["usePassword"]); keyState = "off" }
     property bool keyPasswordMode: true
-    property var keyPrompts: []
+    // Writable bool like the real shim: a skin must set it before a PIN/touch prompt is shown.
+    property bool keyPrompts: false
     signal loginFailed()
     signal loginSucceeded()
     signal keyTimedOut()

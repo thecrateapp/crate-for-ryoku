@@ -13,6 +13,7 @@ QtObject {
         "touchKey": "Touch the security key",
         "fingerprint": "Scan your fingerprint",
         "SECURITY KEY PIN": "SECURITY KEY PIN",
+        "ESC TO USE PASSWORD": "ESC TO USE PASSWORD",
         "TOUCH THE SECURITY KEY": "TOUCH THE SECURITY KEY",
         "or touch the reader": "or touch the reader",
         "scan denied, type your password": "scan denied, type your password",

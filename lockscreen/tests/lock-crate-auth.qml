@@ -41,6 +41,7 @@ ShellRoot {
             if (!err) return fail("no errorLine");
             if (!hint) return fail("no authHint");
             if (!f.activeFocus) return fail("password field is not focused on load");
+            if (fake.keyPrompts !== true) return fail("skin did not set sddm.keyPrompts in session lock");
             if (!eq(f.state, "idle", "initial state")) return;
 
             // Empty Enter calls nothing.
@@ -85,15 +86,30 @@ ShellRoot {
             if (!eq(err.text, root.i18n.tr("wrongPassword"), "fallback text")) return;
 
             // Security key PIN.
-            fake.keyState = "pin";
+            fake.requestKeyState("pin");
+            if (!eq(fake.keyState, "pin", "keyState with keyPrompts set")) return;
             f.text = "1234";
             var logins = count("login");
             f.input.accepted();
             if (!eq(count("login"), logins, "login calls in PIN mode")) return;
             if (!eq(count("loginKeyPin"), 1, "loginKeyPin calls")) return;
             if (!eq(JSON.stringify(fake.calls[fake.calls.length - 1]), JSON.stringify(["loginKeyPin", "diego", "1234"]), "loginKeyPin args")) return;
-            if (!eq(hint.text, root.i18n.tr("SECURITY KEY PIN"), "PIN hint")) return;
-            fake.keyState = "";
+            if (!eq(hint.text, root.i18n.tr("SECURITY KEY PIN") + " \u00b7 " + root.i18n.tr("ESC TO USE PASSWORD"), "PIN hint text")) return;
+            fake.loginFailed();
+
+            // Esc leaves the PIN prompt for the password; Enter then calls login.
+            f.text = "";
+            f.cancelPin();
+            if (!eq(count("usePassword"), 1, "usePassword calls")) return;
+            if (!eq(fake.keyState, "off", "keyState after usePassword")) return;
+            f.cancelPin();
+            if (!eq(count("usePassword"), 1, "Esc outside PIN mode")) return;
+            f.text = "pw";
+            logins = count("login");
+            var pins = count("loginKeyPin");
+            f.input.accepted();
+            if (!eq(count("login"), logins + 1, "login after leaving PIN")) return;
+            if (!eq(count("loginKeyPin"), pins, "loginKeyPin after leaving PIN")) return;
             fake.loginFailed();
 
             // Fingerprint hint.

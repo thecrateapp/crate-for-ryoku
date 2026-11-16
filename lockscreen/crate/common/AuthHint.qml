@@ -10,7 +10,7 @@ Text {
     property string authState: "idle"      // the PasswordField state
 
     readonly property string message: {
-        if (keyState === "pin") return I18n.tr("SECURITY KEY PIN");
+        if (keyState === "pin") return I18n.tr("SECURITY KEY PIN") + " \u00b7 " + I18n.tr("ESC TO USE PASSWORD");
         if (keyState === "touch") return I18n.tr("TOUCH THE SECURITY KEY");
         if (fingerprintState === "scanning") return I18n.tr("or touch the reader");
         if (fingerprintState === "fail") return I18n.tr("scan denied, type your password");

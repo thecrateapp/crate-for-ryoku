@@ -26,6 +26,8 @@ Item {
     // Tokens exist only under the Ryoku shell; SDDM never touches them.
     Component.onCompleted: {
         if (sessionLock) CratePalette.linkTokens();
+        // The shim drops key PIN requests unless the skin says it draws them (keyState in AuthHint).
+        if (sessionLock) sddm.keyPrompts = true;
         passwordField.focusField();
     }
 

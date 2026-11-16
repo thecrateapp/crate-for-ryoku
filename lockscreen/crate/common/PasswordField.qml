@@ -30,6 +30,12 @@ FocusScope {
         input.text = "";
         if (state === "typing") state = "idle";
     }
+    // Leaves a security-key PIN prompt for the password (the shim keeps the field on the PIN until then).
+    function cancelPin() {
+        if (keyState !== "pin" || typeof sddm === "undefined" || !sddm || sddm.usePassword === undefined) return;
+        input.text = "";
+        sddm.usePassword();
+    }
     function focusField() { input.forceActiveFocus(); }
 
     function submit() {
@@ -63,6 +69,7 @@ FocusScope {
         Accessible.name: I18n.tr("password")
         Accessible.passwordEdit: true
         onAccepted: root.submit()
+        Keys.onEscapePressed: root.cancelPin()
         onTextChanged: {
             if (root.state === "checking") return;
             if (text !== "") root.state = "typing";
