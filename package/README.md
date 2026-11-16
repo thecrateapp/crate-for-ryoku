@@ -17,12 +17,18 @@ Built for and tested on Ryoku 1.0.7 (Hyprland 0.57.2, Quickshell 0.3.2).
 | `plugin/crate-mark/` | QS Bar plugin: the Crate logo after the launcher; its panel (like the bar's volume panel) has now playing, Crate's volume and Crate's equalizer | installed with `ryoku plugin add` |
 | `crate-presence.sh` | shows the bar mark only while the Crate app is installed (`ryoku-shell bar show/hide crate-mark`) | `~/.local/share/crate-for-ryoku/`, run by the watcher |
 | `wallpapers/` | Groove, Sheen, Horizon, Handoff, Macro at 3840x2160 and 3840x2400, lossless WebP | `~/Pictures/Wallpapers/crate-*.webp` |
+| `apps/obsidian/Crate/` | the Crate Obsidian theme (fonts inlined) | `<vault>/.obsidian/themes/Crate` in every vault Obsidian knows; you pick it in Settings > Appearance > Themes |
+| `apps/firefox/chrome/` | Crate's `userChrome.css`/`userContent.css`, opt-in (`--firefox-chrome`) | the profile's `chrome/`; the old one is kept as `chrome.before-crate` and put back by uninstall |
+| `apps/firefox/*.xpi`, `apps/chrome/` | the Firefox and Chrome theme add-ons (store and package builds) | addons.mozilla.org, the Chrome Web Store, `crate-for-ryoku-chrome-theme` |
+| `apps.sh` | lays the app themes in and takes them back out (`apps.sh status`) | run by install.sh and uninstall.sh |
 
 ## Install
 
 ```bash
 ./install.sh            # everything, then switches to the rice
 ./install.sh --help     # --no-apply, --no-icons, --no-auto-icons, --no-plugin, --no-wallpapers, --reapply
+./install.sh --firefox-chrome   # also replace Firefox's userChrome.css (WhiteSur, say) with Crate's
+./install.sh --no-obsidian      # leave your Obsidian vaults alone
 ```
 
 It only uses Ryoku's own commands: `ryoku plugin add`, `ryoku-hub rice apply crate`,

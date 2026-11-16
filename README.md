@@ -21,6 +21,11 @@ desktop. One install gives you:
   installed from Ryostore (App launchers).
 - **The Crate app integration**: the launcher's `cr <query>` search-and-play
   provider (with the Crate desktop app, `crate-desktop-bin`).
+- **Other apps in Crate's look**: an Obsidian theme copied into every vault
+  (pick it in Settings > Appearance > Themes), Crate's `userChrome.css` for
+  Firefox when you ask for it (`crate-for-ryoku install --firefox-chrome`; it
+  replaces WhiteSur or whatever you had and gives it back on uninstall), and
+  theme add-ons for Firefox and Chrome. See [docs/app-themes.md](docs/app-themes.md).
 
 ## Install
 
@@ -67,9 +72,10 @@ plugin/crate-mark the bar plugin
 launcher/         Crate Palette, the Super+Space launcher (node --test launcher/crate-palette/tests/)
 shell/            the eza theme and the Pure prompt
 wallpaper/        the Groove and Sheen wallpaper generators (render.sh)
+apps/             app themes: ZapFast, Obsidian, Firefox and Chrome (build.py; python3 -m pytest apps/tests)
 package/          build.sh, install.sh, uninstall.sh and the icon watcher units
 bin/              the crate-for-ryoku command
-packaging/aur/    the crate-for-ryoku PKGBUILD
+packaging/aur/    the crate-for-ryoku PKGBUILD, and crate-for-ryoku-chrome-theme (the Chrome theme for every user)
 ryostore/         the Crate for Ryoku bundle and the crate-mark entry, ready for Ryostore
 docs/             design notes
 ```
