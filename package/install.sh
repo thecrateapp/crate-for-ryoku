@@ -13,7 +13,7 @@ STATE=${XDG_STATE_HOME:-$HOME/.local/state}/crate-for-ryoku
 PICS=$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")
 WALLDIR=$PICS/Wallpapers
 
-APPLY=1 ICONS=1 AUTO=1 PLUGIN=1 WALLS=1 REAPPLY=0
+APPLY=1 ICONS=1 AUTO=1 PLUGIN=1 WALLS=1 LOCK=1 REAPPLY=0
 
 usage() {
   cat <<EOF
@@ -25,6 +25,7 @@ usage: install.sh [options]
   --no-auto-icons  do not grade the other apps' icons into the Crate palette
   --no-plugin      skip the crate-mark bar plugin
   --no-wallpapers  do not copy the wallpaper set into $WALLDIR
+  --no-lockscreen  skip the Crate lock skins (crate/hero, crate/orbit)
   --reapply        apply the rice again even if Crate is already active
                    (Ryoku's .previous snapshot then holds the current Crate state)
   -h, --help       this help
@@ -38,6 +39,7 @@ for a in "$@"; do
     --no-auto-icons) AUTO=0 ;;
     --no-plugin) PLUGIN=0 ;;
     --no-wallpapers) WALLS=0 ;;
+    --no-lockscreen) LOCK=0 ;;
     --reapply) REAPPLY=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $a" >&2; usage >&2; exit 2 ;;
@@ -140,6 +142,11 @@ fi
 
 say "rice -> $CFG/ryoku/rices/crate"
 copy_into "$HERE/rice/crate" "$CFG/ryoku/rices/crate"
+
+if [ "$LOCK" = 1 ]; then
+  # before the rice applies: the rice selects crate/hero, so the skin to go back to is recorded first
+  bash "$HERE/lock-skins.sh" install
+fi
 
 if [ "$PLUGIN" = 1 ]; then
   want=$(sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' "$HERE/plugin/crate-mark/manifest.json" | head -1)

@@ -16,20 +16,21 @@ Built for and tested on Ryoku 1.0.7 (Hyprland 0.57.2, Quickshell 0.3.2).
 | `icons/crateize.py`, `systemd/` | grades every other app's own icon into the Crate palette, on your machine, and regrades when apps are installed | `~/.local/share/icons/crate-icons-auto`, `~/.config/systemd/user/crate-icons-auto.*` |
 | `plugin/crate-mark/` | QS Bar plugin: the Crate logo after the launcher; its panel (like the bar's volume panel) has now playing, Crate's volume and Crate's equalizer | installed with `ryoku plugin add` |
 | `crate-presence.sh` | shows the bar mark only while the Crate app is installed (`ryoku-shell bar show/hide crate-mark`) | `~/.local/share/crate-for-ryoku/`, run by the watcher |
+| `lockscreen/crate/{hero,orbit}/` | the Crate lock skins (self-contained: shared module, Bricolage Grotesque and JetBrains Mono, Groove and Sheen backgrounds, `preview.gif`); the rice selects `crate/hero` | `~/.local/share/qylock/themes/crate/` |
 | `wallpapers/` | Groove, Sheen, Horizon, Handoff, Macro at 3840x2160 and 3840x2400, lossless WebP | `~/Pictures/Wallpapers/crate-*.webp` |
 
 ## Install
 
 ```bash
 ./install.sh            # everything, then switches to the rice
-./install.sh --help     # --no-apply, --no-icons, --no-auto-icons, --no-plugin, --no-wallpapers, --reapply
+./install.sh --help     # --no-lockscreen, --no-apply, --no-icons, --no-auto-icons, --no-plugin, --no-wallpapers, --reapply
 ```
 
 It only uses Ryoku's own commands: `ryoku plugin add`, `ryoku-hub rice apply crate`,
 `ryoku-shell theme crate`, `ryoku-hub desktop icon-theme set crate-icons` and
 `ryoku-shell reload`. Nothing needs root.
 
-Before switching, it records your current icon theme and rice in
+Before switching, it records the lock skin you use now in `previous-lock` (only when it is not a Crate skin; uninstall sets it back, or `clockwork/orbital`), and it records your current icon theme and rice in
 `~/.local/state/crate-for-ryoku/previous.env` and keeps a copy of Ryoku's `.previous`
 snapshot there. If Crate is already the active rice it does not apply it again,
 so `.previous` keeps pointing at the look you had before Crate.

@@ -4,13 +4,23 @@
 #   common/backgrounds/  groove.webp and sheen.webp at 3840x2400 (lossless)
 # Needs python-cairo, numpy and Pillow for the wallpapers. The font conversion needs fontTools
 # and brotli; when system python lacks either, it runs through `uvx`.
+# Files that already exist are kept; --force rebuilds everything (the package build does, so a stale
+# render is never shipped).
 set -euo pipefail
+FORCE=0
+case "${1:-}" in
+  --force) FORCE=1 ;;
+  "") ;;
+  *) echo "usage: build-assets.sh [--force]" >&2; exit 2 ;;
+esac
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd "$HERE/.." && pwd)
 COMMON=$HERE/crate/common
 FONTS=$COMMON/fonts
 BACKS=$COMMON/backgrounds
 mkdir -p "$FONTS" "$BACKS"
+if [ "$FORCE" = 1 ]; then rm -f -- "$FONTS"/*.ttf "$FONTS/OFL.txt" "$BACKS"/*.webp; fi
+if [ "$FORCE" = 1 ]; then rm -f -- "$FONTS"/*.ttf "$FONTS/OFL.txt" "$BACKS"/*.webp; fi
 
 woff2_to_ttf='
 import sys

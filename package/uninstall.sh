@@ -57,6 +57,8 @@ if [ "$KEEP" = 0 ]; then
     rm -f -- "$CFG/systemd/user/crate-icons-auto.path" "$CFG/systemd/user/crate-icons-auto.service"
     command -v systemctl >/dev/null && systemctl --user daemon-reload 2>/dev/null || true
   fi
+  # the lock skin first (after the rice restore above), while Crate's skins are still installed
+  bash "$(dirname "${BASH_SOURCE[0]}")/lock-skins.sh" uninstall
   rm -f -- "$STATE/crate-present"
   rm -f -- "$CFG/fish/conf.d/crate-prompt.fish" "$HOME/.local/bin/crate-for-ryoku-installed" "$STATE/version"
   # the ZapFast palette, only while it is still Crate's (a file of yours by that name stays)

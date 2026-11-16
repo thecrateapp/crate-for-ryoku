@@ -26,7 +26,10 @@ done
 [[ " $states " == *" $state "* ]] || usage
 [[ "$size" =~ ^[0-9]+x[0-9]+$ ]] || usage
 
-if [ ! -d "$here/crate/common/fonts" ] || [ ! -d "$here/crate/common/backgrounds" ]; then
+# PREVIEW_SKIN_ROOT points at a lockscreen/ folder holding crate/<skin> (a built package, to check
+# the skins load on their own); by default the skins of this checkout.
+root="${PREVIEW_SKIN_ROOT:-$here}"
+if [ ! -d "$root/crate/common/fonts" ] && [ ! -d "$root/crate/hero/common/fonts" ]; then
     bash "$here/build-assets.sh"
 fi
 
@@ -35,7 +38,7 @@ trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/config" "$tmp/runtime" "$tmp/data" "$tmp/cache"
 chmod 700 "$tmp/runtime"
 harness="$here/tests/harness"
-export PV_LOCK_ROOT="$here" PV_SKIN="$skin" PV_STATE="$state" PV_SIZE="$size" PV_SHOT="$shot"
+export PV_LOCK_ROOT="$root" PV_SKIN="$skin" PV_STATE="$state" PV_SIZE="$size" PV_SHOT="$shot"
 export XDG_CONFIG_HOME="$tmp/config" XDG_DATA_HOME="$tmp/data" XDG_CACHE_HOME="$tmp/cache"
 export QML_XHR_ALLOW_FILE_READ=1 QML_IMPORT_PATH="$harness/imports" QML2_IMPORT_PATH="$harness/imports"
 
