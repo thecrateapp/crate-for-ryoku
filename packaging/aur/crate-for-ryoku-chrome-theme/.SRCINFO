@@ -1,0 +1,15 @@
+pkgbase = crate-for-ryoku-chrome-theme
+	pkgdesc = Crate theme for Google Chrome and Chromium, offered to every user
+	pkgver = 1.0.0
+	pkgrel = 1
+	url = https://github.com/thecrateapp/crate-for-ryoku
+	arch = any
+	license = MIT
+	optdepends = google-chrome: the browser the theme is for
+	optdepends = chromium: the browser the theme is for
+	source = crate-theme-1.0.0.crx::https://github.com/thecrateapp/crate-for-ryoku/releases/download/v0.6.0/crate-theme-1.0.0.crx
+	source = jddiejdibphncbpfehopofclalbeghbc.json
+	sha256sums = SKIP
+	sha256sums = SKIP
+
+pkgname = crate-for-ryoku-chrome-theme

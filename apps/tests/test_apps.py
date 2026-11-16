@@ -3,6 +3,7 @@
 The app themes (apps/build.py) and their installer (package/apps.sh), run
 against a throwaway HOME: never a real Obsidian vault or Firefox profile.
 """
+import base64
 import json
 import os
 import re
@@ -102,11 +103,31 @@ def test_firefox_chrome_layer_ships_its_fonts(out):
     assert (chrome / "fonts/OFL-roboto.txt").is_file()
 
 
+def test_chrome_theme_has_a_fixed_id_and_crate_colours(out):
+    m = json.load(open(out / "chrome/crate-theme/manifest.json"))
+    assert build.chrome_id(m["key"]) == "jddiejdibphncbpfehopofclalbeghbc"
+    assert "CHROME_ID=jddiejdibphncbpfehopofclalbeghbc" in open(APPS_SH).read()
+    c = m["theme"]["colors"]
+    assert c["frame"] == rgb(TOKENS["canvas"])
+    assert c["tab_text"] == rgb(TOKENS["text"])
+    assert c["ntp_link"] == rgb(TOKENS["accent_hi"])
+    # the key is a public key only: an RSA SubjectPublicKeyInfo, no private part
+    der = base64.b64decode(m["key"])
+    assert der[:3] == b"\x30\x82\x01" and len(der) < 400
+
+
+def test_chrome_webstore_zip_drops_the_key(out):
+    with zipfile.ZipFile(out / "chrome/crate-theme-1.0.0-webstore.zip") as z:
+        m = json.loads(z.read("manifest.json"))
+    assert "key" not in m and m["theme"]
+
+
 def test_builds_are_reproducible(tmp_path):
     a, b = tmp_path / "a", tmp_path / "b"
     build.main(["build.py", str(a)])
     build.main(["build.py", str(b)])
-    for rel in ("firefox/crate-theme-1.0.0.xpi", "obsidian/Crate/theme.css"):
+    for rel in ("firefox/crate-theme-1.0.0.xpi", "chrome/crate-theme-1.0.0-webstore.zip",
+                "obsidian/Crate/theme.css"):
         assert (a / rel).read_bytes() == (b / rel).read_bytes(), rel
 
 
@@ -288,3 +309,15 @@ def test_install_sh_passes_the_app_options_through():
     assert 'bash "$HERE/apps.sh" install' in text
     assert 'bash "$HERE/apps.sh" uninstall' in open(os.path.join(ROOT, "package/uninstall.sh")).read()
     assert 'apps.sh" status' in open(os.path.join(ROOT, "bin/crate-for-ryoku")).read()
+
+
+def test_chrome_manifest_icons_exist_and_the_package_uses_the_same_id():
+    m = json.load(open(os.path.join(APPS, "chrome/theme/manifest.json")))
+    for rel in m.get("icons", {}).values():
+        assert os.path.isfile(os.path.join(APPS, "chrome/theme", rel)), rel
+    pkg = os.path.join(ROOT, "packaging/aur/crate-for-ryoku-chrome-theme")
+    pkgbuild = open(os.path.join(pkg, "PKGBUILD")).read()
+    assert "_id=jddiejdibphncbpfehopofclalbeghbc" in pkgbuild
+    ext = json.load(open(os.path.join(pkg, "jddiejdibphncbpfehopofclalbeghbc.json")))
+    assert ext["external_crx"] == "/usr/share/crate-for-ryoku/chrome/crate-theme.crx"
+    assert not [f for f in os.listdir(os.path.join(APPS, "chrome/theme")) if f.endswith((".pem", ".pak"))]

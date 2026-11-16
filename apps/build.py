@@ -6,8 +6,12 @@
   OUT/firefox/crate-theme-V.xpi  the Firefox theme add-on, unsigned (AMO signs it)
   OUT/firefox/chrome/            userChrome.css, userContent.css and their fonts,
                                  the opt-in layer for a Firefox profile
+  OUT/chrome/crate-theme/        the Chrome theme, unpacked, with its fixed key
+  OUT/chrome/crate-theme-V-webstore.zip
+                                 the same without "key", for the Chrome Web Store
 
-Standard library only.
+Standard library only. The Chrome .crx is packed separately (apps/chrome/pack.sh)
+because it needs the private key, which never enters this repository.
 """
 import base64
 import json
@@ -102,6 +106,34 @@ def build_firefox(out):
     return xpi, chrome
 
 
+def build_chrome(out):
+    src = os.path.join(APPS, "chrome/theme")
+    manifest = json.loads(read(os.path.join(src, "manifest.json")))
+    unpacked = os.path.join(out, "chrome", "crate-theme")
+    if os.path.isdir(unpacked):
+        shutil.rmtree(unpacked)
+    shutil.copytree(src, unpacked)
+
+    def drop_key(rel, data):
+        # the Web Store refuses a manifest with "key"; it keeps the item's own
+        if rel != "manifest.json":
+            return data
+        m = json.loads(data)
+        m.pop("key", None)
+        return (json.dumps(m, indent=2) + "\n").encode()
+
+    webstore = os.path.join(out, "chrome", f"crate-theme-{manifest['version']}-webstore.zip")
+    zip_dir(src, webstore, drop_key)
+    return unpacked, webstore
+
+
+def chrome_id(public_key_b64):
+    """The extension id Chrome derives from a manifest "key"."""
+    import hashlib
+    digest = hashlib.sha256(base64.b64decode(public_key_b64)).hexdigest()[:32]
+    return "".join(chr(ord("a") + int(c, 16)) for c in digest)
+
+
 def main(argv):
     if len(argv) != 2 or argv[1] in ("-h", "--help"):
         print(__doc__.strip())
@@ -111,6 +143,10 @@ def main(argv):
     xpi, chrome = build_firefox(out)
     print("firefox ", xpi)
     print("firefox ", chrome)
+    unpacked, webstore = build_chrome(out)
+    key = json.loads(read(os.path.join(unpacked, "manifest.json")))["key"]
+    print("chrome  ", unpacked, f"(id {chrome_id(key)})")
+    print("chrome  ", webstore)
     return 0
 
 

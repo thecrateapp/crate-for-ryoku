@@ -1,0 +1,112 @@
+{
+  "manifest_version": 3,
+  "name": "Crate",
+  "version": "1.0.0",
+  "description": "Crate's look for Chrome: a near-black canvas, quiet tabs and one cyan accent.",
+  "icons": {
+    "128": "icon128.png"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoZJ4lP9AtPNS7V5oYQet72nCxDphxJZ1j2QW6rFdddU2w7XxhCx3uLJLbHTyiAKUdzAjl1i20qKgmAJZ6Lpnll01zvW6XOPq4jqslSDj8enVHtl65YSZrhw7Fw+bUwSvvLoy7JgneYeQM/j8r6B8d34U0ouAkuCndd3Fyrf6bijY9uziWRqThIoxWm4qZx6FwsJIoCOuWcei9BnTNyYr5bd5ULmePUCX/GtuEiOqiSSMk2PXU8iXFhOGzSYI2tNYdCG9Vwf51xtrm0Y+9CNSF983Rb4pv7XpKFqsiUcINDKAeqmAmBSdwpafJqoxdiwfEL6gkKybSMy3fkwWQ8COKwIDAQAB",
+  "theme": {
+    "colors": {
+      "frame": [
+        10,
+        10,
+        15
+      ],
+      "frame_inactive": [
+        10,
+        10,
+        15
+      ],
+      "frame_incognito": [
+        10,
+        10,
+        15
+      ],
+      "frame_incognito_inactive": [
+        10,
+        10,
+        15
+      ],
+      "toolbar": [
+        21,
+        22,
+        29
+      ],
+      "tab_text": [
+        241,
+        245,
+        249
+      ],
+      "tab_background_text": [
+        153,
+        156,
+        160
+      ],
+      "tab_background_text_inactive": [
+        107,
+        110,
+        115
+      ],
+      "tab_background_text_incognito": [
+        153,
+        156,
+        160
+      ],
+      "tab_background_text_incognito_inactive": [
+        107,
+        110,
+        115
+      ],
+      "bookmark_text": [
+        241,
+        245,
+        249
+      ],
+      "toolbar_text": [
+        241,
+        245,
+        249
+      ],
+      "toolbar_button_icon": [
+        200,
+        204,
+        209
+      ],
+      "omnibox_background": [
+        10,
+        10,
+        15
+      ],
+      "omnibox_text": [
+        241,
+        245,
+        249
+      ],
+      "ntp_background": [
+        10,
+        10,
+        15
+      ],
+      "ntp_header": [
+        21,
+        22,
+        29
+      ],
+      "ntp_text": [
+        241,
+        245,
+        249
+      ],
+      "ntp_link": [
+        103,
+        232,
+        249
+      ]
+    },
+    "properties": {
+      "ntp_logo_alternate": 1
+    }
+  }
+}

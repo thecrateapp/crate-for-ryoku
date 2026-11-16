@@ -15,3 +15,8 @@ build/
 
 # Screencast takes recorded by tools/director
 tools/director/takes/
+
+# app themes: signing keys never live here; Chrome and web-ext leave these behind
+*.pem
+Cached Theme.pak
+web-ext-artifacts/

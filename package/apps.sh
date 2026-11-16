@@ -13,6 +13,8 @@
 #   symlink) is moved aside to chrome.before-crate and moved back on uninstall.
 # Firefox theme add-on, opt-in (--firefox-theme): opens the signed add-on (or
 #   its addons.mozilla.org page) in Firefox, which asks before installing.
+# Chrome: a root package (crate-for-ryoku-chrome-theme) or the Chrome Web
+#   Store; nothing per user, so only status reports it.
 #
 # Everything installed is recorded under $STATE/apps with checksums, so
 # uninstall removes only files that are still exactly what it put there.
@@ -25,6 +27,8 @@ STATE=${XDG_STATE_HOME:-$HOME/.local/state}/crate-for-ryoku
 REC=$STATE/apps
 FIREFOX_ID=crate-theme@cratemusic.app
 AMO_URL=https://addons.mozilla.org/firefox/addon/crate-theme/
+CHROME_ID=jddiejdibphncbpfehopofclalbeghbc
+CHROME_EXT_DIRS="/usr/share/google-chrome/extensions /usr/share/chromium/extensions /etc/chromium/extensions"
 MARK='// crate-for-ryoku: userChrome.css and userContent.css'
 
 say()  { printf '\033[36m::\033[0m %s\n' "$*"; }
@@ -271,6 +275,14 @@ PY
   return 1
 }
 
+# ---------- Chrome ----------
+
+chrome_package_present() {
+  local d
+  for d in $CHROME_EXT_DIRS; do [ -f "$d/$CHROME_ID.json" ] && return 0; done
+  return 1
+}
+
 # ---------- commands ----------
 
 status() {
@@ -288,6 +300,7 @@ except Exception: print("")' "$vault/.obsidian/appearance.json" 2>/dev/null)
   [ -f "$REC/firefox-chrome.list" ] && ff=$(grep -c . "$REC/firefox-chrome.list" || true)
   printf '  %-22s %s\n' "Firefox userChrome" "$([ "$ff" -gt 0 ] && echo "yes ($ff profile(s))" || echo no)"
   printf '  %-22s %s\n' "Firefox theme add-on" "$(firefox_theme_present && echo yes || echo no)"
+  printf '  %-22s %s\n' "Chrome theme package" "$(chrome_package_present && echo yes || echo no)"
 }
 
 cmd=${1:-help}; shift || true

@@ -1,0 +1,34 @@
+# Maintainer: thecrateapp (set a real name and address before publishing to the AUR)
+#
+# Crate's look for Google Chrome and Chromium, offered to every user of the
+# machine: the browsers find the theme through an external-extension file and
+# ask each user once before turning it on. Removing the package removes the
+# offer; a theme a user already accepted stays until they reset it
+# (Settings > Appearance > Theme > Reset to default).
+#
+# The .crx is signed with the theme's private key, which is not public, so it
+# is not built here: it is a release asset (apps/chrome/pack.sh) and the
+# extension id below is fixed by the key in apps/chrome/theme/manifest.json.
+pkgname=crate-for-ryoku-chrome-theme
+pkgver=1.0.0
+pkgrel=1
+_release=0.6.0  # the crate-for-ryoku release that carries crate-theme-$pkgver.crx
+_id=jddiejdibphncbpfehopofclalbeghbc
+pkgdesc="Crate theme for Google Chrome and Chromium, offered to every user"
+arch=('any')
+url="https://github.com/thecrateapp/crate-for-ryoku"
+license=('MIT')
+optdepends=('google-chrome: the browser the theme is for'
+            'chromium: the browser the theme is for')
+source=("crate-theme-$pkgver.crx::https://github.com/thecrateapp/crate-for-ryoku/releases/download/v$_release/crate-theme-$pkgver.crx"
+        "$_id.json")
+sha256sums=('SKIP'  # set to the release asset's checksum before publishing
+            'SKIP')
+
+package() {
+  install -Dm644 "crate-theme-$pkgver.crx" "$pkgdir/usr/share/crate-for-ryoku/chrome/crate-theme.crx"
+  sed "s/@VERSION@/$pkgver/" "$_id.json" > "$srcdir/$_id.json.out"
+  # Google Chrome and Arch's Chromium read these folders for external extensions
+  install -Dm644 "$srcdir/$_id.json.out" "$pkgdir/usr/share/google-chrome/extensions/$_id.json"
+  install -Dm644 "$srcdir/$_id.json.out" "$pkgdir/usr/share/chromium/extensions/$_id.json"
+}

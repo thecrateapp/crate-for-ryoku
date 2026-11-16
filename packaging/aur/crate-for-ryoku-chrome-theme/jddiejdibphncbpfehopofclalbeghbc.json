@@ -1,0 +1,4 @@
+{
+  "external_crx": "/usr/share/crate-for-ryoku/chrome/crate-theme.crx",
+  "external_version": "@VERSION@"
+}
