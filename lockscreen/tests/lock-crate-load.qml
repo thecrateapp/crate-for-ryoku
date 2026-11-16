@@ -4,7 +4,7 @@ import "harness"
 
 ShellRoot {
     id: root
-    readonly property string skin: "file://" + String(Quickshell.env("LOCK_ROOT")) + "/crate/hero/Main.qml"
+    readonly property string skin: "file://" + String(Quickshell.env("LOCK_ROOT")) + "/" + String(Quickshell.env("SKIN")) + "/Main.qml"
 
     FakeSddm { id: fake; fingerprintHint: false }
 
@@ -46,7 +46,7 @@ ShellRoot {
                 if (!sddmHost.item.fontsReady) return fail("display font not loaded");
                 var sbg = find(sheenHost.item, "background");
                 if (!sbg || !String(sbg.source).endsWith("sheen.webp")) return fail("config.background=sheen did not pick sheen.webp");
-                console.log("PASS: hero loads in SDDM and never links Ryoku tokens");
+                console.log("PASS: " + String(Quickshell.env("SKIN")) + " loads in SDDM and never links Ryoku tokens");
                 Qt.quit();
                 return;
             }
@@ -60,7 +60,7 @@ ShellRoot {
             if (!bg || !String(bg.source).endsWith("groove.webp")) return fail("default background is not groove.webp");
             var sb = find(sheenHost.item, "background");
             if (!sb || !String(sb.source).endsWith("sheen.webp")) return fail("config.background=sheen did not pick sheen.webp");
-            console.log("PASS: hero loads in lock and SDDM");
+            console.log("PASS: " + String(Quickshell.env("SKIN")) + " loads in lock and SDDM");
             Qt.quit();
         }
     }
