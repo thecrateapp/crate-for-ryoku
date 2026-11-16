@@ -126,6 +126,9 @@ done
   echo "image=$(docker image inspect "$image" --format '{{.Id}}')"
   echo "built=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "packages=${names[*]}"
+  # where the fetched third-party sources are kept, so publish.sh can mirror
+  # the GPL ones at the commits below
+  echo "sources=$cache/sources"
   # the third-party sources a recipe fetched or unbundled, at the commit it built
   # (the compositor plugins follow upstream HEAD when Hyprland has no pin yet)
   for d in "${dirs[@]}"; do

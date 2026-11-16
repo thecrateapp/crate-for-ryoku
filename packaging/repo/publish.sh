@@ -21,7 +21,10 @@
 #
 # The Ryoku packages are GPL-3 builds of the fork, so their source must be public
 # before they are: the upload stops unless thecrateapp/ryoku carries the tag
-# crate-<pkgver> on the exact commit they were built from.
+# crate-<pkgver> on the exact commit they were built from. A GPL package built
+# from a third-party repository at a fetched commit (the compositor plugins)
+# gets the same tag on its thecrateapp mirror, pushed here from the build's
+# source cache; the mirror itself is made once with `gh repo fork`.
 #
 # Signing runs on this machine only. The key is CRATE_REPO_KEY (default: the
 # repository signing key below); its passphrase is read from the desktop secret
@@ -39,6 +42,7 @@ repo=crate-for-ryoku
 gh_repo=${CRATE_REPO_GH:-thecrateapp/crate-for-ryoku}
 crate_gh=${CRATE_APP_GH:-thecrateapp/crate}
 fork_gh=${CRATE_RYOKU_GH:-thecrateapp/ryoku}
+mirror_org=${CRATE_MIRROR_ORG:-thecrateapp}
 tag=repo
 key=${CRATE_REPO_KEY:-AD4DFA15F0A84853D4D711850EB2D64FEFAC7445}
 work=${CRATE_REPO_WORK:-$HOME/.cache/crate-for-ryoku/repo}
@@ -196,6 +200,27 @@ if [ -n "$ryoku_commit" ]; then
   git ls-remote --tags "https://github.com/$fork_gh" "refs/tags/$ryoku_tag" "refs/tags/$ryoku_tag^{}" \
     | grep -q "^$ryoku_commit[[:space:]]" \
     || die "$fork_gh has no tag $ryoku_tag on $ryoku_commit; push the fork branch and that tag first"
+
+  # the GPL packages built from a third-party repository: their commit, tagged on
+  # the mirror, so the source stays available whatever upstream does with it
+  record=$ryoku/crate-ryoku.source sources_dir=$(sed -n 's/^sources=//p' "$ryoku/crate-ryoku.source")
+  mirrors=()
+  while read -r pkg name commit url; do
+    case $url in https://*) ;; *) continue ;; esac
+    pkgfile=$(ls "$ryoku/$pkg"-[0-9]*.pkg.tar.zst 2>/dev/null | head -1)
+    [ -n "$pkgfile" ] || die "$record names $pkg, which the set does not hold"
+    bsdtar -xOf "$pkgfile" .PKGINFO | grep -qE '^license = (A|L)?GPL' || continue
+    mirror=https://github.com/$mirror_org/$(basename "${url%.git}")
+    GIT_TERMINAL_PROMPT=0 git ls-remote "$mirror" HEAD >/dev/null 2>&1 \
+      || die "$pkg is GPL and built from $url; mirror it first: gh repo fork ${url#https://github.com/} --org $mirror_org --clone=false"
+    if ! GIT_TERMINAL_PROMPT=0 git ls-remote --tags "$mirror" "refs/tags/$ryoku_tag" | grep -q "^$commit[[:space:]]"; then
+      [ -d "$sources_dir/$name" ] || die "the build's source cache $sources_dir/$name is gone; rebuild the set"
+      log "tagging $name ${commit:0:12} as $ryoku_tag on $mirror"
+      git -C "$sources_dir/$name" push -q "$mirror.git" "${commit}:refs/tags/$ryoku_tag" \
+        || die "could not push $ryoku_tag to $mirror"
+    fi
+    mirrors+=("$pkg: $mirror/tree/$ryoku_tag (commit $commit)")
+  done < <(sed -n 's/^vcs=//p' "$record")
 fi
 
 # the release: packages first, the database last, then drop what it no longer lists
@@ -205,6 +230,13 @@ if [ -n "$ryoku_commit" ]; then
   notes+="
 
 It also ships Ryoku $ryoku_ver built from the thecrateapp/ryoku fork (GPL-3). Its source is the tag $ryoku_tag: https://github.com/$fork_gh/tree/$ryoku_tag (commit $ryoku_commit; crate-ryoku.source lists the packages)."
+  if [ "${#mirrors[@]}" -gt 0 ]; then
+    notes+="
+
+GPL packages built from other repositories, at the commit each was built from:"
+    for m in "${mirrors[@]}"; do notes+="
+- $m"; done
+  fi
 fi
 if ! gh release view "$tag" -R "$gh_repo" >/dev/null 2>&1; then
   gh release create "$tag" -R "$gh_repo" --latest=false --title "Pacman repository" --notes "$notes"
