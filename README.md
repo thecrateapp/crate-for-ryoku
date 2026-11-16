@@ -119,7 +119,13 @@ packaging/repo/publish.sh --ryoku ~/.cache/crate-for-ryoku/ryoku/<pkgver>
 They keep upstream's version scheme (epoch 1, `<VERSION>.r<commit count>.g<sha>`)
 and say `RELEASE=crate-<pkgver>` in `/etc/ryoku-release`. They are GPL-3 builds,
 so `publish.sh` refuses to upload them until the fork carries the tag
-`crate-<pkgver>` on the commit they were built from. The set stays in the
+`crate-<pkgver>` on the commit they were built from. Two GPL compositor
+plugins, hypr-dynamic-cursors and hyprglass, build from their upstream
+repositories at the commit Hyprland's pin table names (or upstream HEAD when it
+has none); `publish.sh` tags that commit `crate-<pkgver>` on their mirrors,
+[thecrateapp/hypr-dynamic-cursors](https://github.com/thecrateapp/hypr-dynamic-cursors)
+and [thecrateapp/hyprglass](https://github.com/thecrateapp/hyprglass), and the
+release notes link them. The set stays in the
 repository until another `--ryoku` replaces it or `--drop-ryoku` removes it.
 Rebuild after every upstream Ryoku release once the fork has merged it: while
 our versions are older than upstream's, `ryoku update` takes upstream's builds.
