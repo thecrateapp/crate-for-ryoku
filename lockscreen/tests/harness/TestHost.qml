@@ -7,5 +7,5 @@ Item {
     property var config: ({})
     property var userModel: ({})
     property alias item: loader.item
-    Loader { id: loader; source: host.skin }
+    Loader { id: loader; anchors.fill: parent; source: host.skin }
 }

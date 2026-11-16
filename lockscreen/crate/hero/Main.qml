@@ -14,6 +14,12 @@ Item {
     // named `config` would shadow it, so the skin reads it into themeConfig instead.
     readonly property var themeConfig: typeof config !== "undefined" && config ? config : ({})
     property date now: new Date()
+    // theme.conf `showNowPlaying` is the string "true"/"false"; on by default.
+    readonly property bool showNowPlaying: String(themeConfig.showNowPlaying) !== "false"
+    // Tests inject a player here instead of the Mpris loader; production leaves it undefined.
+    property var playerOverride: undefined
+    readonly property var nowPlayingPlayer: playerOverride !== undefined ? playerOverride
+        : (mprisLoader.item ? mprisLoader.item.player : null)
     readonly property var users: typeof userModel !== "undefined" ? userModel : null
     // Login identity: the switcher's current user.
     readonly property string user: userSwitch.currentUser !== "" ? userSwitch.currentUser : "user"
@@ -91,8 +97,25 @@ Item {
         }
     }
 
-    PowerRow {
+    NowPlaying {
+        id: nowPlaying
+        player: root.showNowPlaying ? root.nowPlayingPlayer : null
         anchors { left: parent.left; bottom: parent.bottom; leftMargin: Math.round(CratePalette.s(96)); bottomMargin: Math.round(CratePalette.s(96)) }
+        width: Math.max(0, Math.min(Math.round(CratePalette.s(420)), authColumn.x - Math.round(CratePalette.s(96)) - Math.round(CratePalette.s(48))))
+    }
+
+    // Crate's MPRIS player, session lock only: SDDM never loads the Mpris module.
+    Loader {
+        id: mprisLoader
+        objectName: "mprisLoader"
+        active: root.sessionLock && root.showNowPlaying && root.playerOverride === undefined
+        source: "../common/NowPlayingMpris.qml"
+    }
+
+    // Temporary spot until the power row moves to the top right: sits above the now playing block.
+    PowerRow {
+        anchors { left: parent.left; bottom: parent.bottom; leftMargin: Math.round(CratePalette.s(96))
+            bottomMargin: Math.round(CratePalette.s(96)) + (nowPlaying.visible ? nowPlaying.height + Math.round(CratePalette.s(32)) : 0) }
         onActivated: passwordField.focusField()
     }
 }

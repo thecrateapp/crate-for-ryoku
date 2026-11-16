@@ -18,7 +18,9 @@ QtObject {
         "TOUCH THE SECURITY KEY": "TOUCH THE SECURITY KEY",
         "or touch the reader": "or touch the reader",
         "scan denied, type your password": "scan denied, type your password",
-        "CHECKING": "CHECKING"
+        "CHECKING": "CHECKING",
+        "nowPlaying": "Now playing",
+        "nowPlayingInCrate": "Now playing in Crate"
     })
     function tr(key) {
         return en[key] !== undefined ? en[key] : key;

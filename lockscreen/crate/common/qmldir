@@ -7,3 +7,4 @@ ErrorLine 1.0 ErrorLine.qml
 HoverLink 1.0 HoverLink.qml
 PowerRow 1.0 PowerRow.qml
 UserSwitch 1.0 UserSwitch.qml
+NowPlaying 1.0 NowPlaying.qml
