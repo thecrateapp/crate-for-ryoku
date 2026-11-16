@@ -3,7 +3,25 @@ name: lockscreen
 # The Crate lock skins (offscreen Quickshell tests and the package build) plus the repo's python tests.
 on:
   push:
+    paths:
+      - "lockscreen/**"
+      - "package/**"
+      - "wallpaper/**"
+      - "icons/**"
+      - "tools/director/**"
+      - "rice/**"
+      - "packaging/**"
+      - ".github/workflows/lockscreen.yml"
   pull_request:
+    paths:
+      - "lockscreen/**"
+      - "package/**"
+      - "wallpaper/**"
+      - "icons/**"
+      - "tools/director/**"
+      - "rice/**"
+      - "packaging/**"
+      - ".github/workflows/lockscreen.yml"
 
 permissions:
   contents: read
@@ -20,10 +38,13 @@ jobs:
     env:
       QT_QPA_PLATFORM: offscreen
       XDG_RUNTIME_DIR: /tmp/xdg-runtime
+      # cold Quickshell starts under software GL on a small runner can exceed the local defaults
+      LOCK_TEST_TIMEOUT: 60s
     steps:
       - name: Install packages
         run: |
-          pacman -Syu --noconfirm --needed \
+          pacman -Sy --noconfirm archlinux-keyring
+          pacman -Su --noconfirm --needed \
             git quickshell qt6-declarative qt6-5compat qt6-imageformats mesa \
             python python-fonttools python-brotli python-pillow python-cairo python-numpy python-pytest \
             librsvg fontconfig

@@ -50,7 +50,7 @@ fi
 mkdir -p "$(dirname "$shot")"
 export XDG_RUNTIME_DIR="$tmp/runtime" QT_QPA_PLATFORM=offscreen
 rc=0
-timeout 30s qs -p "$harness/Preview.qml" > "$tmp/out" 2>&1 || rc=$?
+timeout "${LOCK_TEST_TIMEOUT:-30s}" qs -p "$harness/Preview.qml" > "$tmp/out" 2>&1 || rc=$?
 cat "$tmp/out"
 if [ "$rc" -ne 0 ] || grep -q 'PREVIEW ERROR\|QQmlComponent\|Error\|qml\[-\?[0-9]*:\|ReferenceError\|TypeError' "$tmp/out" || [ ! -s "$shot" ]; then
     echo "preview.sh: failed to render $skin $state" >&2
