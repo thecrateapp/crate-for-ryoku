@@ -470,3 +470,55 @@ def test_nudge_moves_the_real_pointer_a_hair_and_back_so_hover_fires():
     assert director.dry_run(load(data)) == [
         "   0.00  nudge: ydotool mousemove -x 4 -y 0; ydotool mousemove -x -4 -y 0",
     ]
+
+
+def test_a_caption_needs_text_and_runs_nothing():
+    with pytest.raises(director.DirectorError, match="step 1: caption needs 'text'"):
+        load({"name": "t", "output": "t.mp4", "steps": [{"at": 0, "do": "caption", "eyebrow": "Crate"}]})
+    with pytest.raises(director.DirectorError, match="caption 'eyebrow' must be a string"):
+        load({"name": "t", "output": "t.mp4", "steps": [{"at": 0, "do": "caption", "text": "x", "eyebrow": 3}]})
+    fake = Fake()
+    director.run(load({"name": "t", "output": "t.mp4", "steps": [{"at": 1, "do": "caption", "text": "x"}]}), fake.env())
+    assert fake.calls == []
+
+
+def test_a_caption_is_not_a_teardown_step():
+    with pytest.raises(director.DirectorError, match="teardown 1: unknown do 'caption'"):
+        load(dict(TEARDOWN, teardown=[{"do": "caption", "text": "x"}]))
+
+
+def test_dry_run_prints_a_caption_with_its_eyebrow_or_as_a_clear():
+    data = {
+        "name": "t",
+        "output": "t.mp4",
+        "steps": [
+            {"at": 0, "do": "caption", "eyebrow": "Crate for Ryoku", "text": "One glass, every surface"},
+            {"at": 2, "do": "caption", "text": "No eyebrow"},
+            {"at": 4, "do": "caption", "text": ""},
+        ],
+    }
+    assert director.dry_run(load(data)) == [
+        "   0.00  caption: Crate for Ryoku | One glass, every surface",
+        "   2.00  caption: No eyebrow",
+        "   4.00  caption: (clear)",
+    ]
+
+
+def test_captions_are_marked_for_the_cut_including_the_clear(tmp_path):
+    data = {
+        "name": "t",
+        "output": "t.mp4",
+        "steps": [
+            {"at": 1, "do": "caption", "eyebrow": "Controls", "text": "Everything in one glass"},
+            {"at": 3, "do": "caption", "text": "Plain"},
+            {"at": 5, "do": "caption", "text": ""},
+        ],
+    }
+    fake = Fake()
+    director.run(load(data), fake.env(), record=str(tmp_path / "t.mp4"), geometry=EDP)
+    events = json.loads((tmp_path / "t.marks.json").read_text())["events"]
+    assert events == [
+        {"t": 1.0, "step": 1, "kind": "caption", "text": "Everything in one glass", "eyebrow": "Controls"},
+        {"t": 3.0, "step": 2, "kind": "caption", "text": "Plain"},
+        {"t": 5.0, "step": 3, "kind": "caption", "text": ""},
+    ]

@@ -1,0 +1,640 @@
+{
+  "name": "reddit-long",
+  "output": "reddit-long.mp4",
+  "note": "Reddit post, script A (~99 s): launcher plays High Vis, crate-mark EQ Adaptive then back to Genre, bar widgets, Controls, Ask Rashin, Rashin overview, Settings, Kit, wallpaper browser (four steps, nothing applied), overview. Captions for the cut. Before recording: an empty workspace focused on eDP-1, Crate playing with its window in the tray and its EQ on Genre, Rashin closed (the take clicks its Overview tab; Settings is clicked to Animations), do-not-disturb on. Bar coordinates assume the now-playing pill is shown (music playing).",
+  "surfaces": {
+    "terminal": {
+      "open": [
+        "true"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.close({ window = \"class:director-term\" })"
+      ]
+    },
+    "launcher": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:launcher\")"
+      ],
+      "close": [
+        "ydotool",
+        "key",
+        "1:1",
+        "1:0"
+      ],
+      "focus": [
+        0.35,
+        0.16,
+        0.3,
+        0.44
+      ]
+    },
+    "crate-mark": {
+      "focus": [
+        0.68,
+        0.0,
+        0.21,
+        0.6
+      ]
+    },
+    "audio": {
+      "focus": [
+        0.81,
+        0.0,
+        0.16,
+        0.54
+      ]
+    },
+    "network": {
+      "focus": [
+        0.77,
+        0.0,
+        0.15,
+        0.5
+      ]
+    },
+    "temperature": {
+      "focus": [
+        0.09,
+        0.0,
+        0.16,
+        0.4
+      ]
+    },
+    "controls": {
+      "open": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.global(\"ryoku:quicksettings\")"
+      ],
+      "close": [
+        "ydotool",
+        "key",
+        "1:1",
+        "1:0"
+      ],
+      "focus": [
+        0.34,
+        0.02,
+        0.32,
+        0.53
+      ]
+    },
+    "ask": {
+      "focus": [
+        0.33,
+        0.17,
+        0.33,
+        0.24
+      ]
+    },
+    "rashin": {
+      "open": [
+        "setsid",
+        "-f",
+        "sh",
+        "-c",
+        "ryoku-summon Rashin flock -n -o /tmp/rashin-app.lock rashin-app >/dev/null 2>&1"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.close({ window = \"class:rashin-app\" })"
+      ],
+      "focus": [
+        0.21,
+        0.22,
+        0.57,
+        0.58
+      ]
+    },
+    "settings": {
+      "open": [
+        "setsid",
+        "-f",
+        "ryoku-shell",
+        "settings"
+      ],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.close({ window = \"title:Ryoku Settings\" })"
+      ],
+      "focus": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "kit": {
+      "open": [
+        "setsid",
+        "-f",
+        "ryoku-kit"
+      ],
+      "close": [
+        "ydotool",
+        "key",
+        "1:1",
+        "1:0"
+      ],
+      "focus": [
+        0.2,
+        0.2,
+        0.59,
+        0.62
+      ]
+    },
+    "wallpaper-browser": {
+      "focus": [
+        0.03,
+        0.0,
+        0.94,
+        0.72
+      ]
+    },
+    "overview": {
+      "focus": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    }
+  },
+  "steps": [
+    {
+      "at": 0,
+      "do": "pointer",
+      "to": [
+        3705,
+        2875
+      ]
+    },
+    {
+      "at": 0.3,
+      "do": "caption",
+      "eyebrow": "Crate for Ryoku",
+      "text": "Ryoku, drawn in Crate's visual language."
+    },
+    {
+      "at": 1.5,
+      "do": "window",
+      "run": [
+        "kitty",
+        "--class",
+        "director-term",
+        "sh",
+        "-c",
+        "clear && fastfetch && sleep 600"
+      ]
+    },
+    {
+      "at": 2.5,
+      "do": "window",
+      "run": [
+        "kitty",
+        "--class",
+        "director-term",
+        "sh",
+        "-c",
+        "btop"
+      ]
+    },
+    {
+      "at": 5.0,
+      "do": "caption",
+      "eyebrow": "Launcher",
+      "text": "Ryoku's launcher, set in Crate's type and covers."
+    },
+    {
+      "at": 5.5,
+      "do": "surface",
+      "name": "launcher",
+      "action": "open"
+    },
+    {
+      "at": 6.3,
+      "do": "type",
+      "text": "cr high vis"
+    },
+    {
+      "at": 10.5,
+      "do": "key",
+      "key": "Return",
+      "closes": "launcher"
+    },
+    {
+      "at": 12.5,
+      "do": "caption",
+      "eyebrow": "QS Bar",
+      "text": "Crate's mark on the bar, in the same glass as the app."
+    },
+    {
+      "at": 13.0,
+      "do": "pointer",
+      "from": [
+        3705,
+        2875
+      ],
+      "to": [
+        3112,
+        1460
+      ],
+      "duration": 0.8,
+      "click": true,
+      "opens": "crate-mark"
+    },
+    {
+      "at": 16.0,
+      "do": "pointer",
+      "from": [
+        3112,
+        1460
+      ],
+      "to": [
+        3352,
+        1859
+      ],
+      "duration": 0.5,
+      "click": true
+    },
+    {
+      "at": 18.0,
+      "do": "pointer",
+      "from": [
+        3352,
+        1859
+      ],
+      "to": [
+        3213,
+        1859
+      ],
+      "duration": 0.5,
+      "click": true
+    },
+    {
+      "at": 20.5,
+      "do": "pointer",
+      "from": [
+        3213,
+        1859
+      ],
+      "to": [
+        3402,
+        1512
+      ],
+      "duration": 0.5,
+      "click": true,
+      "closes": "crate-mark"
+    },
+    {
+      "at": 21.5,
+      "do": "caption",
+      "eyebrow": "Bar widgets",
+      "text": "Ryoku's bar widgets, redrawn in one glass."
+    },
+    {
+      "at": 22.0,
+      "do": "pointer",
+      "from": [
+        3402,
+        1512
+      ],
+      "to": [
+        3450,
+        1460
+      ],
+      "duration": 0.6,
+      "click": true,
+      "opens": "audio"
+    },
+    {
+      "at": 26.0,
+      "do": "pointer",
+      "from": [
+        3450,
+        1460
+      ],
+      "to": [
+        3580,
+        1512
+      ],
+      "duration": 0.4,
+      "click": true,
+      "closes": "audio"
+    },
+    {
+      "at": 26.8,
+      "do": "pointer",
+      "from": [
+        3580,
+        1512
+      ],
+      "to": [
+        3355,
+        1460
+      ],
+      "duration": 0.5,
+      "click": true,
+      "opens": "network"
+    },
+    {
+      "at": 30.8,
+      "do": "pointer",
+      "from": [
+        3355,
+        1460
+      ],
+      "to": [
+        3482,
+        1512
+      ],
+      "duration": 0.4,
+      "click": true,
+      "closes": "network"
+    },
+    {
+      "at": 31.6,
+      "do": "pointer",
+      "from": [
+        3482,
+        1512
+      ],
+      "to": [
+        1785,
+        1460
+      ],
+      "duration": 0.9,
+      "click": true,
+      "opens": "temperature"
+    },
+    {
+      "at": 35.6,
+      "do": "pointer",
+      "from": [
+        1785,
+        1460
+      ],
+      "to": [
+        1926,
+        1512
+      ],
+      "duration": 0.4,
+      "click": true,
+      "closes": "temperature"
+    },
+    {
+      "at": 36.4,
+      "do": "pointer",
+      "from": [
+        1926,
+        1512
+      ],
+      "to": [
+        3705,
+        2875
+      ],
+      "duration": 0.8
+    },
+    {
+      "at": 37.5,
+      "do": "caption",
+      "eyebrow": "Controls",
+      "text": "Ryoku's Controls, with Crate's hairlines and cyan."
+    },
+    {
+      "at": 38.0,
+      "do": "surface",
+      "name": "controls",
+      "action": "open"
+    },
+    {
+      "at": 43.5,
+      "do": "surface",
+      "name": "controls",
+      "action": "close"
+    },
+    {
+      "at": 44.5,
+      "do": "caption",
+      "eyebrow": "Rashin",
+      "text": "Rashin, Ryoku's companion, in Crate's palette."
+    },
+    {
+      "at": 45.0,
+      "do": "key",
+      "key": "space",
+      "mods": [
+        "alt"
+      ],
+      "opens": "ask"
+    },
+    {
+      "at": 46.0,
+      "do": "type",
+      "text": "how do I change the dock style?"
+    },
+    {
+      "at": 48.5,
+      "do": "key",
+      "key": "Return"
+    },
+    {
+      "at": 53.5,
+      "do": "key",
+      "key": "Escape",
+      "closes": "ask"
+    },
+    {
+      "at": 54.5,
+      "do": "surface",
+      "name": "rashin",
+      "action": "open"
+    },
+    {
+      "at": 55.4,
+      "do": "pointer",
+      "from": [
+        3705,
+        2875
+      ],
+      "to": [
+        2351,
+        1802
+      ],
+      "duration": 0.6,
+      "click": true
+    },
+    {
+      "at": 56.4,
+      "do": "pointer",
+      "from": [
+        2351,
+        1802
+      ],
+      "to": [
+        3705,
+        2875
+      ],
+      "duration": 0.6
+    },
+    {
+      "at": 60.5,
+      "do": "surface",
+      "name": "rashin",
+      "action": "close"
+    },
+    {
+      "at": 61.5,
+      "do": "caption",
+      "eyebrow": "Settings",
+      "text": "Ryoku's settings, with Crate's panels and type."
+    },
+    {
+      "at": 62.0,
+      "do": "surface",
+      "name": "settings",
+      "action": "open"
+    },
+    {
+      "at": 63.0,
+      "do": "pointer",
+      "from": [
+        3705,
+        2875
+      ],
+      "to": [
+        1504,
+        2041
+      ],
+      "duration": 0.6,
+      "click": true
+    },
+    {
+      "at": 64.0,
+      "do": "pointer",
+      "from": [
+        1504,
+        2041
+      ],
+      "to": [
+        3705,
+        2875
+      ],
+      "duration": 0.6
+    },
+    {
+      "at": 68.0,
+      "do": "surface",
+      "name": "settings",
+      "action": "close"
+    },
+    {
+      "at": 69.0,
+      "do": "caption",
+      "eyebrow": "Kit",
+      "text": "The Kit, in Crate's mono labels."
+    },
+    {
+      "at": 69.5,
+      "do": "surface",
+      "name": "kit",
+      "action": "open"
+    },
+    {
+      "at": 74.5,
+      "do": "surface",
+      "name": "kit",
+      "action": "close"
+    },
+    {
+      "at": 75.5,
+      "do": "caption",
+      "eyebrow": "Wallpapers",
+      "text": "Ryoku's wallpaper browser, framed the Crate way."
+    },
+    {
+      "at": 76.0,
+      "do": "key",
+      "key": "w",
+      "mods": [
+        "super"
+      ],
+      "opens": "wallpaper-browser"
+    },
+    {
+      "at": 78.5,
+      "do": "key",
+      "key": "Right"
+    },
+    {
+      "at": 80.5,
+      "do": "key",
+      "key": "Right"
+    },
+    {
+      "at": 82.5,
+      "do": "key",
+      "key": "Right"
+    },
+    {
+      "at": 84.5,
+      "do": "key",
+      "key": "Right"
+    },
+    {
+      "at": 87.0,
+      "do": "key",
+      "key": "Escape",
+      "closes": "wallpaper-browser"
+    },
+    {
+      "at": 88.0,
+      "do": "caption",
+      "eyebrow": "Overview",
+      "text": "The overview, in the same glass as the rest."
+    },
+    {
+      "at": 88.5,
+      "do": "key",
+      "key": "Tab",
+      "mods": [
+        "super"
+      ],
+      "opens": "overview"
+    },
+    {
+      "at": 93.5,
+      "do": "key",
+      "key": "Escape",
+      "closes": "overview"
+    },
+    {
+      "at": 94.5,
+      "do": "caption",
+      "eyebrow": "Crate for Ryoku",
+      "text": "ryoku.cratemusic.app"
+    },
+    {
+      "at": 95.0,
+      "do": "surface",
+      "name": "terminal",
+      "action": "close"
+    },
+    {
+      "at": 95.6,
+      "do": "surface",
+      "name": "terminal",
+      "action": "close"
+    },
+    {
+      "at": 99.0,
+      "do": "wait"
+    }
+  ]
+}

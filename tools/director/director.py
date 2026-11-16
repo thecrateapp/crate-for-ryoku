@@ -3,7 +3,7 @@
 
 A timeline (JSON) lists steps at fixed times: open and close shell surfaces, launch
 and place windows, send notifications, drive Crate's player, move the pointer, wait,
-or pause with a cue for the person at the keyboard. `--dry-run` prints what would
+pause with a cue for the person at the keyboard, or set a caption for the cut. `--dry-run` prints what would
 run; `--record OUT.mkv` records the screen with wf-recorder while the steps run.
 A failing step stops the run and the recorder, so a broken take is never kept.
 """
@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-KINDS = ("surface", "window", "notify", "play", "pointer", "nudge", "type", "key", "wait", "cue")
+KINDS = ("surface", "window", "notify", "play", "pointer", "nudge", "type", "key", "wait", "cue", "caption")
 PLAY_ACTIONS = ("play", "pause", "play-pause", "next", "previous", "stop")
 RECORDER = ["wf-recorder", "-r", "60"]
 # Hardware H.264 on a VAAPI render node: software x264 at 4K60 takes about four cores and
@@ -102,7 +102,7 @@ class Timeline:
         teardown: list[Step] = []
         for index, raw in enumerate(data.get("teardown", []), start=1):
             kind = raw.get("do")
-            if kind not in KINDS or kind in ("cue", "wait"):
+            if kind not in KINDS or kind in ("cue", "wait", "caption"):
                 raise DirectorError(f"teardown {index}: unknown do {kind!r}")
             _validate(index, kind, raw, surfaces)
             teardown.append(Step(index, 0.0, kind, raw))
@@ -143,6 +143,12 @@ def _validate(index: int, kind: str, raw: dict[str, Any], surfaces: dict) -> Non
                 raise DirectorError(f"step {index}: unknown key {name!r}")
     elif kind == "cue":
         need("message")
+    elif kind == "caption":
+        # an on-screen caption for the cut; "text": "" clears it
+        need("text")
+        for key in ("text", "eyebrow"):
+            if key in raw and not isinstance(raw[key], str):
+                raise DirectorError(f"step {index}: caption '{key}' must be a string")
     if kind in ("pointer", "key"):
         for key in ("opens", "closes"):
             if key in raw and raw[key] not in surfaces:
@@ -218,12 +224,21 @@ def _label(step: Step) -> str:
     return step.kind
 
 
+def _caption_text(d: dict[str, Any]) -> str:
+    if not d["text"]:
+        return "(clear)"
+    return f"{d['eyebrow']} | {d['text']}" if d.get("eyebrow") else d["text"]
+
+
 def dry_run(timeline: Timeline) -> list[str]:
     lines = []
     for step in timeline.steps:
         head = f"{step.at:7.2f}  {_label(step)}"
         if step.kind == "cue":
             lines.append(f"{head}: {step.data['message']}")
+            continue
+        if step.kind == "caption":
+            lines.append(f"{head}: {_caption_text(step.data)}")
             continue
         if step.kind == "pointer" and "duration" in step.data:
             d = step.data
@@ -297,6 +312,11 @@ def _mark(step: Step, timeline: Timeline, t: float, geometry: dict[str, Any]) ->
         return {**base, "kind": "notify"}
     if step.kind == "window":
         return {**base, "kind": "window"}
+    if step.kind == "caption":
+        event = {**base, "kind": "caption", "text": d["text"]}
+        if d.get("eyebrow"):
+            event["eyebrow"] = d["eyebrow"]
+        return event
     return None
 
 
