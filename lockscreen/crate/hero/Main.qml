@@ -15,7 +15,11 @@ Item {
     property date now: new Date()
 
     readonly property bool fontsReady: CratePalette.fontsReady
+    readonly property bool tokensLinked: CratePalette.tokensLinked
     readonly property string displayFamily: CratePalette.displayFamily
+
+    // Tokens exist only under the Ryoku shell; SDDM never touches them.
+    Component.onCompleted: if (sessionLock) CratePalette.linkTokens()
 
     anchors.fill: parent
     implicitWidth: 1366
