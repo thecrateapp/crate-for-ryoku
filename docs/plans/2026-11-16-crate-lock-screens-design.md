@@ -122,7 +122,9 @@ There is no Hub UI for skin options; they are edited by hand for now.
 - Tests (`lockscreen/tests/lock-crate-*.sh`, PASS/FAIL format) per skin: loads in lock and SDDM
   modes (no MPRIS and no now-playing in SDDM); Enter with text calls `sddm.login` with user and
   password; `loginFailed` shows the error and clears the field; no player hides now playing;
-  12/24 h follows the global setting; theme.conf options apply. Run locally and in CI.
+  12/24 h follows the global setting; theme.conf options apply. They run locally next to the
+  repo's other tests; crate-for-ryoku has no CI yet, so the implementation plan adds a GitHub
+  workflow that runs them (Quickshell offscreen on an Arch container).
 
 ## Packaging and the rice
 
