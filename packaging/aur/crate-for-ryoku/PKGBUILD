@@ -4,7 +4,7 @@
 # and Crate's terminal styling for a Ryoku desktop. The package holds the
 # pieces; each user lays them into their home with `crate-for-ryoku install`.
 pkgname=crate-for-ryoku
-pkgver=0.5.0
+pkgver=0.6.0
 pkgrel=1
 pkgdesc="Crate for Ryoku: Crate's look and Crate integration for the Ryoku desktop"
 arch=('any')
