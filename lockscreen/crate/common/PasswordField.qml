@@ -5,6 +5,8 @@ import "i18n"
 // security key waits for its PIN, sddm.loginKeyPin, and reacts to sddm.loginFailed/loginSucceeded.
 FocusScope {
     id: root
+    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    property real uiScale: 1
     objectName: "passwordField"
 
     property string user: ""
@@ -23,8 +25,8 @@ FocusScope {
 
     states: [ State { name: "idle" }, State { name: "typing" }, State { name: "checking" }, State { name: "error" } ]
 
-    implicitWidth: Math.round(CratePalette.s(360))
-    implicitHeight: Math.round(CratePalette.s(44))
+    implicitWidth: Math.round(CratePalette.s(360, root.uiScale))
+    implicitHeight: Math.round(CratePalette.s(44, root.uiScale))
 
     function clear() {
         input.text = "";
@@ -51,7 +53,7 @@ FocusScope {
 
     TextInput {
         id: input
-        anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; verticalCenterOffset: -Math.round(CratePalette.s(2)) }
+        anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; verticalCenterOffset: -Math.round(CratePalette.s(2, root.uiScale)) }
         focus: true
         echoMode: TextInput.Password
         passwordCharacter: "•"
@@ -60,8 +62,8 @@ FocusScope {
         selectionColor: CratePalette.cyan
         selectedTextColor: CratePalette.canvas
         font.family: CratePalette.monoFamily
-        font.pixelSize: Math.round(CratePalette.s(22))
-        font.letterSpacing: Math.round(CratePalette.s(22)) * 0.2
+        font.pixelSize: Math.round(CratePalette.s(22, root.uiScale))
+        font.letterSpacing: Math.round(CratePalette.s(22, root.uiScale)) * 0.2
         clip: true
         inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoPredictiveText
         cursorDelegate: Rectangle { width: 2; color: CratePalette.cyan; visible: input.activeFocus }

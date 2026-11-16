@@ -46,8 +46,9 @@ QtObject {
     readonly property string monoFamily: monoLoader.status === FontLoader.Ready ? monoLoader.name : ""
     readonly property bool fontsReady: displayLoader.status === FontLoader.Ready && monoLoader.status === FontLoader.Ready
 
-    // Scales a design pixel (authored for a 1200 px tall screen) to the actual screen.
-    function s(px) {
-        return px * (Screen.height > 0 ? Screen.height / 1200 : 1);
+    // Scales a design pixel (authored for a 1200 px tall screen) by k, the skin instance's own
+    // height / 1200. Not read from Screen: each output gets its own skin instance and size.
+    function s(px, k) {
+        return px * (k === undefined ? 1 : k);
     }
 }

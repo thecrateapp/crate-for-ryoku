@@ -4,6 +4,8 @@ import QtQuick
 // `model` has the shape of SDDM's userModel: count, lastUser, data(index(row, 0), Qt.UserRole + 1) = name.
 Item {
     id: root
+    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    property real uiScale: 1
     objectName: "userSwitch"
     property var model: null
     property string currentUser: ""
@@ -41,6 +43,7 @@ Item {
         id: link
         objectName: "userSwitchLink"
         anchors.fill: parent
+        uiScale: root.uiScale
         text: root.currentUser
         interactive: root.switchable
         onActivated: { root.cycle(); root.activated(); }

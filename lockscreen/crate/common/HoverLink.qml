@@ -4,6 +4,8 @@ import QtQuick
 // Never takes focus; the host returns focus to the password field on `activated`.
 Item {
     id: root
+    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    property real uiScale: 1
     property string text: ""
     property bool interactive: true
     property bool reduceMotion: CratePalette.reduceMotion
@@ -12,7 +14,7 @@ Item {
     signal activated()
 
     implicitWidth: label.implicitWidth
-    implicitHeight: label.implicitHeight + Math.round(CratePalette.s(4))
+    implicitHeight: label.implicitHeight + Math.round(CratePalette.s(4, root.uiScale))
 
     Text {
         id: label
@@ -22,8 +24,8 @@ Item {
         maximumLineCount: 1
         color: root.hovered ? CratePalette.text : CratePalette.secondary
         font.family: CratePalette.monoFamily
-        font.pixelSize: Math.round(CratePalette.s(12))
-        font.letterSpacing: Math.round(CratePalette.s(12)) * 0.14
+        font.pixelSize: Math.round(CratePalette.s(12, root.uiScale))
+        font.letterSpacing: Math.round(CratePalette.s(12, root.uiScale)) * 0.14
         font.capitalization: Font.AllUppercase
     }
     Rectangle {

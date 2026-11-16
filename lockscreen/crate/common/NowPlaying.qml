@@ -7,6 +7,8 @@ import "i18n"
 // line (orbit); otherwise the hero block: hairline rule, cover, title, artist, progress.
 Item {
     id: root
+    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    property real uiScale: 1
     objectName: "nowPlaying"
 
     property var player: null
@@ -24,7 +26,7 @@ Item {
     }
 
     visible: active
-    implicitWidth: Math.round(CratePalette.s(420))
+    implicitWidth: Math.round(CratePalette.s(420, root.uiScale))
     implicitHeight: compact ? line.implicitHeight : hero.implicitHeight
     height: implicitHeight
 
@@ -40,8 +42,8 @@ Item {
             + root.artist + (root.artist !== "" && root.title !== "" ? " — " : "") + root.title
         color: CratePalette.secondary
         font.family: CratePalette.monoFamily
-        font.pixelSize: Math.round(CratePalette.s(12))
-        font.letterSpacing: Math.round(CratePalette.s(12)) * 0.14
+        font.pixelSize: Math.round(CratePalette.s(12, root.uiScale))
+        font.letterSpacing: Math.round(CratePalette.s(12, root.uiScale)) * 0.14
     }
 
     Item {
@@ -59,14 +61,14 @@ Item {
         }
         Row {
             id: body
-            anchors { top: rule.bottom; topMargin: Math.round(CratePalette.s(16)) }
+            anchors { top: rule.bottom; topMargin: Math.round(CratePalette.s(16, root.uiScale)) }
             width: parent.width
-            spacing: Math.round(CratePalette.s(16))
+            spacing: Math.round(CratePalette.s(16, root.uiScale))
 
             Item {
                 id: cover
                 objectName: "nowPlayingCover"
-                width: Math.round(CratePalette.s(72)); height: width
+                width: Math.round(CratePalette.s(72, root.uiScale)); height: width
                 Rectangle {
                     id: coverMask
                     anchors.fill: parent
@@ -101,7 +103,7 @@ Item {
             Column {
                 width: parent.width - cover.width - parent.spacing
                 anchors.verticalCenter: cover.verticalCenter
-                spacing: Math.round(CratePalette.s(4))
+                spacing: Math.round(CratePalette.s(4, root.uiScale))
 
                 Text {
                     width: parent.width
@@ -110,8 +112,8 @@ Item {
                     elide: Text.ElideRight
                     maximumLineCount: 1
                     font.family: CratePalette.monoFamily
-                    font.pixelSize: Math.round(CratePalette.s(11))
-                    font.letterSpacing: Math.round(CratePalette.s(11)) * 0.14
+                    font.pixelSize: Math.round(CratePalette.s(11, root.uiScale))
+                    font.letterSpacing: Math.round(CratePalette.s(11, root.uiScale)) * 0.14
                 }
                 Text {
                     objectName: "nowPlayingTitle"
@@ -122,7 +124,7 @@ Item {
                     maximumLineCount: 1
                     font.family: CratePalette.displayFamily
                     font.weight: Font.Bold
-                    font.pixelSize: Math.round(CratePalette.s(22))
+                    font.pixelSize: Math.round(CratePalette.s(22, root.uiScale))
                 }
                 Text {
                     objectName: "nowPlayingArtist"
@@ -131,16 +133,16 @@ Item {
                     color: CratePalette.secondary
                     elide: Text.ElideRight
                     maximumLineCount: 1
-                    font.pixelSize: Math.round(CratePalette.s(14))
+                    font.pixelSize: Math.round(CratePalette.s(14, root.uiScale))
                 }
             }
         }
         Rectangle {
             id: progress
             objectName: "nowPlayingTrack"
-            anchors { top: body.bottom; topMargin: Math.round(CratePalette.s(14)) }
+            anchors { top: body.bottom; topMargin: Math.round(CratePalette.s(14, root.uiScale)) }
             width: parent.width
-            height: Math.max(2, Math.round(CratePalette.s(2)))
+            height: Math.max(2, Math.round(CratePalette.s(2, root.uiScale)))
             color: CratePalette.hairline
             Rectangle {
                 objectName: "nowPlayingProgress"

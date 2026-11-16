@@ -21,6 +21,11 @@ ShellRoot {
         TestHost { id: big; anchors.fill: parent; skin: root.skin; sddm: fake; userModel: users }
     }
 
+    Window {
+        visible: true; width: 1024; height: 600
+        TestHost { id: small; anchors.fill: parent; skin: root.skin; sddm: fake; userModel: users }
+    }
+
     function find(item, name) {
         if (item.objectName === name) return item;
         for (var i = 0; i < item.children.length; i++) {
@@ -50,6 +55,16 @@ ShellRoot {
             r[names[i]] = rect(it);
             if (!within(r[names[i]], hero)) return fail(label + ": " + names[i] + " leaves the screen");
         }
+        // Scale is per skin instance (its own height / 1200) and the clock fits the room it has,
+        // measured with the real Bricolage font.
+        if (!hero.fontsReady) return fail(label + ": fonts not ready");
+        if (Math.abs(hero.uiScale - hero.height / 1200) > 1e-9) return fail(label + ": uiScale is not height / 1200");
+        var clk = find(hero, "clock");
+        if (Math.abs(clk.fitPx - Math.round(300 * hero.uiScale)) > 1) return fail(label + ": clock size " + clk.fitPx + " is not 300 * uiScale");
+        var cb = find(hero, "clockBlock");
+        if (cb.width > cb.maxWidth) return fail(label + ": clock block " + cb.width + " wider than its room " + cb.maxWidth);
+        var np0 = find(hero, "nowPlaying");
+        if (np0.width <= 0 || Math.abs(np0.width - Math.round(420 * hero.uiScale)) > 1) return fail(label + ": now playing width " + np0.width);
         var pairs = [["clockBlock", "nowPlaying"], ["clockBlock", "authColumn"], ["nowPlaying", "authColumn"],
                      ["headerRow", "powerRow"], ["headerRow", "clockBlock"], ["powerRow", "authColumn"]];
         for (var j = 0; j < pairs.length; j++)
@@ -60,9 +75,9 @@ ShellRoot {
     Timer {
         interval: 700; running: true
         onTriggered: {
-            if (!host.item || !big.item) return fail("theme did not load");
+            if (!host.item || !big.item || !small.item) return fail("theme did not load");
             var hero = host.item;
-            for (const h of [host.item, big.item]) {
+            for (const h of [host.item, big.item, small.item]) {
                 h.liveClock = false;
                 h.clockLocale = Qt.locale("en_US");
                 h.now = new Date(2026, 11, 6, 23, 5, 0);
@@ -123,7 +138,7 @@ ShellRoot {
             users.setUsers([new Array(80).join("u")]);
             player.title = new Array(201).join("W");
             player.artist = new Array(201).join("M");
-            for (const pair of [[host.item, "1366x768"], [big.item, "3840x2400"]]) {
+            for (const pair of [[host.item, "1366x768"], [big.item, "3840x2400"], [small.item, "1024x600"]]) {
                 var h2 = pair[0];
                 h2.playerOverride = player;
                 for (const is24 of [true, false]) {
