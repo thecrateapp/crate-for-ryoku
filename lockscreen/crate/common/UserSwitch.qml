@@ -1,7 +1,10 @@
 import QtQuick
 
 // Current login name. With more than one user a click cycles to the next one.
-// `model` has the shape of SDDM's userModel: count, lastUser, data(index(row, 0), Qt.UserRole + 1) = name.
+// `model` has the shape of SDDM's userModel (and the lock shim's): count, lastUser, lastIndex,
+// data(index(row, 0), Qt.UserRole + 1) = name (SDDM's NameRole). Until a click picks someone the
+// name follows the model: lastUser, else the user at lastIndex, else the first user. SDDM leaves
+// lastUser empty when it remembers nobody; the name is then never a placeholder.
 Item {
     id: root
     // Design pixels scale per skin instance: the host binds this to its own height / 1200.
@@ -27,16 +30,32 @@ Item {
     }
     function cycle() {
         if (!switchable) return;
+        picked = true;
         currentUser = nameAt((indexOfCurrent() + 1) % userCount);
     }
-    function adopt() { if (currentUser === "" && model && model.lastUser) currentUser = String(model.lastUser); }
+    // True once a click chose the user: the model no longer moves the name.
+    property bool picked: false
+    function preferred() {
+        if (!model) return "";
+        if (model.lastUser) return String(model.lastUser);
+        var byIndex = model.lastIndex !== undefined ? nameAt(Number(model.lastIndex)) : "";
+        return byIndex !== "" ? byIndex : nameAt(0);
+    }
+    function adopt() {
+        if (picked) return;
+        var name = preferred();
+        if (name !== "") currentUser = name;
+    }
     onModelChanged: adopt()
+    // The shim's ListModel gets its row after it is handed over.
+    onUserCountChanged: adopt()
     Component.onCompleted: adopt()
 
     Connections {
         target: root.model && root.model.objectNameChanged !== undefined ? root.model : null
         ignoreUnknownSignals: true
         function onLastUserChanged() { root.adopt(); }
+        function onLastIndexChanged() { root.adopt(); }
     }
 
     HoverLink {

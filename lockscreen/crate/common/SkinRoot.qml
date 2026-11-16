@@ -39,7 +39,8 @@ Item {
     // Login identity: the skin binds currentUser to its user switch and focusTarget to its field.
     property string currentUser: ""
     property Item focusTarget: null
-    readonly property string user: currentUser !== "" ? currentUser : "user"
+    // Empty only when the model offers nobody; the field then refuses to submit.
+    readonly property string user: currentUser
     readonly property int sessionIndex: typeof sessionModel !== "undefined" && sessionModel && sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
     // sddm state the auth widgets take.
     readonly property string keyState: typeof sddm !== "undefined" && sddm && sddm.keyState !== undefined ? String(sddm.keyState) : ""

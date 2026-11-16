@@ -345,3 +345,26 @@ function recoveryAnswered(t) {
     if (!eq(t, count(t.fake, "login"), 2, "login calls")) return false;
     return true;
 }
+
+// SDDM with an empty lastUser: the login name comes from lastIndex, then the first user, never a
+// placeholder. t: fail, cases: [{ host, fake, expect, label }]; expect "" means nobody to sign in.
+function userFallback(t) {
+    for (var i = 0; i < t.cases.length; i++) {
+        var c = t.cases[i], it = c.host.item;
+        if (!it) return t.fail(c.label + ": theme did not load"), false;
+        var f = find(it, "passwordField"), link = find(it, "userSwitchLink");
+        if (!eq(t, it.user, c.expect, c.label + ": login name")) return false;
+        if (!eq(t, link.text, c.expect, c.label + ": shown name")) return false;
+        f.text = "pw";
+        f.input.accepted();
+        if (c.expect === "") {
+            if (!eq(t, count(c.fake, "login"), 0, c.label + ": login calls with nobody to sign in")) return false;
+            if (!eq(t, f.state, "error", c.label + ": state with nobody to sign in")) return false;
+            if (!eq(t, f.text, "", c.label + ": field text with nobody to sign in")) return false;
+        } else {
+            if (!eq(t, JSON.stringify(c.fake.calls[c.fake.calls.length - 1]), JSON.stringify(["login", c.expect, "pw", 0]), c.label + ": login args")) return false;
+            c.fake.loginFailed();
+        }
+    }
+    return true;
+}
