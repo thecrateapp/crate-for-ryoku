@@ -1,0 +1,172 @@
+{
+  "name": "background",
+  "output": "background.mp4",
+  "note": "ryoku.cratemusic.app hero background: a calm loop that starts and ends on the clean desktop. Keyboard only, the pointer stays parked; panels hold 5-6 s. Before recording: an empty workspace focused on eDP-1, Crate playing with its window closed to the tray, do-not-disturb on.",
+  "surfaces": {
+    "terminal": {
+      "open": ["true"],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.close({ window = \"class:director-term\" })"
+      ]
+    },
+    "controls": {
+      "open": ["hyprctl", "dispatch", "hl.dsp.global(\"ryoku:quicksettings\")"],
+      "close": ["ydotool", "key", "1:1", "1:0"],
+      "focus": [0.34, 0.02, 0.32, 0.53]
+    },
+    "launcher": {
+      "open": ["hyprctl", "dispatch", "hl.dsp.global(\"ryoku:launcher\")"],
+      "close": ["ydotool", "key", "1:1", "1:0"],
+      "focus": [0.35, 0.16, 0.3, 0.44]
+    },
+    "wallpaper-browser": {
+      "focus": [0.03, 0.0, 0.94, 0.72]
+    },
+    "overview": {
+      "focus": [0.0, 0.0, 1.0, 1.0]
+    },
+    "crate-window": {
+      "open": ["setsid", "-f", "crate-desktop"],
+      "close": [
+        "hyprctl",
+        "dispatch",
+        "hl.dsp.window.close({ window = \"class:app.cratemusic.crate.desktop\" })"
+      ]
+    }
+  },
+  "steps": [
+    {
+      "at": 0,
+      "do": "pointer",
+      "to": [3705, 2875]
+    },
+    {
+      "at": 3.0,
+      "do": "window",
+      "run": [
+        "kitty",
+        "--class",
+        "director-term",
+        "sh",
+        "-c",
+        "clear && fastfetch && sleep 600"
+      ]
+    },
+    {
+      "at": 4.0,
+      "do": "window",
+      "run": ["kitty", "--class", "director-term", "sh", "-c", "btop"]
+    },
+    {
+      "at": 5.0,
+      "do": "surface",
+      "name": "crate-window",
+      "action": "open"
+    },
+    {
+      "at": 8.5,
+      "do": "surface",
+      "name": "controls",
+      "action": "open"
+    },
+    {
+      "at": 14.5,
+      "do": "surface",
+      "name": "controls",
+      "action": "close"
+    },
+    {
+      "at": 16.0,
+      "do": "surface",
+      "name": "launcher",
+      "action": "open"
+    },
+    {
+      "at": 16.8,
+      "do": "type",
+      "text": "cr high vis"
+    },
+    {
+      "at": 23.0,
+      "do": "surface",
+      "name": "launcher",
+      "action": "close"
+    },
+    {
+      "at": 24.5,
+      "do": "key",
+      "key": "w",
+      "mods": ["super"],
+      "opens": "wallpaper-browser"
+    },
+    {
+      "at": 27.0,
+      "do": "key",
+      "key": "Right"
+    },
+    {
+      "at": 29.0,
+      "do": "key",
+      "key": "Right"
+    },
+    {
+      "at": 31.0,
+      "do": "key",
+      "key": "Right"
+    },
+    {
+      "at": 33.0,
+      "do": "key",
+      "key": "Right"
+    },
+    {
+      "at": 35.5,
+      "do": "key",
+      "key": "Escape",
+      "closes": "wallpaper-browser"
+    },
+    {
+      "at": 37.0,
+      "do": "key",
+      "key": "Tab",
+      "mods": ["super"],
+      "opens": "overview"
+    },
+    {
+      "at": 42.0,
+      "do": "key",
+      "key": "Escape",
+      "closes": "overview"
+    },
+    {
+      "at": 43.5,
+      "do": "notify",
+      "title": "Library updated",
+      "body": "12 new albums from 4 artists are ready to play."
+    },
+    {
+      "at": 47.0,
+      "do": "surface",
+      "name": "crate-window",
+      "action": "close"
+    },
+    {
+      "at": 47.6,
+      "do": "surface",
+      "name": "terminal",
+      "action": "close"
+    },
+    {
+      "at": 48.2,
+      "do": "surface",
+      "name": "terminal",
+      "action": "close"
+    },
+    {
+      "at": 51.5,
+      "do": "wait"
+    }
+  ]
+}

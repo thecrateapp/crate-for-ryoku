@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BASE, cameraAt, INTRO, type Mark } from "./camera";
+import { redactionsAt } from "./redact";
 
 const open = (t: number, surface: string, focus: [number, number, number, number]): Mark => ({
   t,
@@ -93,6 +94,25 @@ describe("cameraAt", () => {
       expect(Math.abs(c.tiltX - prev.tiltX) + Math.abs(c.tiltY - prev.tiltY)).toBeLessThan(0.8);
       prev = c;
     }
+  });
+
+  it("ignores caption marks: adding captions never moves the camera", () => {
+    const marks: Mark[] = [
+      ...launcher,
+      { t: 8, step: 0, kind: "window" },
+      { t: 12, step: 0, kind: "click", point: [0.4, 0.02] },
+    ];
+    const captions: Mark[] = [
+      { t: 0.5, step: 0, kind: "caption", text: "Crate for Ryoku", eyebrow: "Intro" },
+      { t: 3.2, step: 0, kind: "caption", text: "The launcher" },
+      { t: 8.1, step: 0, kind: "caption", text: "" },
+      { t: 12, step: 0, kind: "caption", text: "Click" },
+    ];
+    const withCaptions = [...marks, ...captions].sort((a, b) => a.t - b.t);
+    for (let t = 0; t <= 16; t += 1 / 30) {
+      expect(cameraAt(t, withCaptions, 16)).toEqual(cameraAt(t, marks, 16));
+    }
+    expect(redactionsAt(4, withCaptions)).toEqual(redactionsAt(4, marks));
   });
 
   it("never shows past the edge of the desktop while zoomed in", () => {

@@ -23,7 +23,9 @@ export type Mark =
   | { t: number; step: number; kind: "close"; surface: string }
   | { t: number; step: number; kind: "click"; point: [number, number] }
   | { t: number; step: number; kind: "notify" }
-  | { t: number; step: number; kind: "window" };
+  | { t: number; step: number; kind: "window" }
+  /** An on-screen caption (src/captions.ts); the camera ignores it. Empty text clears it. */
+  | { t: number; step: number; kind: "caption"; text: string; eyebrow?: string };
 
 export interface Camera {
   scale: number;

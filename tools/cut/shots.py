@@ -1,10 +1,13 @@
 """Compose the ryoku.cratemusic.app showcase screenshots from director takes.
 
     python3 tools/cut/shots.py OUT_DIR            # takes from tools/cut/public/takes
+    python3 tools/cut/shots.py OUT_DIR STILLS     # grim stills: STILLS/<id>.png
     make -C <crate repo> ryoku-media-sync SRC=<dir holding OUT_DIR as shots/>
 
-Each shot is one 3840x2400 frame of a take (eDP-1), read at the moment its
-surface is fully open (the take's marks give the times). A slide crops the
+Each shot is one 3840x2400 frame of eDP-1: a grim still (`grim -o eDP-1
+STILLS/<id>.png`, sharper than a video frame) or, without STILLS, a frame of a
+take read at the moment its surface is fully open (the take's marks give the
+times). A slide crops the
 region around the surface (wide 16:10 and portrait 4:5) and insets it on the
 site background, so the showcase's edge feather (10% x, 12% y) only touches
 background, like the Crate site's gallery shots. Needs ffmpeg and Pillow.
@@ -19,6 +22,8 @@ from PIL import Image, ImageDraw
 
 TAKES = Path(__file__).resolve().parent / "public" / "takes"
 OUT = Path(sys.argv[1])
+STILLS = Path(sys.argv[2]) if len(sys.argv) > 2 else None
+ONLY = set(sys.argv[3:])
 OUT.mkdir(parents=True, exist_ok=True)
 
 # id: (take, seconds into it)
@@ -39,15 +44,23 @@ LINE = (255, 255, 255, 26)  # --line, roughly
 
 # id: (wide crop x, y, width; height follows 16:10), (portrait centre x, y, height; width = 0.8 h)
 SHOTS = {
-    "desktop": ((0, 0, 3840), (1920, 1300, 2400)),
+    "desktop": ((0, 0, 3840), (2870, 1200, 2400)),
     "qsbar": ((1280, 0, 2560), (3014, 760, 1700)),
     "controls": ((640, 0, 2560), (1920, 700, 1600)),
     "launcher": ((640, 112, 2560), (1920, 912, 1500)),
     "gamebar": ((960, 0, 1920), (1920, 560, 1200)),
-    "kit": ((320, 224, 3200), (1920, 1240, 2000)),
+    "kit": ((320, 224, 3200), (1600, 1240, 2000)),
     "pickers": ((0, 0, 3840), (1920, 1150, 2300)),
     "notifications": ((2560, 0, 1280), (3480, 420, 900)),
     "dock": ((0, 600, 1920), (420, 1200, 1100)),
+    # stills only (no take frame): pass STILLS
+    "settings": ((0, 0, 3840), (960, 1200, 2400)),
+    "ask": ((960, 80, 1920), (1920, 700, 1700)),
+    "qsbar-settings": ((0, 40, 2240), (790, 760, 1900)),
+    "audio": ((1280, 0, 2560), (3410, 700, 1500)),
+    "network": ((1280, 0, 2560), (3250, 640, 1400)),
+    "temperature": ((0, 0, 1920), (650, 520, 1150)),
+    "rashin": ((640, 440, 2560), (1655, 1233, 2000)),
 }
 
 WIDE = (2560, 1440)
@@ -80,7 +93,9 @@ def clamp(v: int, lo: int, hi: int) -> int:
     return max(lo, min(v, hi))
 
 
-for shot_id, ((x, y, w), (px, py, ph)) in SHOTS.items():
+def frame_of(shot_id: str) -> Image.Image:
+    if STILLS:
+        return Image.open(STILLS / f"{shot_id}.png").convert("RGB")
     take, at = FRAMES[shot_id]
     with tempfile.TemporaryDirectory() as tmp:
         frame = Path(tmp) / "frame.png"
@@ -89,7 +104,13 @@ for shot_id, ((x, y, w), (px, py, ph)) in SHOTS.items():
              "-i", str(TAKES / f"{take}.mp4"), "-frames:v", "1", str(frame)],
             check=True,
         )
-        still = Image.open(frame).convert("RGB")
+        return Image.open(frame).convert("RGB")
+
+
+for shot_id, ((x, y, w), (px, py, ph)) in SHOTS.items():
+    if ONLY and shot_id not in ONLY:
+        continue
+    still = frame_of(shot_id)
     h = round(w * 10 / 16)
     wide = still.crop((x, y, x + w, y + h))
     pw = round(ph * 0.8)

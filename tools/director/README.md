@@ -22,7 +22,9 @@ take never keeps the real name. Takes go in `takes/`, which git ignores.
 With `--output`, a good take also gets `NAME.marks.json` for the cut (tools/cut):
 the output's geometry and, per step, the real time since the recorder started
 (cues included), with the surface's `focus` (a 0..1 rectangle on the output,
-declared per surface in the timeline) or the click point. A failed take gets none.
+declared per surface in the timeline) or the click point. A failed take gets none. A `caption`
+step becomes `{"t", "step", "kind": "caption", "text", "eyebrow"}` (no `eyebrow` when the step
+has none); the cut shows it until the next caption, and an empty `text` clears it.
 
 ## Timeline
 
@@ -52,6 +54,7 @@ Steps run in order at `at` seconds from the start; times never go backwards.
 | `nudge` | | a 4 px real pointer motion and back (`ydotool mousemove`), so hover fires on what moved under a still pointer |
 | `wait` | | nothing; holds the timeline |
 | `cue` | `message` | prints the message and waits for Enter |
+| `caption` | `text`, optional `eyebrow` | nothing; marks an on-screen caption for the cut (`"text": ""` clears it) |
 
 A `cue` is for a surface that cannot be opened from a terminal: the run pauses, you
 open it by its shortcut, and you resume, and the rest of the timeline moves back by
