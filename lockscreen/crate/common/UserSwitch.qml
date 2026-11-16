@@ -9,6 +9,7 @@ Item {
     property string currentUser: ""
     readonly property int userCount: model && model.count !== undefined ? model.count : 0
     readonly property bool switchable: userCount > 1
+    property alias label: link.label
     signal activated()
 
     implicitWidth: link.implicitWidth

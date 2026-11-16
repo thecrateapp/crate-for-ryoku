@@ -6,6 +6,7 @@ QtObject {
     readonly property var en: ({
         "password": "Password",
         "user": "User",
+        "locked": "Locked",
         "suspend": "Suspend",
         "reboot": "Reboot",
         "shutdown": "Shut down",
