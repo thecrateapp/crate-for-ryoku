@@ -24,13 +24,27 @@ desktop. One install gives you:
 
 ## Install
 
-Ryostore (when published): **Crate for Ryoku** in Bundles installs the app, the
-package and the plugin, then sets it up for you.
-
-From the AUR:
+From Crate's signed pacman repository (the AUR follows once its registration
+reopens). Trust the repository key first, checking that it reads
+`AD4DFA15F0A84853D4D711850EB2D64FEFAC7445`:
 
 ```sh
-paru -S crate-for-ryoku crate-desktop-bin
+curl -fsSLO https://ryoku.cratemusic.app/crate-for-ryoku.gpg
+gpg --show-keys crate-for-ryoku.gpg
+sudo pacman-key --add crate-for-ryoku.gpg
+sudo pacman-key --lsign-key AD4DFA15F0A84853D4D711850EB2D64FEFAC7445
+```
+
+Append the repository to `/etc/pacman.conf`, then install and set it up:
+
+```ini
+[crate-for-ryoku]
+SigLevel = Required
+Server = https://github.com/thecrateapp/crate-for-ryoku/releases/download/repo
+```
+
+```sh
+sudo pacman -Syu crate-for-ryoku crate-desktop-bin
 crate-for-ryoku install
 ```
 
@@ -70,9 +84,27 @@ wallpaper/        the Groove and Sheen wallpaper generators (render.sh)
 package/          build.sh, install.sh, uninstall.sh and the icon watcher units
 bin/              the crate-for-ryoku command
 packaging/aur/    the crate-for-ryoku PKGBUILD
+packaging/repo/   the signed pacman repository: publish.sh and the public key
 ryostore/         the Crate for Ryoku bundle and the crate-mark entry, ready for Ryostore
 docs/             design notes
 ```
+
+## The pacman repository
+
+`packaging/repo/publish.sh` builds crate-for-ryoku from its PKGBUILD, takes
+`crate-desktop-bin` from the latest thecrateapp/crate release (checked against
+the asset digest), signs both and the database, and uploads them to the `repo`
+release (never marked latest), dropping assets it no longer lists. Run it again
+after a crate-for-ryoku tag or a Crate release; `--local` stops before the
+upload, `--rebuild` rebuilds a package that is already built.
+
+Signing happens only on the maintainer's machine with the repository key
+(`AD4DFA15F0A84853D4D711850EB2D64FEFAC7445`, ed25519, sign only, expires
+2028-11-15; the public half is `packaging/repo/crate-for-ryoku.gpg`). Its
+passphrase sits in the desktop secret store (`secret-tool lookup service
+crate-for-ryoku-repo purpose gpg-signing`); without it gpg asks. The database and
+files lists are uploaded as real files (`crate-for-ryoku.db`, `.files` and their
+`.sig`), since release assets cannot be symlinks.
 
 Build a release with `package/build.sh` (needs python-cairo, numpy, Pillow and
 librsvg); it writes `dist/crate-for-ryoku-<version>/` and its tarball.
