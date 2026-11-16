@@ -46,7 +46,10 @@ Item {
     readonly property string keyState: typeof sddm !== "undefined" && sddm && sddm.keyState !== undefined ? String(sddm.keyState) : ""
     readonly property string fingerprintState: sessionLock && sddm.fingerprintState !== undefined ? String(sddm.fingerprintState) : ""
 
-    readonly property real uiScale: height / 1200
+    // Design pixels are authored for a 1920x1200 screen, or 1200x1920 on a portrait one: the short
+    // and the long side each cap the scale, so a narrow or a tall screen never runs out of room.
+    readonly property bool portrait: height > width
+    readonly property real uiScale: Math.min(Math.min(width, height) / 1200, Math.max(width, height) / 1920)
     readonly property bool fontsReady: CratePalette.fontsReady
     readonly property bool reduceMotion: CratePalette.reduceMotion
     readonly property bool tokensLinked: CratePalette.tokensLinked

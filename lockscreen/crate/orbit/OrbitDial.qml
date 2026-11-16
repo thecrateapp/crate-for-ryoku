@@ -12,7 +12,7 @@ import "../common"
 Item {
     id: root
     objectName: "orbitDial"
-    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    // Design pixels scale per skin instance: the host binds this to its own uiScale (SkinRoot).
     property real uiScale: 1
     // Production samples the clock every frame; tests and the preview pin `now` (live false).
     property bool live: true

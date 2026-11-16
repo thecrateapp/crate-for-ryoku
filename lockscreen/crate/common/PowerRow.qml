@@ -4,7 +4,7 @@ import "i18n"
 // Suspend, Reboot, Shut down. Calls the sddm object; the host refocuses the field on `activated`.
 Row {
     id: root
-    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    // Design pixels scale per skin instance: the host binds this to its own uiScale (SkinRoot).
     property real uiScale: 1
     objectName: "powerRow"
     spacing: Math.round(CratePalette.s(20, root.uiScale))

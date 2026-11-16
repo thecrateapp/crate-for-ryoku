@@ -368,3 +368,16 @@ function userFallback(t) {
     }
     return true;
 }
+
+// The skin's scale: a design pixel is authored for 1920x1200 (landscape) or 1200x1920
+// (portrait), and the screen's short and long sides each cap it.
+function expectedScale(item) {
+    return Math.min(Math.min(item.width, item.height) / 1200, Math.max(item.width, item.height) / 1920);
+}
+// Portrait screens get a stacked layout at a readable size: t: fail; label.
+function readable(t, item, label) {
+    var f = find(item, "passwordField"), hint = find(item, "authHint");
+    if (f.input.font.pixelSize < 18) return t.fail(label + ": password text " + f.input.font.pixelSize + " px is unreadable"), false;
+    if (hint.font.pixelSize < 10) return t.fail(label + ": hint " + hint.font.pixelSize + " px is unreadable"), false;
+    return true;
+}

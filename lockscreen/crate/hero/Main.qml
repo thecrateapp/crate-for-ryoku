@@ -53,13 +53,17 @@ SkinRoot {
         onActivated: passwordField.focusField()
     }
 
-    // Date above the clock, bottom-left, clear of the now playing block.
+    // Date above the clock, bottom-left, clear of the now playing block. Portrait: the clock sits
+    // above the sign-in, which stacks over the now playing block, all from the left margin.
     Column {
         id: clockBlock
         objectName: "clockBlock"
-        readonly property int maxWidth: Math.max(0, authColumn.x - root.margin - Math.round(CratePalette.s(48, root.uiScale)))
-        anchors { left: parent.left; bottom: parent.bottom; leftMargin: root.margin
-            bottomMargin: root.margin + nowPlaying.implicitHeight + Math.round(CratePalette.s(48, root.uiScale)) }
+        readonly property int maxWidth: root.portrait ? Math.max(0, root.width - 2 * root.margin)
+            : Math.max(0, authColumn.x - root.margin - Math.round(CratePalette.s(48, root.uiScale)))
+        anchors { left: parent.left; leftMargin: root.margin
+            bottom: root.portrait ? authColumn.top : parent.bottom
+            bottomMargin: root.portrait ? Math.round(CratePalette.s(64, root.uiScale))
+                : root.margin + nowPlaying.implicitHeight + Math.round(CratePalette.s(48, root.uiScale)) }
         spacing: Math.round(CratePalette.s(8, root.uiScale))
 
         Row {
@@ -173,14 +177,17 @@ SkinRoot {
         uiScale: root.uiScale
         player: root.showNowPlaying ? root.nowPlayingPlayer : null
         anchors { left: parent.left; bottom: parent.bottom; leftMargin: root.margin; bottomMargin: root.margin }
-        width: Math.max(0, Math.min(Math.round(CratePalette.s(420, root.uiScale)), authColumn.x - root.margin - Math.round(CratePalette.s(48, root.uiScale))))
+        width: Math.max(0, Math.min(Math.round(CratePalette.s(420, root.uiScale)), root.portrait ? root.width - 2 * root.margin
+            : authColumn.x - root.margin - Math.round(CratePalette.s(48, root.uiScale))))
     }
 
-    // Bottom right: who is logging in, then the field.
+    // Bottom right: who is logging in, then the field. Portrait: left, over the now playing block.
     Column {
         id: authColumn
         objectName: "authColumn"
-        anchors { right: parent.right; bottom: parent.bottom; rightMargin: root.margin; bottomMargin: root.margin }
+        anchors { right: root.portrait ? undefined : parent.right; left: root.portrait ? parent.left : undefined
+            bottom: parent.bottom; rightMargin: root.margin; leftMargin: root.margin
+            bottomMargin: root.portrait ? root.margin + nowPlaying.implicitHeight + Math.round(CratePalette.s(48, root.uiScale)) : root.margin }
         width: Math.min(Math.round(CratePalette.s(360, root.uiScale)), parent.width - 2 * root.margin)
         spacing: Math.round(CratePalette.s(10, root.uiScale))
 

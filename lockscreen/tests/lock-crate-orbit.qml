@@ -27,6 +27,15 @@ ShellRoot {
         visible: true; width: 1024; height: 600
         TestHost { id: small; anchors.fill: parent; skin: root.skin; sddm: fake; userModel: users }
     }
+    // Portrait monitors.
+    Window {
+        visible: true; width: 1080; height: 1920
+        TestHost { id: tall; anchors.fill: parent; skin: root.skin; sddm: fake; userModel: users }
+    }
+    Window {
+        visible: true; width: 1200; height: 1920
+        TestHost { id: tallWide; anchors.fill: parent; skin: root.skin; sddm: fake; userModel: users }
+    }
 
     function fail(msg) { console.error("FAIL: " + msg); Qt.quit(); }
     function find(i, n) { return Checks.find(i, n); }
@@ -57,7 +66,9 @@ ShellRoot {
 
     function layoutCheck(o, label) {
         if (!o.fontsReady) return fail(label + ": fonts not ready"), false;
-        if (Math.abs(o.uiScale - o.height / 1200) > 1e-9) return fail(label + ": uiScale is not height / 1200"), false;
+        if (Math.abs(o.uiScale - Checks.expectedScale(o)) > 1e-9) return fail(label + ": uiScale " + o.uiScale + " is not " + Checks.expectedScale(o)), false;
+        var portrait = o.height > o.width;
+        if (portrait && !Checks.readable({ fail: root.fail }, o, label)) return false;
         var names = ["orbitDial", "dateBlock", "authColumn", "nowPlaying", "powerRow"];
         var r = {};
         for (var i = 0; i < names.length; i++) {
@@ -72,6 +83,15 @@ ShellRoot {
         if (d.x >= 0) return fail(label + ": dial does not bleed off the left edge"), false;
         if (d.x + d.w <= 0) return fail(label + ": dial is entirely off screen"), false;
         if (d.y < 0 || d.y + d.h > o.height) return fail(label + ": dial leaves the screen vertically"), false;
+        if (d.x + d.w > o.width) return fail(label + ": dial runs off the right edge"), false;
+        // The weekday and the date are read whole, not elided away.
+        for (const n of ["dateWeekday", "dateRest"]) {
+            var tx = find(o, n);
+            if (!tx.visible || tx.width < tx.implicitWidth - 1) return fail(label + ": " + n + " cut to " + tx.width + " of " + tx.implicitWidth), false;
+        }
+        if (portrait && find(o, "hourText").font.pixelSize < 150) return fail(label + ": hour " + find(o, "hourText").font.pixelSize + " px on a portrait screen"), false;
+        // Stacked in portrait: the date sits under the dial, not beside it.
+        if (portrait && r.dateBlock.y < d.y + d.h) return fail(label + ": date is not under the dial"), false;
         for (var a = 0; a < names.length; a++)
             for (var b = a + 1; b < names.length; b++)
                 if (Checks.intersects(r[names[a]], r[names[b]])) return fail(label + ": " + names[a] + " overlaps " + names[b]), false;
@@ -83,9 +103,9 @@ ShellRoot {
     Timer {
         interval: 700; running: true
         onTriggered: {
-            if (!host.item || !big.item || !small.item) return fail("theme did not load");
+            if (!host.item || !big.item || !small.item || !tall.item || !tallWide.item) return fail("theme did not load");
             var o = host.item;
-            for (const h of [host.item, big.item, small.item]) {
+            for (const h of [host.item, big.item, small.item, tall.item, tallWide.item]) {
                 h.liveClock = false;
                 h.clockLocale = Qt.locale("en_US");
                 h.now = new Date(2026, 11, 6, 23, 5, 0);
@@ -221,7 +241,8 @@ ShellRoot {
             users.setUsers([new Array(80).join("u")]);
             player.title = new Array(201).join("W");
             player.artist = new Array(201).join("M");
-            for (const pair of [[host.item, "1366x768"], [big.item, "3840x2400"], [small.item, "1024x600"]]) {
+            for (const pair of [[host.item, "1366x768"], [big.item, "3840x2400"], [small.item, "1024x600"],
+                                [tall.item, "1080x1920"], [tallWide.item, "1200x1920"]]) {
                 var h2 = pair[0];
                 h2.playerOverride = player;
                 for (const is24 of [true, false]) {

@@ -7,12 +7,14 @@ SkinRoot {
     currentUser: userSwitch.currentUser
     focusTarget: passwordField
 
-    // Design geometry at 1200 px of height: the rings' centre and radii, in skin pixels. The
-    // seconds ring is the outer one and sets the dial's size.
+    // Design geometry at 1920x1200: the rings' centre and radii, in skin pixels. The seconds ring
+    // is the outer one and sets the dial's size. On a portrait screen the dial rides higher and
+    // the weekday and date stack under it instead of beside it.
     readonly property real secondRadius: Math.round(CratePalette.s(470, root.uiScale))
     readonly property real dialCx: Math.round(CratePalette.s(250, root.uiScale))
-    readonly property real dialCy: root.height / 2
-    readonly property real infoX: dialCx + secondRadius + Math.round(CratePalette.s(56, root.uiScale))
+    readonly property real dialCy: root.portrait ? Math.round(root.height * 0.4) : root.height / 2
+    readonly property real infoX: root.portrait ? root.margin : dialCx + secondRadius + Math.round(CratePalette.s(56, root.uiScale))
+    readonly property real infoY: dialCy + secondRadius + Math.round(CratePalette.s(48, root.uiScale))
 
     // Motion. Enter winds the rings up while PAM works (InQuint, like orbital's windup); a
     // failure settles them back on real time; a success fades and scales the UI out while the
@@ -178,16 +180,17 @@ SkinRoot {
         }
 
         // Beside the reading window, which already shows the minute: the weekday over the date,
-        // centred on the pointer's axis.
+        // centred on the pointer's axis. Portrait: under the dial, from the left margin.
         Column {
             id: info
             objectName: "orbitInfo"
             x: root.infoX
-            y: root.dialCy - height / 2
+            y: root.portrait ? root.infoY : root.dialCy - height / 2
             Column {
                 id: dateBlock
                 objectName: "dateBlock"
-                readonly property int maxWidth: Math.max(0, authColumn.x - root.infoX - Math.round(CratePalette.s(48, root.uiScale)))
+                readonly property int maxWidth: root.portrait ? Math.max(0, root.width - 2 * root.margin)
+                    : Math.max(0, authColumn.x - root.infoX - Math.round(CratePalette.s(48, root.uiScale)))
                 spacing: Math.round(CratePalette.s(6, root.uiScale))
                 Text {
                     id: weekday

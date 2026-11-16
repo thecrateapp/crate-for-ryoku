@@ -5,7 +5,7 @@ import "i18n"
 // security key waits for its PIN, sddm.loginKeyPin, and reacts to sddm.loginFailed/loginSucceeded.
 FocusScope {
     id: root
-    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    // Design pixels scale per skin instance: the host binds this to its own uiScale (SkinRoot).
     property real uiScale: 1
     objectName: "passwordField"
 

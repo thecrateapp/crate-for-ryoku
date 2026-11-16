@@ -7,7 +7,7 @@ import "i18n"
 // line (orbit); otherwise the hero block: hairline rule, cover, title, artist, progress.
 Item {
     id: root
-    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    // Design pixels scale per skin instance: the host binds this to its own uiScale (SkinRoot).
     property real uiScale: 1
     objectName: "nowPlaying"
 

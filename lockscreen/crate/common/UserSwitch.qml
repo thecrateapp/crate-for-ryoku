@@ -7,7 +7,7 @@ import QtQuick
 // lastUser empty when it remembers nobody; the name is then never a placeholder.
 Item {
     id: root
-    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    // Design pixels scale per skin instance: the host binds this to its own uiScale (SkinRoot).
     property real uiScale: 1
     objectName: "userSwitch"
     property var model: null

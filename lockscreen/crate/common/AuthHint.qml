@@ -4,7 +4,7 @@ import "i18n"
 // Small mono line that tells which other ways in are live: key PIN, key touch, fingerprint.
 Text {
     id: root
-    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    // Design pixels scale per skin instance: the host binds this to its own uiScale (SkinRoot).
     property real uiScale: 1
     objectName: "authHint"
     property string fingerprintState: ""   // "", idle, scanning, success, fail, unavailable

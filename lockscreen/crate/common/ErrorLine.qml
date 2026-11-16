@@ -4,7 +4,7 @@ import "i18n"
 // One line of danger-coloured text under the field. Reserves its height so nothing jumps.
 Text {
     id: root
-    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    // Design pixels scale per skin instance: the host binds this to its own uiScale (SkinRoot).
     property real uiScale: 1
     objectName: "errorLine"
     property bool shown: false

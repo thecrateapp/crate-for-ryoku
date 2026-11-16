@@ -4,7 +4,7 @@ import QtQuick
 // Never takes focus; the host returns focus to the password field on `activated`.
 Item {
     id: root
-    // Design pixels scale per skin instance: the host binds this to its own height / 1200.
+    // Design pixels scale per skin instance: the host binds this to its own uiScale (SkinRoot).
     property real uiScale: 1
     property string text: ""
     property bool interactive: true
