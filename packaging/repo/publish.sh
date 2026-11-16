@@ -1,18 +1,27 @@
 #!/usr/bin/env bash
 # Build, sign and publish the [crate-for-ryoku] pacman repository: crate-for-ryoku
-# (from packaging/aur/crate-for-ryoku/PKGBUILD) and crate-desktop-bin (the
-# package attached to the latest thecrateapp/crate release), served as assets of
-# the `repo` release of thecrateapp/crate-for-ryoku:
+# (from packaging/aur/crate-for-ryoku/PKGBUILD), crate-desktop-bin (the package
+# attached to the latest thecrateapp/crate release) and the Ryoku desktop
+# packages built from the thecrateapp/ryoku fork (build-ryoku.sh), served as
+# assets of the `repo` release of thecrateapp/crate-for-ryoku:
 #
 #   Server = https://github.com/thecrateapp/crate-for-ryoku/releases/download/repo
 #
-#   packaging/repo/publish.sh            build what is missing, sign, upload
-#   packaging/repo/publish.sh --local    build and sign only (no upload)
-#   packaging/repo/publish.sh --rebuild  rebuild crate-for-ryoku even if built
+#   packaging/repo/publish.sh              build what is missing, sign, upload
+#   packaging/repo/publish.sh --local      build and sign only (no upload)
+#   packaging/repo/publish.sh --rebuild    rebuild crate-for-ryoku even if built
+#   packaging/repo/publish.sh --ryoku DIR  replace the Ryoku set with the one
+#                                          build-ryoku.sh wrote to DIR
+#   packaging/repo/publish.sh --drop-ryoku stop shipping Ryoku packages
 #
-# Idempotent: a package that is already built and signed is kept, the database
-# is rebuilt from the packages each run, and the release ends up holding exactly
+# Idempotent: a package that is already built and signed is kept, the Ryoku set
+# stays the last one given until another --ryoku replaces it, the database is
+# rebuilt from the packages each run, and the release ends up holding exactly
 # the current packages, their signatures, the database and the public key.
+#
+# The Ryoku packages are GPL-3 builds of the fork, so their source must be public
+# before they are: the upload stops unless thecrateapp/ryoku carries the tag
+# crate-<pkgver> on the exact commit they were built from.
 #
 # Signing runs on this machine only. The key is CRATE_REPO_KEY (default: the
 # repository signing key below); its passphrase is read from the desktop secret
@@ -20,7 +29,8 @@
 # or gpg asks for it when the store has none. Nothing secret leaves the machine.
 #
 # Needs: makepkg, repo-add, gpg, gh (logged in, with write access), curl, and
-# crate-for-ryoku's build dependencies (python-cairo, numpy, Pillow, librsvg).
+# crate-for-ryoku's build dependencies (python-cairo, numpy, Pillow, librsvg);
+# build-ryoku.sh needs docker.
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -28,32 +38,36 @@ src=$(cd "$here/../.." && pwd)
 repo=crate-for-ryoku
 gh_repo=${CRATE_REPO_GH:-thecrateapp/crate-for-ryoku}
 crate_gh=${CRATE_APP_GH:-thecrateapp/crate}
+fork_gh=${CRATE_RYOKU_GH:-thecrateapp/ryoku}
 tag=repo
 key=${CRATE_REPO_KEY:-AD4DFA15F0A84853D4D711850EB2D64FEFAC7445}
 work=${CRATE_REPO_WORK:-$HOME/.cache/crate-for-ryoku/repo}
 pubkey=$here/$repo.gpg
 
-upload=1 rebuild=0
-for arg in "$@"; do
-  case $arg in
+upload=1 rebuild=0 ryoku_from= drop_ryoku=0
+while (($#)); do
+  case $1 in
     --local) upload=0 ;;
     --rebuild) rebuild=1 ;;
-    -h|--help) sed -n '2,24p' "$0"; exit 0 ;;
-    *) echo "publish.sh: unknown option $arg" >&2; exit 2 ;;
+    --ryoku) ryoku_from=${2:?--ryoku needs the directory build-ryoku.sh wrote}; shift ;;
+    --drop-ryoku) drop_ryoku=1 ;;
+    -h|--help) sed -n '2,33p' "$0"; exit 0 ;;
+    *) echo "publish.sh: unknown option $1" >&2; exit 2 ;;
   esac
+  shift
 done
 
 die() { echo "publish.sh: $*" >&2; exit 1; }
 log() { echo "==> $*"; }
 
-for tool in makepkg repo-add gpg curl; do
+for tool in makepkg repo-add gpg curl bsdtar git; do
   command -v "$tool" >/dev/null || die "$tool is not installed"
 done
 [ "$upload" = 0 ] || command -v gh >/dev/null || die "gh is not installed"
 gpg --list-secret-keys "$key" >/dev/null 2>&1 || die "the signing key $key is not in this keyring"
 [ -s "$pubkey" ] || die "$pubkey is missing"
 
-pkgs=$work/pkgs out=$work/out build=$work/build sources=$work/sources
+pkgs=$work/pkgs out=$work/out build=$work/build sources=$work/sources ryoku=$work/ryoku
 mkdir -p "$pkgs" "$out" "$build" "$sources"
 
 passphrase=
@@ -104,11 +118,53 @@ if [ ! -f "$desktop" ]; then
 fi
 log "  $(basename "$desktop") ($crate_tag)"
 
+# the Ryoku desktop set: replaced whole by --ryoku, kept as it is otherwise.
+# Every package must be the one version the source record names, since the set
+# pins itself by exact version. GitHub renames ':' in an asset name to '.', so
+# the files take that name here and the database lists them under it (pacman
+# reads versions from the database, never from the file name).
+if [ "$drop_ryoku" = 1 ]; then
+  log "dropping the Ryoku packages"
+  rm -rf "$ryoku"
+fi
+if [ -n "$ryoku_from" ]; then
+  record=$ryoku_from/crate-ryoku.source
+  [ -f "$record" ] || die "$ryoku_from has no crate-ryoku.source; build the set with build-ryoku.sh"
+  want_ver=$(sed -n 's/^pkgver=//p' "$record")
+  read -r -a want_names <<<"$(sed -n 's/^packages=//p' "$record")"
+  [ -n "$want_ver" ] && [ "${#want_names[@]}" -gt 0 ] || die "$record names no version or packages"
+  rm -rf "$ryoku.new" && mkdir -p "$ryoku.new"
+  got=()
+  for f in "$ryoku_from"/*.pkg.tar.zst; do
+    [ -f "$f" ] || continue
+    info=$(bsdtar -xOf "$f" .PKGINFO)
+    name=$(sed -n 's/^pkgname = //p' <<<"$info") ver=$(sed -n 's/^pkgver = //p' <<<"$info")
+    [ "${ver%-*}" = "$want_ver" ] || die "$(basename "$f") is $ver, not $want_ver"
+    got+=("$name")
+    base=$(basename "$f")
+    cp "$f" "$ryoku.new/${base//:/.}"
+  done
+  for name in "${want_names[@]}"; do
+    printf '%s\n' "${got[@]}" | grep -qxF "$name" || die "$ryoku_from lacks $name"
+  done
+  [ "${#got[@]}" = "${#want_names[@]}" ] || die "$ryoku_from holds packages its record does not name"
+  cp "$record" "$ryoku.new/"
+  rm -rf "$ryoku" && mv "$ryoku.new" "$ryoku"
+fi
+ryoku_pkgs=()
+ryoku_commit= ryoku_ver=
+if [ -f "$ryoku/crate-ryoku.source" ]; then
+  mapfile -t ryoku_pkgs < <(ls "$ryoku"/*.pkg.tar.zst)
+  ryoku_commit=$(sed -n 's/^commit=//p' "$ryoku/crate-ryoku.source")
+  ryoku_ver=$(sed -n 's/^pkgver=//p' "$ryoku/crate-ryoku.source")
+  log "  Ryoku ${ryoku_ver} (${#ryoku_pkgs[@]} packages, fork commit ${ryoku_commit:0:12})"
+fi
+
 # keep only the current packages, each signed
 for f in "$pkgs"/*.pkg.tar.zst; do
   [ "$f" = "${cfr[0]}" ] || [ "$f" = "$desktop" ] || rm -f "$f" "$f.sig"
 done
-current=("${cfr[0]}" "$desktop")
+current=("${cfr[0]}" "$desktop" "${ryoku_pkgs[@]}")
 for f in "${current[@]}"; do
   signed_by_key "$f" || { log "signing $(basename "$f")"; sign "$f"; }
 done
@@ -126,19 +182,38 @@ for kind in db files; do
   sign "$out/$repo.$kind"
 done
 cp "$pubkey" "$out/$repo.gpg"
+# where the Ryoku packages' source is: the fork commit and tag they were built from
+[ -z "$ryoku_commit" ] || cp "$ryoku/crate-ryoku.source" "$out/crate-ryoku.source"
 for f in "$out"/*.pkg.tar.zst "$out/$repo.db" "$out/$repo.files"; do
   signed_by_key "$f" || die "$(basename "$f") is not signed by $key"
 done
 log "repository ready in $out"
 [ "$upload" = 1 ] || exit 0
 
+# GPL-3: the fork's source for these exact builds is public before the binaries are
+if [ -n "$ryoku_commit" ]; then
+  ryoku_tag=crate-${ryoku_ver#*:}
+  git ls-remote --tags "https://github.com/$fork_gh" "refs/tags/$ryoku_tag" "refs/tags/$ryoku_tag^{}" \
+    | grep -q "^$ryoku_commit[[:space:]]" \
+    || die "$fork_gh has no tag $ryoku_tag on $ryoku_commit; push the fork branch and that tag first"
+fi
+
 # the release: packages first, the database last, then drop what it no longer lists
 log "uploading to $gh_repo, release $tag"
-if ! gh release view "$tag" -R "$gh_repo" >/dev/null 2>&1; then
-  gh release create "$tag" -R "$gh_repo" --latest=false --title "Pacman repository" \
-    --notes "The signed [crate-for-ryoku] pacman repository. Set it up from https://ryoku.cratemusic.app/#install; the assets change with every publish."
+notes="The signed [crate-for-ryoku] pacman repository. Set it up from https://ryoku.cratemusic.app/#install; the assets change with every publish."
+if [ -n "$ryoku_commit" ]; then
+  notes+="
+
+It also ships Ryoku $ryoku_ver built from the thecrateapp/ryoku fork (GPL-3). Its source is the tag $ryoku_tag: https://github.com/$fork_gh/tree/$ryoku_tag (commit $ryoku_commit; crate-ryoku.source lists the packages)."
 fi
-gh release upload "$tag" -R "$gh_repo" --clobber "$out"/*.pkg.tar.zst "$out"/*.pkg.tar.zst.sig "$out/$repo.gpg"
+if ! gh release view "$tag" -R "$gh_repo" >/dev/null 2>&1; then
+  gh release create "$tag" -R "$gh_repo" --latest=false --title "Pacman repository" --notes "$notes"
+else
+  gh release edit "$tag" -R "$gh_repo" --notes "$notes"
+fi
+extra=()
+[ -z "$ryoku_commit" ] || extra=("$out/crate-ryoku.source")
+gh release upload "$tag" -R "$gh_repo" --clobber "$out"/*.pkg.tar.zst "$out"/*.pkg.tar.zst.sig "$out/$repo.gpg" "${extra[@]}"
 gh release upload "$tag" -R "$gh_repo" --clobber "$out/$repo.files" "$out/$repo.files.sig" "$out/$repo.db" "$out/$repo.db.sig"
 mapfile -t keep < <(cd "$out" && ls)
 while read -r name; do

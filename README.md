@@ -35,7 +35,11 @@ sudo pacman-key --add crate-for-ryoku.gpg
 sudo pacman-key --lsign-key AD4DFA15F0A84853D4D711850EB2D64FEFAC7445
 ```
 
-Append the repository to `/etc/pacman.conf`, then install and set it up:
+Add the repository to `/etc/pacman.conf` above the `[ryoku]` block, then install
+and set it up. The repository also ships Ryoku itself, built from the
+[thecrateapp/ryoku](https://github.com/thecrateapp/ryoku) fork with Crate's
+patches, and pacman takes each package from the first repository that has it, so
+the same upgrade moves the Ryoku packages to Crate's builds:
 
 ```ini
 [crate-for-ryoku]
@@ -55,15 +59,17 @@ From a release folder (`crate-for-ryoku-<version>.tar.gz`):
 ```
 
 `crate-for-ryoku status` shows each piece; `crate-for-ryoku uninstall` goes back
-to the icon theme and rice you had. In the GUI: Ryoku Settings > Appearance >
+to the icon theme and rice you had. To go back to stock Ryoku, delete the
+`[crate-for-ryoku]` block and run `sudo pacman -Syuu`: pacman moves the Ryoku
+packages down to the versions `[ryoku]` serves. In the GUI: Ryoku Settings > Appearance >
 Rices, and QS Bar Settings > Community > Crate.
 
 ## What needs Ryoku itself
 
 Most of Crate for Ryoku works on any Ryoku 1.0.7+. A few pieces need Ryoku
-changes that are on the way upstream (the
-[thecrateapp/ryoku](https://github.com/thecrateapp/ryoku) fork, branch
-`feat/user-theme-role-overrides`):
+changes from the [thecrateapp/ryoku](https://github.com/thecrateapp/ryoku) fork,
+which the pacman repository ships; without them (stock Ryoku, or the release
+tarball) they fall back as follows:
 
 | Piece | Without the Ryoku changes |
 |---|---|
@@ -93,10 +99,30 @@ docs/             design notes
 
 `packaging/repo/publish.sh` builds crate-for-ryoku from its PKGBUILD, takes
 `crate-desktop-bin` from the latest thecrateapp/crate release (checked against
-the asset digest), signs both and the database, and uploads them to the `repo`
-release (never marked latest), dropping assets it no longer lists. Run it again
-after a crate-for-ryoku tag or a Crate release; `--local` stops before the
-upload, `--rebuild` rebuilds a package that is already built.
+the asset digest), adds the Ryoku desktop packages, signs every package and the
+database, and uploads them to the `repo` release (never marked latest), dropping
+assets it no longer lists. Run it again after a crate-for-ryoku tag or a Crate
+release; `--local` stops before the upload, `--rebuild` rebuilds a package that
+is already built.
+
+The Ryoku packages are every monorepo package of the fork (all editions, so a
+niri or Wayfire box keeps its exact version pins), built at one fork commit in a
+clean `archlinux:base-devel` container with Arch's generic flags:
+
+```sh
+packaging/repo/build-ryoku.sh --ref <fork commit> ~/Code/Ninja/ryoku
+git -C ~/Code/Ninja/ryoku tag -a crate-<pkgver> <fork commit> -m "Crate for Ryoku build <pkgver>"
+git -C ~/Code/Ninja/ryoku push crate <branch> crate-<pkgver>
+packaging/repo/publish.sh --ryoku ~/.cache/crate-for-ryoku/ryoku/<pkgver>
+```
+
+They keep upstream's version scheme (epoch 1, `<VERSION>.r<commit count>.g<sha>`)
+and say `RELEASE=crate-<pkgver>` in `/etc/ryoku-release`. They are GPL-3 builds,
+so `publish.sh` refuses to upload them until the fork carries the tag
+`crate-<pkgver>` on the commit they were built from. The set stays in the
+repository until another `--ryoku` replaces it or `--drop-ryoku` removes it.
+Rebuild after every upstream Ryoku release once the fork has merged it: while
+our versions are older than upstream's, `ryoku update` takes upstream's builds.
 
 Signing happens only on the maintainer's machine with the repository key
 (`AD4DFA15F0A84853D4D711850EB2D64FEFAC7445`, ed25519, sign only, expires
