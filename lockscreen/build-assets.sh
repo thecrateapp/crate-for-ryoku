@@ -20,7 +20,6 @@ FONTS=$COMMON/fonts
 BACKS=$COMMON/backgrounds
 mkdir -p "$FONTS" "$BACKS"
 if [ "$FORCE" = 1 ]; then rm -f -- "$FONTS"/*.ttf "$FONTS/OFL.txt" "$BACKS"/*.webp; fi
-if [ "$FORCE" = 1 ]; then rm -f -- "$FONTS"/*.ttf "$FONTS/OFL.txt" "$BACKS"/*.webp; fi
 
 woff2_to_ttf='
 import sys
