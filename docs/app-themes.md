@@ -8,21 +8,45 @@ corners, Bricolage Grotesque titles, JetBrains Mono caps labels (0.12em) and
 Roboto for the rest.
 
 `python3 apps/build.py OUT` builds all three; `python3 -m pytest apps/tests`
-checks them and their installer (`package/apps.sh`) in a throwaway home.
+checks them and their installer (`package/apps.sh`) in a throwaway home, and
+`bash apps/tests/package-apps.sh` checks the Chrome theme's packaging with a
+throwaway key.
 
 ## What each app gets
 
-| App | Piece | How it lands | Who chooses it |
-| --- | --- | --- | --- |
-| Obsidian | `apps/obsidian/` theme (fonts inlined, about 200 KB) | `crate-for-ryoku install` copies it into every vault in `~/.config/obsidian/obsidian.json` (`<vault>/.obsidian/themes/Crate`) | you, in Settings > Appearance > Themes; `appearance.json` is never edited |
-| Firefox | `apps/firefox/theme/` static theme add-on | addons.mozilla.org (listed); `install --firefox-theme` opens it in Firefox | you, in Firefox's install prompt |
-| Firefox | `apps/firefox/chrome/` `userChrome.css` + `userContent.css` + fonts | `install --firefox-chrome`: the profile's `chrome/` (WhiteSur) is moved to `chrome.before-crate`, ours goes in its place | opt-in flag only |
-| Chrome | `apps/chrome/theme/` theme extension with a fixed key | Chrome Web Store, and the root package `crate-for-ryoku-chrome-theme` | Chrome asks each user once |
+`crate-for-ryoku install` detects each app and themes the ones it finds; an
+app that is not installed is skipped with one line at most, never an error.
 
-`crate-for-ryoku status` shows one line per app. `crate-for-ryoku uninstall`
-puts Firefox's old `chrome/` back (also with `--keep-files`) and removes the
-Obsidian copies that are still exactly as installed; an edited copy, or a Crate
-theme the community store put there, is left alone.
+| App | Detected by | Piece | How it lands | Opt out |
+| --- | --- | --- | --- | --- |
+| Obsidian | the vaults in `~/.config/obsidian/obsidian.json` | `apps/obsidian/` theme (fonts inlined, about 200 KB) | copied into each vault (`<vault>/.obsidian/themes/Crate`) and selected: `"cssTheme": "Crate"` in `<vault>/.obsidian/appearance.json`, created if missing, every other key kept | `--no-obsidian` |
+| Firefox | `profiles.ini` (`~/.mozilla/firefox`, `~/.config/mozilla/firefox`): the profile each install starts with | `apps/firefox/chrome/` `userChrome.css` + `userContent.css` + fonts | the profile's `chrome/` (WhiteSur, say) is moved to `chrome.before-crate`, ours goes in its place; `user.js` gets `toolkit.legacyUserProfileCustomizations.stylesheets` if it lacks it | `--no-firefox` |
+| Firefox | | `apps/firefox/theme/` static theme add-on | addons.mozilla.org (listed); `install --firefox-theme` opens it in Firefox, which asks | opt-in |
+| Chrome | `google-chrome-stable`, `google-chrome` or `chromium` on PATH | `apps/chrome/theme/` theme extension with a fixed key | the `crate-for-ryoku` package, for every user (below), and the Chrome Web Store | Chrome asks each user once |
+
+Obsidian reads `appearance.json` when a vault opens: a vault that is open
+during the install shows Crate once it is reopened (or Obsidian restarted).
+Firefox reads `userChrome.css` only at start: restart it. `--firefox-chrome`,
+the opt-in flag before 0.7, is still accepted and does nothing more.
+
+`crate-for-ryoku status` shows one line per app: installed or not, and where
+Crate is applied (vaults with the theme and with it selected, Firefox profiles
+with Crate's `userChrome.css`, Chrome profiles whose theme is Crate's and
+whether the package's files are there).
+
+`crate-for-ryoku uninstall`:
+
+- Obsidian: each vault gets back exactly the `cssTheme` it had before (or none,
+  and an `appearance.json` the install created is removed), but only while
+  `cssTheme` is still `Crate`: a theme you picked since stays. A later install
+  does not take that pick back either. The theme copies go only while they are
+  exactly as installed; an edited copy, or a Crate theme the community store
+  put there, is left alone.
+- Firefox: the old `chrome/` (folder or symlink) comes back, and the pref line
+  goes if the install added it. A `chrome/` you edited is kept as
+  `chrome.crate-edited-<date>`.
+- `--keep-files` puts both looks back (Obsidian's previous theme, Firefox's old
+  `chrome/`) and keeps the Obsidian theme copies.
 
 ## Fidelity
 
@@ -38,8 +62,8 @@ and a darker cyan (`hsl(192 91% 36%)`). Captures: `captures/apps/obsidian-*`.
 **Firefox: colours everywhere, shape and type only with userChrome.css.** The
 add-on can set colours only: frame, toolbars, tabs, address bar, popups,
 sidebar and the new tab page; Firefox's own pages (settings, add-ons) keep
-Firefox's dark style with its purple accent. With `--firefox-chrome` the
-interface also gets Roboto, 6 px corners, a cyan hairline on the selected tab
+Firefox's dark style with its purple accent. With the userChrome layer (the
+default) the interface also gets Roboto, 6 px corners, a cyan hairline on the selected tab
 and the focused address bar, mono caps section labels, and the about: pages in
 Crate's colours, Bricolage titles and hairline buttons. The add-on and the
 userChrome layer work alone or together. Firefox reads userChrome.css only at
@@ -54,17 +78,40 @@ ignores the theme; under the Crate rice GTK mode already comes out close
 palette Ryoku has, where the theme stays Crate. Picking GTK or Classic in
 Settings > Appearance removes the theme; installing it again switches them off.
 
-## Ryoku's Obsidian snippet
+## What Ryoku rewrites
 
-Ryoku's doctor links `~/.config/matugen/generated/obsidian.css` into every
-vault as `snippets/ryoku.css` and enables it. The snippet styles
+**Obsidian.** Ryoku's doctor (`ryoku doctor`, which also runs inside
+`ryoku update` and at the end of Ryoku's installer) links
+`~/.config/matugen/generated/obsidian.css` into every vault as
+`snippets/ryoku.css` and enables it. The snippet styles
 `body.theme-dark.theme-dark.theme-dark` and loads after the theme, so it greys
 out any theme you pick (`captures/apps/obsidian-crate-with-ryoku-snippet.png`).
-The fix is in the Ryoku fork, branch `fix/obsidian-snippet-theme`: the doctor
+In the Ryoku that Crate's pacman repository ships (the thecrateapp/ryoku fork,
+commit `[ryoku] doctor: leave an Obsidian vault's own theme alone`) the doctor
 keeps the snippet on only while a vault uses Obsidian's default theme and turns
-it off while `appearance.json` names a `cssTheme`. Until that ships, turn the
-`ryoku` snippet off by hand in Settings > Appearance > CSS snippets; the doctor
-turns it back on at its next run.
+it off while `appearance.json` names a `cssTheme`; it never writes `cssTheme`
+itself. Stock Ryoku's doctor turns it back on at every run. The install turns
+`ryoku` off in each vault where it selects Crate, as the fork's doctor would,
+and uninstall turns it back on where the vault goes back to the default theme.
+`status` says when the snippet is on over Crate again (stock Ryoku); turn it off
+in Settings > Appearance > CSS snippets. A palette change (matugen) only
+re-links the snippet file (`nudgeObsidian`); it never touches
+`appearance.json`, and the Crate rice turns Ryoku's Obsidian template off
+(`rice/crate/rice.json`, `"obsidian": false`).
+
+**Firefox.** Nothing in Ryoku writes a Firefox profile's `chrome/` or
+`userChrome.css`. Its doctor installs an animation sheet into Zen's profiles
+only (`~/.config/zen`, which the Firefox step never reads) and the
+native-messaging host of Ryoku's own browser extension. That extension (Ryoku
+Theme, `ryoku-theme@ryoku.arch`) recolours Firefox live from the desktop
+palette when someone installs it by hand (Ryoku installs it automatically only
+into Zen); it then paints over the Crate add-on's colours, and `status` says
+so. A WhiteSur `chrome/` comes from WhiteSur's own installer
+(`tweaks.sh -f`), not from Ryoku; running that again would overwrite Crate's
+files, and uninstall then keeps them aside as edited.
+
+**Chrome.** Ryoku's Chromium extension is not a theme, so it does not replace
+Crate's.
 
 ## The Chrome key
 
@@ -75,9 +122,14 @@ on Diego's machine (mode 600; `.pub.b64` and `.id` beside it). Back it up
 somewhere safe: without it no `.crx` can carry the same id. `*.pem` is
 git-ignored.
 
-`apps/chrome/pack.sh [OUT]` packs `crate-theme-VERSION.crx` with that key
-(checking it matches the manifest) and the Web Store zip, which has no `key`
-field because the store refuses one.
+`python3 apps/build.py OUT --chrome-key KEY` packs the theme into a CRX3
+(`OUT/chrome/crate-theme-VERSION.crx`): a small writer in `build.py` zips the
+theme, signs it with `openssl dgst -sha256 -sign` and checks that the key is
+the manifest's, that the packed id is `jddiejdibphncbpfehopofclalbeghbc` and
+that the signature verifies. No browser is needed; its output has the same
+layout as Chrome's own `--pack-extension`, whose `.crx` the same reader
+verifies. `apps/chrome/pack.sh [OUT]` runs it with the key above and adds the
+Web Store zip, which has no `key` field because the store refuses one.
 
 ## Publishing
 
@@ -144,17 +196,30 @@ commit, tag.
    > A colour theme only: no permissions, nothing collected. From Crate for
    > Ryoku (https://github.com/thecrateapp/crate-for-ryoku).
 
-### The Chrome package
+### Chrome in the package
 
-`packaging/aur/crate-for-ryoku-chrome-theme/` installs the `.crx` to
-`/usr/share/crate-for-ryoku/chrome/` and an external-extension file for Google
-Chrome and Chromium (`/usr/share/{google-chrome,chromium}/extensions/ID.json`).
-Each browser then offers the theme once to every user. It needs the `.crx` as a
-release asset (`pack.sh`, uploaded to the crate-for-ryoku release named in
-`_release`) and its checksum in `sha256sums`. Once the Web Store listing has the
-same id, `ID.webstore.json` (an `external_update_url`) can replace the local
-`.crx`, and Chrome then updates the theme from the store.
+A user cannot write the folders Chrome reads external extensions from, and
+Chrome 157 ignores the per-user "External Extensions" folder (tried on a
+throwaway profile), so the `crate-for-ryoku` package carries the theme.
+`package/build.sh` runs `package/build-chrome.sh`, which packs
+`dist/crate-for-ryoku-VERSION/chrome/crate-theme.crx` with the key and writes
+`chrome/jddiejdibphncbpfehopofclalbeghbc.json` from
+`apps/chrome/external/crx.json`. The PKGBUILD installs the folder as
+`/usr/share/crate-for-ryoku/chrome/` and the json to
+`/usr/share/{google-chrome,chromium}/extensions/`; each browser then offers the
+theme once to every user. Removing the package removes the offer; a theme a
+user already accepted stays until they reset it (Settings > Appearance > Theme
+> Reset to default).
 
-Chrome's per-user "External Extensions" folder was tried on a throwaway profile
-and Chrome 157 ignores it, so a per-user install is not possible; the package
-route was built with makepkg but not installed, as it needs root.
+The key lives only on the machine that builds the signed repository
+(`packaging/repo/publish.sh` runs makepkg with that user's `HOME`). A build
+without it (CI, an AUR build) prints a warning and ships no Chrome theme; a key
+that is not the manifest's fails the build. `CRATE_CHROME_KEY` points at the key
+when it lives elsewhere.
+
+Once the Web Store listing has the same id, `apps/chrome/external/webstore.json`
+(an `external_update_url`) can replace the local `.crx`, and Chrome then
+updates the theme from the store.
+
+The separate `crate-for-ryoku-chrome-theme` package this replaces was never
+published, so nothing provides or replaces it.

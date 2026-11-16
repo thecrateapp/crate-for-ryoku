@@ -21,11 +21,12 @@ desktop. One install gives you:
   installed from Ryostore (App launchers).
 - **The Crate app integration**: the launcher's `cr <query>` search-and-play
   provider (with the Crate desktop app, `crate-desktop-bin`).
-- **Other apps in Crate's look**: an Obsidian theme copied into every vault
-  (pick it in Settings > Appearance > Themes), Crate's `userChrome.css` for
-  Firefox when you ask for it (`crate-for-ryoku install --firefox-chrome`; it
-  replaces WhiteSur or whatever you had and gives it back on uninstall), and
-  theme add-ons for Firefox and Chrome. See [docs/app-themes.md](docs/app-themes.md).
+- **Other apps in Crate's look**, each only where it is installed: the Crate
+  theme copied into every Obsidian vault and selected, Crate's `userChrome.css`
+  for Firefox (it replaces WhiteSur or whatever you had and gives it back on
+  uninstall; `--no-firefox` skips it), and the Chrome theme, which the package
+  offers to Chrome and Chromium for every user. Uninstall puts back the theme
+  each vault had. See [docs/app-themes.md](docs/app-themes.md).
 
 ## Install
 
@@ -96,7 +97,7 @@ apps/             app themes: ZapFast, Obsidian, Firefox and Chrome (build.py; p
 package/          build.sh, install.sh, uninstall.sh, the lock-skin helpers and the icon watcher units
 lockscreen/       the Crate lock skins crate/hero and crate/orbit for Ryoku's qylock (lockscreen/preview.sh, lockscreen/tests/run.sh)
 bin/              the crate-for-ryoku command
-packaging/aur/    the crate-for-ryoku PKGBUILD, and crate-for-ryoku-chrome-theme (the Chrome theme for every user)
+packaging/aur/    the crate-for-ryoku PKGBUILD (it also offers the Chrome theme to every user)
 packaging/repo/   the signed pacman repository: publish.sh and the public key
 ryostore/         the Crate for Ryoku bundle and the crate-mark entry, ready for Ryostore
 docs/             design notes
