@@ -19,7 +19,7 @@ run() {
     fi
     grep 'PASS:' "$out"
 }
-for skin in ${SKINS:-crate/hero}; do
+for skin in ${SKINS:-crate/hero crate/orbit}; do
     run lock "$here/harness/imports" 0
     run sddm "" 1
     # A Ryoku module whose Tokens cannot load (a system install would otherwise be found).

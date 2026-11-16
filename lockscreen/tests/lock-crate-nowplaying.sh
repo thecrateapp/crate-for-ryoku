@@ -11,7 +11,7 @@ trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/config" "$tmp/runtime" "$tmp/data" "$tmp/cache"
 chmod 700 "$tmp/runtime"
 # Every skin runs the same checks (harness/SkinChecks.js).
-for skin in ${SKINS:-crate/hero}; do
+for skin in ${SKINS:-crate/hero crate/orbit}; do
     out="$tmp/output-${skin//\//-}"
     SKIN="$skin" LOCK_ROOT="$(cd "$here/.." && pwd)" \
     XDG_RUNTIME_DIR="$tmp/runtime" XDG_CONFIG_HOME="$tmp/config" XDG_DATA_HOME="$tmp/data" XDG_CACHE_HOME="$tmp/cache" \
