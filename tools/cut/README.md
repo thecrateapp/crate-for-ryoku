@@ -31,3 +31,11 @@ and framing tests.
 
 Remotion is free for individuals and companies of up to three people; see
 remotion.dev/license.
+
+## Showcase screenshots
+
+`python3 tools/cut/shots.py OUT` composes ryoku.cratemusic.app's screenshot showcase from the
+takes (one frame per surface, cropped around it, inset on the site background; wide and
+portrait, each in two sizes). Upload them from the crate repo with
+`make ryoku-media-sync SRC=<dir>` where `<dir>/shots/` holds the output; the site serves them
+from `/media/shots/`.
