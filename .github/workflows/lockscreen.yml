@@ -11,6 +11,10 @@ on:
       - "tools/director/**"
       - "rice/**"
       - "packaging/**"
+      - "theme/**"
+      - "tools/cut/public/fonts/**"
+      - "shell/**"
+      - "apps/**"
       - ".github/workflows/lockscreen.yml"
   pull_request:
     paths:
@@ -21,6 +25,10 @@ on:
       - "tools/director/**"
       - "rice/**"
       - "packaging/**"
+      - "theme/**"
+      - "tools/cut/public/fonts/**"
+      - "shell/**"
+      - "apps/**"
       - ".github/workflows/lockscreen.yml"
 
 permissions:
