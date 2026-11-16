@@ -1,6 +1,7 @@
 name: lockscreen
 
-# The Crate lock skins (offscreen Quickshell tests and the package build) plus the repo's python tests.
+# The Crate lock skins (offscreen Quickshell tests and the package build), the app themes and
+# their packaging, plus the repo's python tests.
 on:
   push:
     paths:
@@ -55,7 +56,7 @@ jobs:
           pacman -Su --noconfirm --needed \
             git quickshell qt6-declarative qt6-5compat qt6-imageformats mesa \
             python python-fonttools python-brotli python-pillow python-cairo python-numpy python-pytest \
-            librsvg fontconfig
+            librsvg fontconfig openssl diffutils
           mkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR"
 
       - uses: actions/checkout@v4
@@ -66,5 +67,8 @@ jobs:
       - name: Lock skin packaging
         run: bash lockscreen/tests/package-lock-skins.sh
 
+      - name: App theme packaging
+        run: bash apps/tests/package-apps.sh
+
       - name: Python tests
-        run: python3 -m pytest icons/tests wallpaper/tests tools/director/tests -q
+        run: python3 -m pytest icons/tests wallpaper/tests tools/director/tests apps/tests -q
