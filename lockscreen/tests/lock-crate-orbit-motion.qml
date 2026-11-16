@@ -321,9 +321,13 @@ ShellRoot {
         fake.surfaceRevealed();
 
         // Reduced motion: the rings stand on the real position, Enter winds nothing up.
-        Tokens.controlsCrate = true;
+        // The accessibility setting holds whether or not the shell's Crate controls are on.
+        Tokens.controlsCrate = false;
         Tokens.reduceMotion = true;
-        if (!eq(it.reduceMotion, true, "reduceMotion from Tokens")) return -1;
+        if (!eq(it.reduceMotion, true, "reduceMotion from Tokens with controlsCrate off")) return -1;
+        Tokens.controlsCrate = true;
+        if (!eq(it.reduceMotion, true, "reduceMotion from Tokens with controlsCrate on")) return -1;
+        Tokens.controlsCrate = false;
         it.liveClock = true;
         var f = find(it, "passwordField");
         f.text = "bad";

@@ -4,7 +4,8 @@ import QtQuick
 // Crate tokens for the lock skins. Colours are fixed: the skins keep one identity in the
 // session lock and in SDDM. There is deliberately no static import of Ryoku.Ui.Singletons
 // (the SDDM greeter may not have that module). In session-lock mode Main calls linkTokens(),
-// which loads it dynamically; reduceMotion falls back to false when it is unavailable.
+// which loads it dynamically; reduceMotion falls back to false when it is unavailable. Only the
+// accessibility setting is read: it applies whatever the shell's Crate controls (controlsCrate) say.
 QtObject {
     id: palette
 
@@ -28,7 +29,7 @@ QtObject {
         try {
             tokensProbe = Qt.createQmlObject(
                 'import QtQuick\nimport Ryoku.Ui.Singletons as R\n'
-                + 'QtObject { readonly property bool reduceMotion: R.Tokens.controlsCrate === true && R.Tokens.reduceMotion === true }',
+                + 'QtObject { readonly property bool reduceMotion: R.Tokens.reduceMotion === true }',
                 palette, "CratePaletteTokens");
             if (!tokensProbe)
                 return;
