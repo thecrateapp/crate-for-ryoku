@@ -1,0 +1,23 @@
+name: Release Obsidian theme
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          version=$(jq -r .version manifest.json)
+          [ "$tag" = "$version" ] || { echo "tag $tag does not match manifest $version"; exit 1; }
+          gh release create "$tag" --title="$tag" --generate-notes --draft manifest.json theme.css

@@ -1,0 +1,488 @@
+/*
+ * Crate for Obsidian
+ *
+ * Crate's look (https://cratemusic.app): a near-black canvas, hairlines
+ * instead of filled boxes, one cyan accent, 6 px corners, Bricolage Grotesque
+ * titles, JetBrains Mono caps labels and Roboto for everything else.
+ *
+ * Dark mode is the design. In light mode Obsidian keeps its own light colours
+ * and the theme brings only Crate's type, corners and a darker cyan accent.
+ *
+ * MIT License, Copyright (c) 2026 thecrateapp. The embedded fonts are under the
+ * SIL Open Font License 1.1: Bricolage Grotesque (The Bricolage Grotesque
+ * Project Authors), Roboto (The Roboto Project Authors), JetBrains Mono (The
+ * JetBrains Mono Project Authors).
+ */
+
+/* crate-build: fonts are inlined as data URLs by apps/build.py */
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("crate-font:roboto-latin") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("crate-font:bricolage-grotesque-latin") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("crate-font:jetbrains-mono-latin") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+/* ---------- Type, shape and accent: both modes ---------- */
+
+body {
+  --crate-font-display: "Bricolage Grotesque", "Roboto", system-ui, sans-serif;
+  --crate-font-mono: "JetBrains Mono", "JetBrainsMono Nerd Font", ui-monospace, monospace;
+  --crate-label-size: 11px;
+  --crate-label-tracking: 0.12em;
+
+  --font-interface-theme: "Roboto", system-ui, sans-serif;
+  --font-text-theme: "Roboto", system-ui, sans-serif;
+  --font-monospace-theme: var(--crate-font-mono);
+
+  /* #06b6d4 */
+  --accent-h: 189;
+  --accent-s: 94%;
+  --accent-l: 43%;
+
+  --radius-s: 4px;
+  --radius-m: 6px;
+  --radius-l: 6px;
+  --radius-xl: 6px;
+  --input-radius: 6px;
+  --button-radius: 6px;
+  --checkbox-radius: 4px;
+  --clickable-icon-radius: 4px;
+  --callout-radius: 6px;
+  --code-radius: 6px;
+  --modal-radius: 6px;
+  --menu-radius: 6px;
+  --tooltip-radius: 4px;
+  --tab-radius: 4px;
+  --tab-radius-active: 6px 6px 0 0;
+  --tab-curve: 0px;
+  --nav-item-radius: 4px;
+  --metadata-property-radius: 6px;
+  --metadata-property-radius-hover: 6px;
+  --metadata-property-radius-focus: 6px;
+  --setting-items-radius: 6px;
+  --scrollbar-radius: 6px;
+  --table-selection-border-radius: 4px;
+  --status-bar-radius: 6px 0 0 0;
+
+  --border-width: 1px;
+  --hr-thickness: 1px;
+  --blockquote-border-thickness: 2px;
+  --divider-width-hover: 1px;
+  --input-border-width-focus: 1px;
+
+  --bold-weight: 600;
+
+  /* titles: Bricolage at 20 px and up, Roboto below, a mono caps label at h6 */
+  --inline-title-font: var(--crate-font-display);
+  --inline-title-weight: 800;
+  --inline-title-letter-spacing: -0.045em;
+  --h1-font: var(--crate-font-display);
+  --h1-weight: 800;
+  --h1-size: 2.1em;
+  --h1-line-height: 1.1;
+  --h1-letter-spacing: -0.045em;
+  --h2-font: var(--crate-font-display);
+  --h2-weight: 700;
+  --h2-size: 1.6em;
+  --h2-line-height: 1.15;
+  --h2-letter-spacing: -0.03em;
+  --h3-font: var(--crate-font-display);
+  --h3-weight: 700;
+  --h3-size: 1.3em;
+  --h3-line-height: 1.25;
+  --h3-letter-spacing: -0.02em;
+  --h4-weight: 600;
+  --h4-size: 1.1em;
+  --h4-letter-spacing: 0;
+  --h5-weight: 600;
+  --h5-size: 1em;
+  --h5-letter-spacing: 0;
+  --h6-font: var(--crate-font-mono);
+  --h6-weight: 400;
+  --h6-size: 0.8em;
+  --h6-letter-spacing: var(--crate-label-tracking);
+
+  --titlebar-text-weight: 400;
+  --nav-heading-weight: 500;
+  --tab-font-weight: 400;
+  --setting-group-heading-weight: 400;
+  --setting-group-heading-size: var(--crate-label-size);
+
+  --metadata-label-font: var(--crate-font-mono);
+  --metadata-label-font-size: var(--crate-label-size);
+  --status-bar-font-size: var(--crate-label-size);
+
+  --tag-radius: 999px;
+  --tag-border-width: 1px;
+  --pill-radius: 999px;
+  --toggle-radius: 999px;
+  --toggle-thumb-radius: 999px;
+  --toggle-border-width: 2px;
+
+  --link-decoration: none;
+  --link-external-decoration: none;
+  --link-unresolved-decoration-style: dashed;
+}
+
+/* Light mode: Obsidian's own light colours, a cyan dark enough to read on white */
+.theme-light {
+  --accent-h: 192;
+  --accent-s: 91%;
+  --accent-l: 36%;
+}
+
+/* ---------- Colours: dark mode ---------- */
+
+.theme-dark {
+  --crate-canvas: #0a0a0f;
+  --crate-object: #0d0e14;
+  --crate-raised: #0f1016;
+  --crate-popover: #111218;
+  --crate-secondary: #15161d;
+  --crate-text: #f1f5f9;
+  --crate-text-secondary: rgba(241, 245, 249, 0.62);
+  --crate-text-faint: rgba(241, 245, 249, 0.42);
+  --crate-hairline: rgba(241, 245, 249, 0.1);
+  --crate-hairline-strong: rgba(241, 245, 249, 0.16);
+  --crate-accent: #06b6d4;
+  --crate-accent-hi: #67e8f9;
+  --crate-warning: #fbbf24;
+  --crate-danger: #ef4444;
+
+  --color-base-00: #0a0a0f;
+  --color-base-05: #0b0c11;
+  --color-base-10: #0d0e14;
+  --color-base-20: #0f1016;
+  --color-base-25: #111218;
+  --color-base-30: #15161d;
+  --color-base-35: #1b1c24;
+  --color-base-40: #2a2b33;
+  --color-base-50: #6b6e74;
+  --color-base-60: #7e8084;
+  --color-base-70: #999ca0;
+  --color-base-100: #f1f5f9;
+
+  --color-red: #ef4444;
+  --color-red-rgb: 239, 68, 68;
+  --color-orange: #f59e0b;
+  --color-orange-rgb: 245, 158, 11;
+  --color-yellow: #fbbf24;
+  --color-yellow-rgb: 251, 191, 36;
+  --color-green: #22c55e;
+  --color-green-rgb: 34, 197, 94;
+  --color-cyan: #06b6d4;
+  --color-cyan-rgb: 6, 182, 212;
+  --color-blue: #3b82f6;
+  --color-blue-rgb: 59, 130, 246;
+  --color-purple: #a78bfa;
+  --color-purple-rgb: 167, 139, 250;
+  --color-pink: #f472b6;
+  --color-pink-rgb: 244, 114, 182;
+
+  --color-accent: #06b6d4;
+  --color-accent-1: #22d3ee;
+  --color-accent-2: #67e8f9;
+
+  --background-primary: var(--crate-canvas);
+  --background-primary-alt: var(--crate-object);
+  --background-secondary: var(--crate-object);
+  --background-secondary-alt: var(--crate-raised);
+  --background-modifier-hover: rgba(241, 245, 249, 0.05);
+  --background-modifier-active-hover: rgba(6, 182, 212, 0.12);
+  --background-modifier-border: var(--crate-hairline);
+  --background-modifier-border-hover: var(--crate-hairline-strong);
+  --background-modifier-border-focus: rgba(103, 232, 249, 0.55);
+  --background-modifier-form-field: var(--crate-popover);
+  --background-modifier-form-field-hover: var(--crate-popover);
+  --background-modifier-error: var(--crate-danger);
+  --background-modifier-error-hover: var(--crate-danger);
+  --background-modifier-warning: var(--crate-warning);
+  --background-modifier-warning-hover: var(--crate-warning);
+  --background-modifier-success: var(--crate-accent);
+  --background-modifier-message: var(--crate-popover);
+  --background-modifier-cover: rgba(10, 10, 15, 0.72);
+  --background-modifier-box-shadow: rgba(0, 0, 0, 0.5);
+
+  --interactive-normal: rgba(241, 245, 249, 0.03);
+  --interactive-hover: rgba(241, 245, 249, 0.07);
+  --interactive-accent: var(--crate-accent);
+  --interactive-accent-hover: #22d3ee;
+  --interactive-accent-hsl: 189, 94%, 43%;
+
+  --text-normal: var(--crate-text);
+  --text-muted: var(--crate-text-secondary);
+  --text-faint: var(--crate-text-faint);
+  --text-on-accent: #0a0a0f;
+  --text-on-accent-inverted: #f1f5f9;
+  --text-accent: var(--crate-accent-hi);
+  --text-accent-hover: #a5f3fc;
+  --text-error: var(--crate-danger);
+  --text-warning: var(--crate-warning);
+  --text-success: var(--crate-accent-hi);
+  --text-selection: rgba(6, 182, 212, 0.28);
+  --text-highlight-bg: rgba(103, 232, 249, 0.18);
+  --text-highlight-bg-active: rgba(103, 232, 249, 0.32);
+  --caret-color: var(--crate-accent-hi);
+
+  /* hairlines, not shadows */
+  --input-shadow: inset 0 0 0 1px var(--crate-hairline-strong);
+  --input-shadow-hover: inset 0 0 0 1px rgba(241, 245, 249, 0.24);
+  --shadow-s: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-l: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --modal-border-color: var(--crate-hairline-strong);
+  --prompt-border-color: var(--crate-hairline-strong);
+  --menu-background: var(--crate-popover);
+  --menu-border-color: var(--crate-hairline-strong);
+  --modal-background: var(--crate-object);
+  --prompt-background: var(--crate-object);
+  --tooltip-background: var(--crate-popover);
+  --tooltip-color: var(--crate-text);
+
+  --titlebar-background: var(--crate-canvas);
+  --titlebar-background-focused: var(--crate-canvas);
+  --titlebar-text-color: var(--crate-text-faint);
+  --titlebar-text-color-focused: var(--crate-text-secondary);
+  --titlebar-border-width: 1px;
+  --titlebar-border-color: var(--crate-hairline);
+  --ribbon-background: var(--crate-canvas);
+  --ribbon-background-collapsed: var(--crate-canvas);
+  --divider-color: var(--crate-hairline);
+  --divider-color-hover: var(--crate-accent);
+
+  --tab-container-background: var(--crate-canvas);
+  --tab-background-active: var(--crate-canvas);
+  --tab-outline-color: var(--crate-hairline);
+  --tab-divider-color: var(--crate-hairline);
+  --tab-text-color: var(--crate-text-faint);
+  --tab-text-color-active: var(--crate-text-secondary);
+  --tab-text-color-focused: var(--crate-text-secondary);
+  --tab-text-color-focused-active: var(--crate-text-secondary);
+  --tab-text-color-focused-active-current: var(--crate-text);
+  --tab-text-color-focused-highlighted: var(--crate-accent-hi);
+
+  --nav-item-color: var(--crate-text-secondary);
+  --nav-item-color-hover: var(--crate-text);
+  --nav-item-color-active: var(--crate-accent-hi);
+  --nav-item-color-selected: var(--crate-text);
+  --nav-item-color-highlighted: var(--crate-accent-hi);
+  --nav-item-background-hover: rgba(241, 245, 249, 0.04);
+  --nav-item-background-active: rgba(6, 182, 212, 0.1);
+  --nav-item-background-selected: rgba(6, 182, 212, 0.16);
+  --nav-heading-color: var(--crate-text);
+  --nav-collapse-icon-color: var(--crate-text-faint);
+  --collapse-icon-color-collapsed: var(--crate-accent-hi);
+
+  --status-bar-background: var(--crate-canvas);
+  --status-bar-border-color: var(--crate-hairline);
+  --status-bar-text-color: var(--crate-text-faint);
+
+  --icon-color: var(--crate-text-secondary);
+  --icon-color-hover: var(--crate-text);
+  --icon-color-active: var(--crate-accent-hi);
+  --icon-color-focused: var(--crate-text);
+
+  --link-color: var(--crate-accent-hi);
+  --link-color-hover: #a5f3fc;
+  --link-external-color: var(--crate-accent-hi);
+  --link-external-color-hover: #a5f3fc;
+  --link-unresolved-color: var(--crate-accent-hi);
+  --link-unresolved-opacity: 0.6;
+  --link-unresolved-decoration-color: rgba(103, 232, 249, 0.4);
+
+  --tag-color: var(--crate-accent-hi);
+  --tag-color-hover: var(--crate-accent-hi);
+  --tag-background: transparent;
+  --tag-background-hover: rgba(6, 182, 212, 0.1);
+  --tag-border-color: rgba(103, 232, 249, 0.3);
+  --tag-border-color-hover: rgba(103, 232, 249, 0.55);
+
+  --pill-border-color: var(--crate-hairline-strong);
+  --pill-color: var(--crate-text-secondary);
+
+  --checkbox-color: var(--crate-accent);
+  --checkbox-color-hover: #22d3ee;
+  --checkbox-marker-color: #0a0a0f;
+  --checkbox-border-color: var(--crate-text-faint);
+  --checkbox-border-color-hover: var(--crate-text-secondary);
+  --checklist-done-color: var(--crate-text-faint);
+
+  --toggle-thumb-color: var(--crate-text);
+  --slider-thumb-background: var(--crate-text);
+  --slider-track-background: var(--crate-hairline-strong);
+
+  --blockquote-border-color: var(--crate-accent);
+  --hr-color: var(--crate-hairline);
+  --heading-formatting: var(--crate-text-faint);
+  --list-marker-color: var(--crate-text-faint);
+  --list-marker-color-collapsed: var(--crate-accent-hi);
+  --indentation-guide-color: rgba(241, 245, 249, 0.08);
+  --indentation-guide-color-active: rgba(241, 245, 249, 0.2);
+  --scrollbar-thumb-bg: rgba(241, 245, 249, 0.1);
+  --scrollbar-active-thumb-bg: rgba(241, 245, 249, 0.2);
+
+  --code-background: var(--crate-object);
+  --code-border-width: 1px;
+  --code-border-color: var(--crate-hairline);
+  --code-normal: var(--crate-text);
+  --code-comment: var(--crate-text-faint);
+  --code-punctuation: var(--crate-text-secondary);
+  --code-operator: var(--crate-text-secondary);
+  --code-keyword: var(--crate-accent-hi);
+  --code-tag: var(--crate-accent-hi);
+  --code-property: #a5f3fc;
+  --code-function: var(--crate-text);
+  --code-string: #a5f3fc;
+  --code-value: #22d3ee;
+  --code-important: var(--crate-warning);
+
+  --table-border-color: var(--crate-hairline);
+  --table-header-background: transparent;
+  --table-header-color: var(--crate-text-secondary);
+  --table-row-background-hover: rgba(241, 245, 249, 0.03);
+  --table-selection: rgba(6, 182, 212, 0.12);
+
+  --metadata-label-text-color: var(--crate-text-faint);
+  --metadata-divider-color: var(--crate-hairline);
+  --metadata-border-color: var(--crate-hairline);
+  --metadata-property-box-shadow-hover: 0 0 0 1px var(--crate-hairline-strong);
+  --metadata-property-box-shadow-focus: 0 0 0 1px rgba(103, 232, 249, 0.55);
+
+  --setting-items-background: transparent;
+  --setting-items-border-width: 1px;
+  --setting-items-border-color: var(--crate-hairline);
+  --setting-items-divider-color: var(--crate-hairline);
+  --setting-group-heading-color: var(--crate-text-faint);
+
+  --graph-line: rgba(241, 245, 249, 0.14);
+  --graph-node: var(--crate-text-secondary);
+  --graph-node-unresolved: var(--crate-text-faint);
+  --graph-node-focused: var(--crate-accent-hi);
+  --graph-node-tag: var(--crate-accent);
+  --graph-node-attachment: var(--crate-text-faint);
+  --graph-text: var(--crate-text);
+
+  --canvas-background: var(--crate-canvas);
+  --canvas-dot-pattern: rgba(241, 245, 249, 0.12);
+
+  /* callouts: cyan for information, amber for caution, red for danger */
+  --callout-border-width: 1px;
+  --callout-border-opacity: 0.35;
+  --callout-default: var(--crate-accent);
+  --callout-info: var(--crate-accent);
+  --callout-todo: var(--crate-accent);
+  --callout-summary: var(--crate-accent-hi);
+  --callout-tip: var(--crate-accent-hi);
+  --callout-important: var(--crate-accent-hi);
+  --callout-success: var(--crate-accent-hi);
+  --callout-example: var(--crate-text-secondary);
+  --callout-quote: var(--crate-text-faint);
+  --callout-question: var(--crate-warning);
+  --callout-warning: var(--crate-warning);
+  --callout-error: var(--crate-danger);
+  --callout-fail: var(--crate-danger);
+  --callout-bug: var(--crate-danger);
+}
+
+/* ---------- A few rules variables cannot reach ---------- */
+
+/* h6 and the other labels: JetBrains Mono caps, Crate's MonoLabel */
+.markdown-rendered h6,
+.HyperMD-header-6,
+.vertical-tab-header-group-title,
+.setting-group .setting-item-heading .setting-item-name,
+.metadata-property-key-input,
+.status-bar,
+.nav-folder.mod-root > .nav-folder-title {
+  font-family: var(--crate-font-mono);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: var(--crate-label-tracking);
+}
+
+.vertical-tab-header-group-title,
+.setting-group .setting-item-heading .setting-item-name {
+  font-size: var(--crate-label-size);
+  color: var(--text-faint);
+}
+
+/* the vault name and the settings pane titles take the display face */
+.modal .modal-title,
+.workspace-tab-header-container .workspace-sidedock-vault-profile .workspace-drawer-vault-name {
+  font-family: var(--crate-font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/* tags read as Crate's hairline chips */
+.theme-dark a.tag,
+.theme-dark .cm-hashtag {
+  font-size: 0.85em;
+}
+
+/* the focused tab is marked by a cyan rule, not a raised fill */
+.theme-dark .workspace .mod-root .workspace-tab-header.is-active.mod-active .workspace-tab-header-inner-title {
+  color: var(--text-normal);
+}
+
+.theme-dark .workspace .mod-root .workspace-tab-header.is-active.mod-active .workspace-tab-header-inner {
+  box-shadow: inset 0 -1px 0 var(--crate-accent-hi);
+}
+
+/* primary buttons: a cyan fill with the canvas colour on it */
+.theme-dark button.mod-cta {
+  color: var(--text-on-accent);
+  font-weight: 500;
+}
+
+/* the active file in the explorer: a cyan mark at the edge */
+.theme-dark .nav-file-title.is-active,
+.theme-dark .tree-item-self.is-active {
+  box-shadow: inset 2px 0 0 var(--crate-accent);
+}
+
+/* callouts: a hairline in the callout's colour over a barely tinted canvas */
+.theme-dark .callout {
+  background-color: color-mix(in srgb, var(--callout-color) 5%, transparent);
+}
+
+/* table headers read as mono caps labels */
+.markdown-rendered th {
+  font-family: var(--crate-font-mono);
+  font-weight: 400;
+  font-size: var(--crate-label-size);
+  text-transform: uppercase;
+  letter-spacing: var(--crate-label-tracking);
+  color: var(--text-faint);
+}
+
+/* numbers that change sit on a fixed grid, as in Crate */
+.status-bar,
+.markdown-rendered table {
+  font-variant-numeric: tabular-nums;
+}

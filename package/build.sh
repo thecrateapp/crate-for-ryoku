@@ -28,6 +28,8 @@ cp "$SRC"/package/systemd/crate-icons-auto.{path,service} "$OUT/systemd/"
 cp "$SRC/package/crate-presence.sh" "$OUT/crate-presence.sh"
 mkdir -p "$OUT/shell" && cp "$SRC/shell/crate-prompt.fish" "$SRC/shell/eza-theme.yml" "$OUT/shell/"
 mkdir -p "$OUT/apps/zapfast" && cp "$SRC/apps/zapfast/Crate.json" "$OUT/apps/zapfast/"
+# the Obsidian theme, fonts inlined
+python3 "$SRC/apps/build.py" "$OUT/apps" >/dev/null
 cp -a "$SRC/plugin/crate-mark" "$OUT/plugin/crate-mark"
 # the Crate Palette launcher, without its tests and tools
 mkdir -p "$OUT/launcher/crate-palette"
@@ -39,16 +41,17 @@ cp "$SRC"/build/wallpapers/crate-{groove,sheen}-*.webp "$OUT/wallpapers/"
 chat_wall=$SRC/build/wallpapers/zapfast-chat.webp
 [ -s "$chat_wall" ] || python3 "$SRC/wallpaper/chat.py" "$SRC/build/wallpapers/crate-groove-3840x2400.webp" "$chat_wall"
 cp "$chat_wall" "$OUT/apps/zapfast/chat.webp"
-cp "$SRC/package/install.sh" "$SRC/package/uninstall.sh" "$SRC/package/README.md" "$SRC/package/VERSION" "$OUT/"
+cp "$SRC/package/install.sh" "$SRC/package/uninstall.sh" "$SRC/package/apps.sh" "$SRC/package/README.md" "$SRC/package/VERSION" "$OUT/"
 cp "$SRC/LICENSE" "$SRC/NOTICE" "$OUT/"
 mkdir -p "$OUT/bin" && cp "$SRC/bin/crate-for-ryoku" "$OUT/bin/" && chmod +x "$OUT/bin/crate-for-ryoku"
-chmod +x "$OUT/install.sh" "$OUT/uninstall.sh" "$OUT/crate-presence.sh"
+chmod +x "$OUT/install.sh" "$OUT/uninstall.sh" "$OUT/apps.sh" "$OUT/crate-presence.sh"
 
 if command -v ryoku >/dev/null; then
   ryoku plugin validate "$OUT/plugin/crate-mark"
 fi
 bash -n "$OUT/install.sh"
 bash -n "$OUT/uninstall.sh"
+bash -n "$OUT/apps.sh"
 bash -n "$OUT/crate-presence.sh"
 bash -n "$OUT/bin/crate-for-ryoku"
 python3 -m py_compile "$OUT"/icons/{crateize,build_icons,app_glyphs}.py && rm -rf -- "$OUT/icons/__pycache__"

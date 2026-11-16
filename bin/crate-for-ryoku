@@ -62,6 +62,7 @@ case $cmd in
     mark "eza theme" 'head -1 "$CFG/eza/theme.yml" | grep -q -E "^# crate-(rice|for-ryoku): eza"'
     mark "fish prompt (Pure)" '[ -f "$CFG/fish/conf.d/crate-prompt.fish" ]'
     mark "Crate app" 'command -v crate-desktop'
+    bash "$HOME_DIR/apps.sh" status
     ;;
   -h|--help|help) usage ;;
   *) echo "crate-for-ryoku: unknown command $cmd" >&2; usage >&2; exit 2 ;;

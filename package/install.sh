@@ -14,6 +14,7 @@ PICS=$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")
 WALLDIR=$PICS/Wallpapers
 
 APPLY=1 ICONS=1 AUTO=1 PLUGIN=1 WALLS=1 REAPPLY=0
+APP_OPTS=()
 
 usage() {
   cat <<EOF
@@ -27,6 +28,7 @@ usage: install.sh [options]
   --no-wallpapers  do not copy the wallpaper set into $WALLDIR
   --reapply        apply the rice again even if Crate is already active
                    (Ryoku's .previous snapshot then holds the current Crate state)
+  --no-obsidian    do not copy the Crate theme into your Obsidian vaults
   -h, --help       this help
 EOF
 }
@@ -39,6 +41,7 @@ for a in "$@"; do
     --no-plugin) PLUGIN=0 ;;
     --no-wallpapers) WALLS=0 ;;
     --reapply) REAPPLY=1 ;;
+    --no-obsidian) APP_OPTS+=("$a") ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $a" >&2; usage >&2; exit 2 ;;
   esac
@@ -246,6 +249,9 @@ if command -v zapfast >/dev/null || [ -d "$CFG/zapfast" ]; then
   mkdir -p "$DATA/crate-for-ryoku/zapfast" && cp "$HERE/apps/zapfast/chat.webp" "$DATA/crate-for-ryoku/zapfast/chat.webp"
   say "ZapFast: chat wallpaper $DATA/crate-for-ryoku/zapfast/chat.webp (Settings > Appearance > Wallpaper)"
 fi
+
+# Obsidian in Crate's look (apps.sh): the theme in every vault, picked by you
+bash "$HERE/apps.sh" install ${APP_OPTS[@]+"${APP_OPTS[@]}"} || warn "the app themes did not install cleanly (bash $HERE/apps.sh status)"
 
 # what is installed, and a marker command Ryostore's bundle detects this
 # per-user setup by (crate-for-ryoku-installed prints the version)

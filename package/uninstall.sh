@@ -4,6 +4,7 @@
 # you pass --purge.
 set -euo pipefail
 
+HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 CFG=${XDG_CONFIG_HOME:-$HOME/.config}
 DATA=${XDG_DATA_HOME:-$HOME/.local/share}
 STATE=${XDG_STATE_HOME:-$HOME/.local/state}/crate-for-ryoku
@@ -45,6 +46,12 @@ target=${PREV_ICON_THEME:-Papirus-Dark}
 [ "$target" = crate-icons ] && target=Papirus-Dark
 say "icon theme -> $target"
 ryoku-hub desktop icon-theme set "$target" || warn "could not set $target; choose one in Ryoku Settings > App icon theme"
+
+# the app themes: Obsidian vaults lose only the copies still exactly as
+# installed (apps.sh keeps the record)
+if [ "$KEEP" = 0 ]; then
+  bash "$HERE/apps.sh" uninstall || warn "the app themes did not uninstall cleanly"
+fi
 
 if [ "$KEEP" = 0 ]; then
   if ryoku plugin list 2>/dev/null | grep -q 'crate-mark'; then
