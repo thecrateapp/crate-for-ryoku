@@ -29,6 +29,13 @@ usage: install.sh [options]
   --reapply        apply the rice again even if Crate is already active
                    (Ryoku's .previous snapshot then holds the current Crate state)
   --no-obsidian    do not copy the Crate theme into your Obsidian vaults
+  --firefox-chrome replace your Firefox profile's chrome/ folder (WhiteSur, say)
+                   with Crate's userChrome.css; the old one is kept and restored
+                   by uninstall
+  --firefox-profile=DIR
+                   the Firefox profile for --firefox-chrome (default: the one
+                   Firefox starts with)
+  --firefox-theme  open the Crate theme add-on in Firefox to install it
   -h, --help       this help
 EOF
 }
@@ -41,7 +48,7 @@ for a in "$@"; do
     --no-plugin) PLUGIN=0 ;;
     --no-wallpapers) WALLS=0 ;;
     --reapply) REAPPLY=1 ;;
-    --no-obsidian) APP_OPTS+=("$a") ;;
+    --no-obsidian|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $a" >&2; usage >&2; exit 2 ;;
   esac
@@ -250,7 +257,8 @@ if command -v zapfast >/dev/null || [ -d "$CFG/zapfast" ]; then
   say "ZapFast: chat wallpaper $DATA/crate-for-ryoku/zapfast/chat.webp (Settings > Appearance > Wallpaper)"
 fi
 
-# Obsidian in Crate's look (apps.sh): the theme in every vault, picked by you
+# Obsidian, Firefox and Chrome in Crate's look (apps.sh): the Obsidian theme
+# in every vault, the rest only when asked for
 bash "$HERE/apps.sh" install ${APP_OPTS[@]+"${APP_OPTS[@]}"} || warn "the app themes did not install cleanly (bash $HERE/apps.sh status)"
 
 # what is installed, and a marker command Ryostore's bundle detects this

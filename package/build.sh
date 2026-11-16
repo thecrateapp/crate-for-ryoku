@@ -28,8 +28,12 @@ cp "$SRC"/package/systemd/crate-icons-auto.{path,service} "$OUT/systemd/"
 cp "$SRC/package/crate-presence.sh" "$OUT/crate-presence.sh"
 mkdir -p "$OUT/shell" && cp "$SRC/shell/crate-prompt.fish" "$SRC/shell/eza-theme.yml" "$OUT/shell/"
 mkdir -p "$OUT/apps/zapfast" && cp "$SRC/apps/zapfast/Crate.json" "$OUT/apps/zapfast/"
-# the Obsidian theme, fonts inlined
+# Obsidian, Firefox and Chrome themes (fonts inlined, the add-on zipped); a
+# Firefox add-on AMO has signed ships beside them (apps/firefox/signed/)
 python3 "$SRC/apps/build.py" "$OUT/apps" >/dev/null
+if ls "$SRC"/apps/firefox/signed/*.xpi >/dev/null 2>&1; then
+  mkdir -p "$OUT/apps/firefox/signed" && cp "$SRC"/apps/firefox/signed/*.xpi "$OUT/apps/firefox/signed/"
+fi
 cp -a "$SRC/plugin/crate-mark" "$OUT/plugin/crate-mark"
 # the Crate Palette launcher, without its tests and tools
 mkdir -p "$OUT/launcher/crate-palette"

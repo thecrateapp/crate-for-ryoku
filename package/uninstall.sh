@@ -20,6 +20,7 @@ for a in "$@"; do
       cat <<EOF
 usage: uninstall.sh [--keep-files] [--purge]
   --keep-files  only revert the look; leave the theme, icons, rice and plugin installed
+                (Firefox gets its own chrome/ folder back either way)
   --purge       also delete the crate-*.webp wallpapers from $WALLDIR
 EOF
       exit 0 ;;
@@ -47,10 +48,12 @@ target=${PREV_ICON_THEME:-Papirus-Dark}
 say "icon theme -> $target"
 ryoku-hub desktop icon-theme set "$target" || warn "could not set $target; choose one in Ryoku Settings > App icon theme"
 
-# the app themes: Obsidian vaults lose only the copies still exactly as
-# installed (apps.sh keeps the record)
+# the app themes: Firefox's chrome/ goes back to yours; Obsidian vaults lose
+# only the copies still exactly as installed (apps.sh keeps the record)
 if [ "$KEEP" = 0 ]; then
   bash "$HERE/apps.sh" uninstall || warn "the app themes did not uninstall cleanly"
+else
+  CRATE_APPS_ONLY=firefox bash "$HERE/apps.sh" uninstall || warn "could not restore Firefox's chrome/ folder"
 fi
 
 if [ "$KEEP" = 0 ]; then

@@ -1,0 +1,18 @@
+{
+  "categories": {
+    "firefox": ["solid"]
+  },
+  "summary": {
+    "en-US": "Crate's look for Firefox: a near-black canvas, hairlines instead of filled boxes and one cyan accent."
+  },
+  "description": {
+    "en-US": "The look of Crate (https://cratemusic.app), the self-hosted music app, on Firefox: the frame, tabs and toolbars sit on Crate's near-black canvas, the selected tab and the focused address bar carry a thin cyan line, menus and panels are drawn in Crate's popover colour with hairline borders, and Firefox's own pages open dark.\n\nIt is a colour theme only: no permissions, no scripts, no data collected.\n\nPart of Crate for Ryoku (https://github.com/thecrateapp/crate-for-ryoku), which can also give Firefox Crate's fonts and 6 px corners through userChrome.css."
+  },
+  "homepage": {
+    "en-US": "https://github.com/thecrateapp/crate-for-ryoku"
+  },
+  "default_locale": "en-US",
+  "version": {
+    "license": "MIT"
+  }
+}

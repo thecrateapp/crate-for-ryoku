@@ -1,0 +1,123 @@
+/*
+ * crate-for-ryoku: Firefox userContent.css
+ *
+ * Crate's look on Firefox's own pages (about:newtab, about:home, settings,
+ * add-ons and the other about: pages) and a canvas-coloured about:blank.
+ * Websites are left alone. Fonts: fonts/ beside this file (OFL 1.1).
+ */
+
+@font-face {
+  font-family: "Roboto";
+  font-weight: 100 900;
+  src: url("fonts/roboto-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-weight: 200 800;
+  src: url("fonts/bricolage-grotesque-latin-opsz-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 400;
+  src: url("fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+}
+
+@-moz-document url("about:blank") {
+  :root {
+    background-color: #0a0a0f !important;
+  }
+}
+
+@-moz-document url-prefix("about:"), url-prefix("chrome://") {
+  :root {
+    --crate-canvas: #0a0a0f;
+    --crate-object: #0d0e14;
+    --crate-popover: #111218;
+    --crate-text: #f1f5f9;
+    --crate-text-secondary: rgba(241, 245, 249, 0.62);
+    --crate-text-faint: rgba(241, 245, 249, 0.42);
+    --crate-hairline: rgba(241, 245, 249, 0.1);
+    --crate-accent: #06b6d4;
+    --crate-accent-hi: #67e8f9;
+
+    --background-color-canvas: var(--crate-canvas) !important;
+    --background-color-box: var(--crate-object) !important;
+    --background-color-box-info: var(--crate-object) !important;
+    --text-color: var(--crate-text) !important;
+    --text-color-deemphasized: var(--crate-text-secondary) !important;
+    --border-color: var(--crate-hairline) !important;
+    --border-color-deemphasized: var(--crate-hairline) !important;
+    --border-color-interactive: rgba(241, 245, 249, 0.24) !important;
+    --color-accent-primary: var(--crate-accent) !important;
+    --color-accent-primary-hover: #22d3ee !important;
+    --color-accent-primary-active: var(--crate-accent-hi) !important;
+    --button-background-color: transparent !important;
+    --button-background-color-hover: rgba(241, 245, 249, 0.06) !important;
+    --button-background-color-active: rgba(241, 245, 249, 0.1) !important;
+    --button-border-color: rgba(241, 245, 249, 0.16) !important;
+    --button-text-color: var(--crate-text) !important;
+    --page-nav-button-background-color: transparent !important;
+    --page-nav-button-background-color-hover: rgba(241, 245, 249, 0.05) !important;
+    --page-nav-button-background-color-active: rgba(241, 245, 249, 0.08) !important;
+    --page-nav-button-background-color-selected: rgba(6, 182, 212, 0.1) !important;
+    --page-nav-button-text-color-selected: var(--crate-accent-hi) !important;
+    --page-nav-button-indicator-background-color: var(--crate-accent) !important;
+    --page-nav-border-color: var(--crate-hairline) !important;
+    --button-background-color-primary: var(--crate-accent) !important;
+    --button-text-color-primary: var(--crate-canvas) !important;
+    --focus-outline-color: var(--crate-accent-hi) !important;
+    --link-color: var(--crate-accent-hi) !important;
+    --border-radius-small: 4px !important;
+    --border-radius-medium: 6px !important;
+    --border-radius-large: 6px !important;
+
+    --in-content-page-background: var(--crate-canvas) !important;
+    --in-content-page-color: var(--crate-text) !important;
+    --in-content-box-background: var(--crate-object) !important;
+    --in-content-border-color: var(--crate-hairline) !important;
+
+    --newtab-background-color: var(--crate-canvas) !important;
+    --newtab-background-color-secondary: var(--crate-object) !important;
+    --newtab-text-primary-color: var(--crate-text) !important;
+    --newtab-text-secondary-color: var(--crate-text-secondary) !important;
+    --newtab-border-color: var(--crate-hairline) !important;
+    --newtab-element-hover-color: rgba(241, 245, 249, 0.05) !important;
+    --newtab-primary-action-background: var(--crate-accent) !important;
+
+    --font-family: "Roboto", system-ui, sans-serif !important;
+    color-scheme: dark !important;
+    scrollbar-color: rgba(241, 245, 249, 0.16) transparent;
+  }
+
+  body {
+    font-family: "Roboto", system-ui, sans-serif !important;
+  }
+
+  h1 {
+    font-family: "Bricolage Grotesque", "Roboto", sans-serif !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  /* JetBrains Mono caps for the small section labels */
+  .section-title,
+  .section-title-label,
+  .subcategory > h2,
+  .search-header {
+    font-family: "JetBrains Mono", ui-monospace, monospace !important;
+    font-weight: 400 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  /* hairlines, not shadows, on cards and the new tab search box */
+  .card,
+  .top-site-outer .tile,
+  .search-wrapper .search-handoff-button,
+  .search-wrapper input {
+    box-shadow: none !important;
+    border: 1px solid var(--crate-hairline) !important;
+  }
+}
