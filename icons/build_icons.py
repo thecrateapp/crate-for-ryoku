@@ -200,6 +200,7 @@ BRAND_FIT = {
 BRAND_ACCENT = {
     "tabler/brand-chrome": (1,), "tabler/brand-firefox": (1,), "tabler/brand-mongodb": (0,),
     "tabler/brand-slack": (0,), "tabler/brand-steam": (1,), "tabler/brand-whatsapp": (1,),
+    "tabler/brand-discord": (0, 1), "tabler/brand-vscode": (0,), "tabler/brand-github": (0,),
     "simple-icons/cachyos": (1, 2, 3), "simple-icons/cmake": (3,), "simple-icons/electron": (5,),
     "simple-icons/jetbrains": (1,), "simple-icons/localsend": (1, 2, 3, 4, 5, 6, 7, 8),
     "simple-icons/mpv": (4,), "simple-icons/nvidia": (0,), "simple-icons/obsidian": (2,),
@@ -207,6 +208,11 @@ BRAND_ACCENT = {
     "simple-icons/qemu": (2,), "simple-icons/thunderbird": (1,), "simple-icons/vim": (1, 2, 4),
     "simple-icons/webstorm": (3,), "simple-icons/wine": (1,),
 }
+
+# line marks drawn as one path whose accent is one of its subpaths: the path is
+# split (split_subpaths) and BRAND_ACCENT indexes the pieces. GitHub: the
+# Octocat's arm, the line that leaves the silhouette.
+BRAND_SPLIT = {"tabler/brand-github"}
 
 
 _TOK = re.compile(r"[MmLlHhVvCcSsQqTtAaZz]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
@@ -281,6 +287,10 @@ def brand_glyph(key, sw):
         subs = split_subpaths(d)
         parts += [f'<path d="{subs[i]}" fill="{cyan[0]}"/>' for i in accent]
         return f"<g {place}>" + "".join(parts) + "</g>"
+    if key in BRAND_SPLIT:
+        elements = [(tag, re.sub(r'\sd="[^"]*"', f' d="{sub}"', attrs))
+                    for tag, attrs in elements
+                    for sub in split_subpaths(re.search(r'\sd="([^"]*)"', attrs).group(1))]
     parts = []
     # the accent goes last, so the ink crossing it never cuts it
     for i, (tag, attrs) in sorted(enumerate(elements), key=lambda e: e[0] in accent):
