@@ -15,6 +15,7 @@ Item {
     property date now: new Date()
 
     readonly property bool fontsReady: CratePalette.fontsReady
+    readonly property bool reduceMotion: CratePalette.reduceMotion
     readonly property bool tokensLinked: CratePalette.tokensLinked
     readonly property string displayFamily: CratePalette.displayFamily
 

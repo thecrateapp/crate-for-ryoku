@@ -30,6 +30,8 @@ QtObject {
                 'import QtQuick\nimport Ryoku.Ui.Singletons as R\n'
                 + 'QtObject { readonly property bool reduceMotion: R.Tokens.controlsCrate === true && R.Tokens.reduceMotion === true }',
                 palette, "CratePaletteTokens");
+            if (!tokensProbe)
+                return;
             reduceMotion = Qt.binding(() => tokensProbe.reduceMotion);
             tokensLinked = true;
         } catch (e) {
