@@ -114,6 +114,12 @@ def test_firefox_settings_nav_is_a_cyan_mark_not_a_pill(out):
     assert decls["--input-search-border-radius"] == "6px"
 
 
+def test_firefox_tabs_sit_off_the_strip_edges(out):
+    text = (out / "firefox/chrome/userChrome.css").read_text()
+    assert "--tab-margin-block: 6px !important;" in text
+    assert re.search(r"#TabsToolbar\s*\{\s*padding-inline: 6px !important;", text)
+
+
 def test_chrome_theme_has_a_fixed_id_and_crate_colours(out):
     m = json.load(open(out / "chrome/crate-theme/manifest.json"))
     assert build.chrome_id(m["key"]) == "jddiejdibphncbpfehopofclalbeghbc"

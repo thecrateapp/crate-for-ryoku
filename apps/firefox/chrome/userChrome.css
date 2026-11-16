@@ -131,6 +131,16 @@ panelview,
   font-family: var(--crate-font-body) !important;
 }
 
+/* breathing room: the tabs sit 6 px off the strip's edges instead of
+   touching the window edge */
+:root {
+  --tab-margin-block: 6px !important;
+}
+
+#TabsToolbar {
+  padding-inline: 6px !important;
+}
+
 /* the selected tab: a cyan hairline, not a raised fill */
 .tabbrowser-tab:is([selected], [multiselected]) .tab-background {
   outline: 1px solid rgba(103, 232, 249, 0.55) !important;
