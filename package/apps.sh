@@ -20,8 +20,9 @@
 #   Firefox reads them at start: restart it. --no-firefox leaves Firefox alone.
 # Firefox theme add-on, opt-in (--firefox-theme): opens the signed add-on (or
 #   its addons.mozilla.org page) in Firefox, which asks before installing.
-# Chrome: a root package (crate-for-ryoku-chrome-theme) or the Chrome Web
-#   Store; nothing per user, so only status reports it.
+# Chrome: the crate-for-ryoku package offers the theme to every user (an
+#   external-extension file for Google Chrome and Chromium); nothing per user,
+#   so only status reports it.
 #
 # Everything installed is recorded under $STATE/apps with checksums, so
 # uninstall removes only files that are still exactly what it put there.

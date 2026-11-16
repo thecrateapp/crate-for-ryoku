@@ -13,6 +13,7 @@ pkgbase = crate-for-ryoku
 	makedepends = qt6-imageformats
 	makedepends = python-fonttools
 	makedepends = python-brotli
+	makedepends = openssl
 	depends = ryoku-desktop
 	depends = python
 	depends = python-numpy

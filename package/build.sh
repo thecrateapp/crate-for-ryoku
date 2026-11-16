@@ -4,7 +4,8 @@
 #   dist/crate-for-ryoku-<version>.tar.gz  (with SHA256SUMS inside)
 # The icon theme is regenerated from build_icons.py and the Crate logo; the
 # wallpapers are rendered by wallpaper/render.sh into build/ (kept between
-# builds). The lock skins are built by build-lockscreen.sh with fresh assets.
+# builds). The lock skins are built by build-lockscreen.sh with fresh assets;
+# the Chrome .crx by build-chrome.sh, only where the signing key is.
 set -euo pipefail
 
 SRC=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -35,6 +36,9 @@ python3 "$SRC/apps/build.py" "$OUT/apps" >/dev/null
 if ls "$SRC"/apps/firefox/signed/*.xpi >/dev/null 2>&1; then
   mkdir -p "$OUT/apps/firefox/signed" && cp "$SRC"/apps/firefox/signed/*.xpi "$OUT/apps/firefox/signed/"
 fi
+# the Chrome theme as a signed .crx and its external-extension file, which the
+# package offers to Chrome and Chromium; skipped (with a warning) without the key
+bash "$SRC/package/build-chrome.sh" "$OUT/chrome"
 cp -a "$SRC/plugin/crate-mark" "$OUT/plugin/crate-mark"
 # the Crate Palette launcher, without its tests and tools
 mkdir -p "$OUT/launcher/crate-palette"

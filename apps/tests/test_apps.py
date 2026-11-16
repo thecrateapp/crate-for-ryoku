@@ -582,9 +582,10 @@ def test_chrome_manifest_icons_exist_and_the_package_uses_the_same_id():
     m = json.load(open(os.path.join(APPS, "chrome/theme/manifest.json")))
     for rel in m.get("icons", {}).values():
         assert os.path.isfile(os.path.join(APPS, "chrome/theme", rel)), rel
-    pkg = os.path.join(ROOT, "packaging/aur/crate-for-ryoku-chrome-theme")
-    pkgbuild = open(os.path.join(pkg, "PKGBUILD")).read()
-    assert "_id=jddiejdibphncbpfehopofclalbeghbc" in pkgbuild
-    ext = json.load(open(os.path.join(pkg, "jddiejdibphncbpfehopofclalbeghbc.json")))
-    assert ext["external_crx"] == "/usr/share/crate-for-ryoku/chrome/crate-theme.crx"
+    pkgbuild = open(os.path.join(ROOT, "packaging/aur/crate-for-ryoku/PKGBUILD")).read()
+    assert f"_chrome_id={build.chrome_id(m['key'])}" in pkgbuild
+    ext = json.load(open(os.path.join(APPS, "chrome/external/crx.json")))
+    assert ext == {"external_crx": "/usr/share/crate-for-ryoku/chrome/crate-theme.crx", "external_version": "@VERSION@"}
+    assert f"CHROME_CRX={ext['external_crx']}" in open(APPS_SH).read()
+    assert not os.path.exists(os.path.join(ROOT, "packaging/aur/crate-for-ryoku-chrome-theme"))
     assert not [f for f in os.listdir(os.path.join(APPS, "chrome/theme")) if f.endswith((".pem", ".pak"))]
