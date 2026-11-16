@@ -57,6 +57,7 @@ so `.previous` keeps pointing at the look you had before Crate.
 - `ttf-jetbrains-mono-nerd` (the QS Bar font).
 - For the graded app icons: `python-numpy`, `python-pillow`, `librsvg`. Without them `install.sh`
   skips that step and apps keep their Papirus icons.
+- For the lock skins' WebP backgrounds: `qt6-imageformats` (the pacman package depends on it).
 
 ## Known limits (Ryoku 1.0.7)
 

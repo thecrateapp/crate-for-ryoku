@@ -10,8 +10,8 @@ pkgdesc="Crate for Ryoku: Crate's look and Crate integration for the Ryoku deskt
 arch=('any')
 url="https://github.com/thecrateapp/crate-for-ryoku"
 license=('MIT' 'CC-BY-4.0' 'OFL-1.1')
-depends=('ryoku-desktop' 'python' 'python-numpy' 'python-pillow' 'librsvg' 'fontconfig')
-makedepends=('git' 'python-cairo' 'quickshell' 'python-fonttools' 'python-brotli')
+depends=('ryoku-desktop' 'python' 'python-numpy' 'python-pillow' 'librsvg' 'fontconfig' 'qt6-imageformats')
+makedepends=('git' 'python-cairo' 'quickshell' 'qt6-imageformats' 'python-fonttools' 'python-brotli')
 optdepends=(
   'crate-desktop-bin: the Crate app (now playing, the launcher provider, the bar panel)'
   'eza: the Crate eza theme'
