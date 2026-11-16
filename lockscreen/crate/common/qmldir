@@ -1,0 +1,11 @@
+module common
+singleton CratePalette 1.0 CratePalette.qml
+Background 1.0 Background.qml
+PasswordField 1.0 PasswordField.qml
+AuthHint 1.0 AuthHint.qml
+ErrorLine 1.0 ErrorLine.qml
+HoverLink 1.0 HoverLink.qml
+PowerRow 1.0 PowerRow.qml
+UserSwitch 1.0 UserSwitch.qml
+NowPlaying 1.0 NowPlaying.qml
+SkinRoot 1.0 SkinRoot.qml

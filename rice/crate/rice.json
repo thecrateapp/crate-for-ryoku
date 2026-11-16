@@ -22,7 +22,8 @@
       "JetBrainsMono Nerd Font"
     ],
     "hero": "hero.png",
-    "fastfetch": "emblem.png"
+    "fastfetch": "emblem.png",
+    "lock": "crate/hero"
   },
   "look": {
     "hypr": {

@@ -32,8 +32,9 @@
 # or gpg asks for it when the store has none. Nothing secret leaves the machine.
 #
 # Needs: makepkg, repo-add, gpg, gh (logged in, with write access), curl, and
-# crate-for-ryoku's build dependencies (python-cairo, numpy, Pillow, librsvg);
-# build-ryoku.sh needs docker.
+# crate-for-ryoku's build dependencies (python-cairo, numpy, Pillow, librsvg, and
+# for the lock skins quickshell, qt6-imageformats, python-fonttools and
+# python-brotli); build-ryoku.sh needs docker.
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)

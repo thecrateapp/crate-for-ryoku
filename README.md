@@ -87,7 +87,8 @@ plugin/crate-mark the bar plugin
 launcher/         Crate Palette, the Super+Space launcher (node --test launcher/crate-palette/tests/)
 shell/            the eza theme and the Pure prompt
 wallpaper/        the Groove and Sheen wallpaper generators (render.sh)
-package/          build.sh, install.sh, uninstall.sh and the icon watcher units
+package/          build.sh, install.sh, uninstall.sh, the lock-skin helpers and the icon watcher units
+lockscreen/       the Crate lock skins crate/hero and crate/orbit for Ryoku's qylock (lockscreen/preview.sh, lockscreen/tests/run.sh)
 bin/              the crate-for-ryoku command
 packaging/aur/    the crate-for-ryoku PKGBUILD
 packaging/repo/   the signed pacman repository: publish.sh and the public key
