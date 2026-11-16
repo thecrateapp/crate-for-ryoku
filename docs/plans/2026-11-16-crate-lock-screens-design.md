@@ -168,3 +168,6 @@ sections above, this section wins.
   reveal). Ryoku's `lock_shell.qml` reads these keys (generic support added separately); skins
   without them, like hero, keep the 100 ms default.
 - **Preview.** `preview.sh` gains a `windup` state (orbit: a mid-windup frame).
+- **No second minute.** The big cyan minute beside the dial is gone: the reading window is the
+  minute's readout. The info column keeps the weekday (Bricolage 800) over the date (mono),
+  centred on the pointer's axis.

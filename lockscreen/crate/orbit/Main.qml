@@ -167,36 +167,27 @@ SkinRoot {
             }
         }
 
-        // Beside the pointer: the minutes, then the date.
+        // Beside the reading window, which already shows the minute: the weekday over the date,
+        // centred on the pointer's axis.
         Column {
             id: info
             objectName: "orbitInfo"
             x: root.infoX
             y: root.dialCy - height / 2
-            spacing: Math.round(CratePalette.s(10, root.uiScale))
-            Text {
-                id: minuteLabel
-                objectName: "minuteLabel"
-                text: root.clockLocale.toString(root.now, "mm")
-                color: CratePalette.cyan
-                font.family: CratePalette.monoFamily
-                font.pixelSize: Math.round(CratePalette.s(72, root.uiScale))
-                font.letterSpacing: Math.round(CratePalette.s(72, root.uiScale)) * 0.14
-            }
-            Row {
+            Column {
                 id: dateBlock
                 objectName: "dateBlock"
                 readonly property int maxWidth: Math.max(0, authColumn.x - root.infoX - Math.round(CratePalette.s(48, root.uiScale)))
-                spacing: Math.round(CratePalette.s(10, root.uiScale))
+                spacing: Math.round(CratePalette.s(6, root.uiScale))
                 Text {
                     id: weekday
                     objectName: "dateWeekday"
                     text: root.clockLocale.toString(root.now, "dddd").toUpperCase()
                     color: CratePalette.text
                     font.family: CratePalette.displayFamily
-                    font.weight: Font.Bold
-                    font.pixelSize: Math.round(CratePalette.s(22, root.uiScale))
-                    font.letterSpacing: Math.round(CratePalette.s(22, root.uiScale)) * 0.06
+                    font.weight: 800
+                    font.pixelSize: Math.round(CratePalette.s(40, root.uiScale))
+                    font.letterSpacing: Math.round(CratePalette.s(40, root.uiScale)) * 0.02
                     elide: Text.ElideRight
                     maximumLineCount: 1
                     width: Math.min(implicitWidth, dateBlock.maxWidth)
@@ -208,10 +199,9 @@ SkinRoot {
                     font.family: CratePalette.monoFamily
                     font.pixelSize: Math.round(CratePalette.s(16, root.uiScale))
                     font.letterSpacing: Math.round(CratePalette.s(16, root.uiScale)) * 0.14
-                    anchors.baseline: weekday.baseline
                     elide: Text.ElideRight
                     maximumLineCount: 1
-                    width: Math.max(0, Math.min(implicitWidth, dateBlock.maxWidth - weekday.width - dateBlock.spacing))
+                    width: Math.min(implicitWidth, dateBlock.maxWidth)
                     visible: width > 0
                 }
             }

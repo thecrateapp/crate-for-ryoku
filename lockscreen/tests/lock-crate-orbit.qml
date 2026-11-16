@@ -42,10 +42,23 @@ ShellRoot {
         return "";
     }
 
+    // The minute spotlight reads the given minute in cyan-hi, mono, inside the reading window.
+    function windowShows(o, mm, what) {
+        var spot = find(o, "minuteSpot"), win = find(o, "orbitPointer");
+        if (!spot || !win) return fail(what + ": no minuteSpot or orbitPointer"), false;
+        if (!eq(spot.text, mm, what)) return false;
+        if (!eq(String(spot.color).toLowerCase(), "#67e8f9", what + " colour")) return false;
+        if (!eq(spot.font.family, o.monoFamily, what + " family")) return false;
+        var c = spot.mapToItem(null, spot.width / 2, spot.height / 2), w = Checks.rect(win);
+        if (c.x < w.x || c.x > w.x + w.w || c.y < w.y || c.y > w.y + w.h)
+            return fail(what + ": spotlight at " + Math.round(c.x) + "," + Math.round(c.y) + " is outside the window"), false;
+        return true;
+    }
+
     function layoutCheck(o, label) {
         if (!o.fontsReady) return fail(label + ": fonts not ready"), false;
         if (Math.abs(o.uiScale - o.height / 1200) > 1e-9) return fail(label + ": uiScale is not height / 1200"), false;
-        var names = ["orbitDial", "minuteLabel", "dateBlock", "authColumn", "nowPlaying", "powerRow"];
+        var names = ["orbitDial", "dateBlock", "authColumn", "nowPlaying", "powerRow"];
         var r = {};
         for (var i = 0; i < names.length; i++) {
             var it = find(o, names[i]);
@@ -63,6 +76,7 @@ ShellRoot {
             for (var b = a + 1; b < names.length; b++)
                 if (Checks.intersects(r[names[a]], r[names[b]])) return fail(label + ": " + names[a] + " overlaps " + names[b]), false;
         if (find(o, "nowPlaying").compact !== true) return fail(label + ": now playing is not compact"), false;
+        if (!windowShows(o, o.clockLocale.toString(o.now, "mm"), label + ": reading window")) return false;
         return true;
     }
 
@@ -110,12 +124,12 @@ ShellRoot {
             if (find(dial, "dialNumber11")) return fail("non-major tick has a number");
 
             // Hour and minute.
-            var hour = find(o, "hourText"), minute = find(o, "minuteLabel");
+            // The reading window is the minute's only readout: no second minute label beside it.
+            if (find(o, "minuteLabel")) return fail("the minute is repeated beside the reading window");
+            if (!windowShows(o, "05", "minute in the window at :05")) return;
+            var hour = find(o, "hourText");
             o.clock24h = true;
             if (!eq(hour.text, "23", "24 h hour")) return;
-            if (!eq(minute.text, "05", "minute label")) return;
-            if (!eq(String(minute.color).toLowerCase(), "#06b6d4", "minute colour")) return;
-            if (!eq(minute.font.family, o.monoFamily, "minute family")) return;
             if (!eq(hour.font.family, o.displayFamily, "hour family")) return;
             if (!eq(hour.font.weight, 800, "hour weight")) return;
             var ap = find(o, "clockAmPm");
@@ -191,7 +205,7 @@ ShellRoot {
             if (!eq(dial.targetRotation, -354, "target at :59")) return;
             o.now = new Date(2026, 11, 7, 0, 0, 0);
             if (!eq(dial.targetRotation, 0, "target at :00")) return;
-            if (!eq(find(o, "minuteLabel").text, "00", "minute label at :00")) return;
+            if (!windowShows(o, "00", "minute in the window at :00")) return;
             wrap.start();
         }
     }
