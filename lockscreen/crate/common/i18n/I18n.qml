@@ -20,6 +20,8 @@ QtObject {
         "or touch the reader": "or touch the reader",
         "scan denied, type your password": "scan denied, type your password",
         "CHECKING": "CHECKING",
+        "KEY TIMED OUT": "KEY TIMED OUT",
+        "noUser": "No user to sign in",
         "Unlock": "Unlock",
         "ACCESS DENIED": "ACCESS DENIED",
         "nowPlaying": "Now playing",

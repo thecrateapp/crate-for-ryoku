@@ -53,7 +53,15 @@ function auth(t) {
     var c = fake.calls[0];
     if (!eq(t, JSON.stringify(c), JSON.stringify(["login", "diego", "hunter2", 0]), "login args")) return false;
     if (!eq(t, f.state, "checking", "state after Enter")) return false;
-    if (f.input.enabled) return t.fail("field still enabled while checking"), false;
+    if (!eq(t, hint.text, t.i18n.tr("CHECKING"), "CHECKING hint")) return false;
+    if (!eq(t, hint.visible, true, "CHECKING hint visible")) return false;
+    // The field stays enabled while PAM works (a lost answer must never strand a disabled field):
+    // typing goes in, Enter is ignored until PAM answers.
+    if (!f.input.enabled) return t.fail("field disabled while checking"), false;
+    f.text = "hunter2x";
+    if (!eq(t, f.state, "checking", "state while typing during checking")) return false;
+    f.input.accepted();
+    if (!eq(t, count(fake, "login"), 1, "login calls after Enter during checking")) return false;
 
     // Wrong password.
     fake.errorMessage("Authentication failure");
@@ -71,10 +79,14 @@ function auth(t) {
     if (!eq(t, f.state, "typing", "state after typing again")) return false;
     if (errShown()) return t.fail("error line still visible while typing"), false;
 
-    // Success leaves no error.
+    // Success leaves no error and no password: the shell may still cancel the unlock
+    // (recoverUnlock without loginFailed), and the right password must not stay in the field.
+    f.text = "right";
     f.input.accepted();
     fake.loginSucceeded();
     if (errShown()) return t.fail("error visible after success"), false;
+    if (!eq(t, f.text, "", "field text after loginSucceeded")) return false;
+    if (!eq(t, f.state, "idle", "state after loginSucceeded")) return false;
 
     // Failure without a PAM message falls back to the English line.
     fake.errorMessage("");
@@ -108,6 +120,35 @@ function auth(t) {
     f.input.accepted();
     if (!eq(t, count(fake, "login"), logins + 1, "login after leaving PIN")) return false;
     if (!eq(t, count(fake, "loginKeyPin"), pins, "loginKeyPin after leaving PIN")) return false;
+    fake.loginFailed();
+
+    // Touch prompt: the hint asks for the key, in cyan-hi.
+    fake.requestKeyState("touch");
+    if (!eq(t, hint.text, t.i18n.tr("TOUCH THE SECURITY KEY"), "touch hint text")) return false;
+    if (!eq(t, String(hint.color).toLowerCase(), "#67e8f9", "touch hint colour")) return false;
+    fake.keyState = "off";
+
+    // A PIN whose touch never came: the shim gives up, says only keyTimedOut (no loginFailed)
+    // and hands the field back to the password. The field must leave "checking" on its own.
+    fake.requestKeyState("pin");
+    f.text = "4321";
+    f.input.accepted();
+    if (!eq(t, f.state, "checking", "state after the PIN")) return false;
+    fake.keyState = "verifying";
+    f.input.focus = false;
+    fake.timeOutKey();
+    if (!eq(t, f.state, "idle", "state after keyTimedOut")) return false;
+    if (!eq(t, f.text, "", "PIN left in the field after keyTimedOut")) return false;
+    if (!f.input.enabled) return t.fail("field disabled after keyTimedOut"), false;
+    if (!f.activeFocus) return t.fail("field not refocused after keyTimedOut"), false;
+    if (!eq(t, hint.text, t.i18n.tr("KEY TIMED OUT"), "hint after keyTimedOut")) return false;
+    if (!eq(t, hint.visible, true, "hint visible after keyTimedOut")) return false;
+    // The password works again at once, and typing clears the notice.
+    f.text = "pw2";
+    if (hint.text === t.i18n.tr("KEY TIMED OUT")) return t.fail("KEY TIMED OUT still shown while typing"), false;
+    logins = count(fake, "login");
+    f.input.accepted();
+    if (!eq(t, count(fake, "login"), logins + 1, "login after keyTimedOut")) return false;
     fake.loginFailed();
 
     // Fingerprint hint.
@@ -264,5 +305,43 @@ function nowPlaying(t) {
     if (!eq(t, live.status, 1, "session loader status")) return false;
     var livePlayer = live.item.player;
     if (!eq(t, find(t.liveHost.item, "nowPlaying").visible, !!livePlayer && livePlayer.playing, "live block follows the bus")) return false;
+    return true;
+}
+
+// "checking" with no answer at all (a VT switch aborted PAM: resetAuth, no signal). Three steps
+// with a wait between them; t: fail, host, fake. The test shortens the watchdog to waitMs / 2.
+function recoveryArm(t) {
+    var f = find(t.host.item, "passwordField");
+    if (!f) return t.fail("no passwordField"), false;
+    // The default outlasts the shim's 10 s security-key touch wait.
+    if (!(f.checkTimeoutMs > 10000)) return t.fail("checkTimeoutMs " + f.checkTimeoutMs + " is not longer than the shim's 10 s key wait"), false;
+    f.checkTimeoutMs = 300;
+    f.text = "pw";
+    f.input.accepted();
+    if (!eq(t, f.state, "checking", "state after Enter")) return false;
+    if (!eq(t, count(t.fake, "login"), 1, "login calls")) return false;
+    f.input.focus = false;
+    return true;
+}
+function recoveryFired(t) {
+    var it = t.host.item, f = find(it, "passwordField");
+    if (!eq(t, f.state, "idle", "state after the watchdog")) return false;
+    if (!eq(t, f.text, "", "field text after the watchdog")) return false;
+    if (!f.input.enabled) return t.fail("field disabled after the watchdog"), false;
+    if (!f.activeFocus) return t.fail("field not refocused after the watchdog"), false;
+    if (!eq(t, count(t.fake, "login"), 1, "login calls after the watchdog")) return false;
+    // A skin that winds up for PAM (orbit) stops pushing once the field gave up.
+    if (it.motionState !== undefined && it.motionState === "windup") return t.fail("windup still running after the watchdog"), false;
+    // An answered attempt stops the watchdog: the error stays.
+    f.text = "pw";
+    f.input.accepted();
+    t.fake.loginFailed();
+    if (!eq(t, f.state, "error", "state after loginFailed")) return false;
+    return true;
+}
+function recoveryAnswered(t) {
+    var f = find(t.host.item, "passwordField");
+    if (!eq(t, f.state, "error", "state long after an answered attempt")) return false;
+    if (!eq(t, count(t.fake, "login"), 2, "login calls")) return false;
     return true;
 }

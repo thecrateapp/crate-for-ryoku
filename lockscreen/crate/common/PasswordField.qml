@@ -19,6 +19,15 @@ FocusScope {
     readonly property alias input: input
     property bool reduceMotion: CratePalette.reduceMotion
     signal submitted()
+    // PAM never answered (a security key that timed out, a VT switch that aborted the
+    // conversation): the field left "checking" on its own, so a skin stops waiting too.
+    signal checkAbandoned()
+
+    // A transient line for AuthHint ("KEY TIMED OUT"); typing or a new attempt clears it.
+    property string notice: ""
+    // Longest "checking" may last without an answer before the field takes itself back. Longer
+    // than the shim's 10 s security-key touch wait, so its keyTimedOut normally comes first.
+    property int checkTimeoutMs: 12000
 
     // Last PAM text, if the host provides one (the Ryoku shim has no such signal yet).
     property string pamMessage: ""
@@ -39,12 +48,40 @@ FocusScope {
         sddm.usePassword();
     }
     function focusField() { input.forceActiveFocus(); }
+    // Out of "checking" without a PAM answer: nothing typed survives, the field is ready again.
+    function abandonCheck(message) {
+        checkWatchdog.stop();
+        if (state !== "checking") return;
+        input.text = "";
+        state = "idle";
+        notice = message || "";
+        input.forceActiveFocus();
+        root.checkAbandoned();
+    }
+
+    Timer {
+        id: checkWatchdog
+        objectName: "checkWatchdog"
+        interval: root.checkTimeoutMs
+        running: root.state === "checking"
+        onTriggered: root.abandonCheck("")
+    }
+    // The key moved on (PIN sent, now waiting for a touch): give the new wait its full time.
+    onKeyStateChanged: if (state === "checking") checkWatchdog.restart()
 
     function submit() {
         if (state === "checking" || input.text === "") return;
+        // Never a login for nobody: SDDM with no user to offer has nothing to sign in.
+        if (user === "") {
+            input.text = "";
+            errorText = I18n.tr("noUser");
+            state = "error";
+            return;
+        }
         var value = input.text;
         state = "checking";
         errorText = "";
+        notice = "";
         root.submitted();
         if (typeof sddm === "undefined" || !sddm) return;
         if (keyState === "pin") sddm.loginKeyPin(user, value);
@@ -57,7 +94,6 @@ FocusScope {
         focus: true
         echoMode: TextInput.Password
         passwordCharacter: "•"
-        enabled: root.state !== "checking"
         color: CratePalette.text
         selectionColor: CratePalette.cyan
         selectedTextColor: CratePalette.canvas
@@ -73,6 +109,7 @@ FocusScope {
         onAccepted: root.submit()
         Keys.onEscapePressed: root.cancelPin()
         onTextChanged: {
+            if (text !== "") root.notice = "";
             if (root.state === "checking") return;
             if (text !== "") root.state = "typing";
             else if (root.state === "typing") root.state = "idle";
@@ -101,13 +138,23 @@ FocusScope {
         function onErrorMessage(message) { root.pamMessage = message || ""; }
         function onLoginFailed() {
             input.text = "";
+            root.notice = "";
             root.errorText = root.pamMessage !== "" ? root.pamMessage : I18n.tr("wrongPassword");
             root.pamMessage = "";
             root.state = "error";
             input.forceActiveFocus();
             if (!root.reduceMotion) nudge.restart();
         }
+        // The touch wait ran out: the shim hands the field back to the password and sends
+        // nothing else, so this is the end of the attempt.
+        function onKeyTimedOut() {
+            if (root.state === "checking") root.abandonCheck(I18n.tr("KEY TIMED OUT"));
+            else { root.notice = I18n.tr("KEY TIMED OUT"); input.forceActiveFocus(); }
+        }
         function onLoginSucceeded() {
+            // The shell can still cancel the unlock without a loginFailed: no password stays behind.
+            input.text = "";
+            root.notice = "";
             root.errorText = "";
             root.pamMessage = "";
             root.state = "idle";

@@ -279,6 +279,8 @@ SkinRoot {
                 sessionIndex: root.sessionIndex
                 keyState: root.keyState
                 onSubmitted: root.startWindup(root.windupMs)
+                // PAM never answered (watchdog, key timeout): the rings stop pushing too.
+                onCheckAbandoned: root.settle()
             }
             Binding { target: passwordField.input; property: "horizontalAlignment"; value: TextInput.AlignRight }
             Item {
@@ -329,6 +331,7 @@ SkinRoot {
                 width: parent.width
                 horizontalAlignment: Text.AlignRight
                 authState: passwordField.state
+                notice: passwordField.notice
                 keyState: passwordField.keyState
                 fingerprintState: root.fingerprintState
             }

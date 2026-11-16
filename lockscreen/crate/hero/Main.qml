@@ -235,6 +235,7 @@ SkinRoot {
             uiScale: root.uiScale
             width: parent.width
             authState: passwordField.state
+            notice: passwordField.notice
             keyState: passwordField.keyState
             fingerprintState: root.fingerprintState
         }
