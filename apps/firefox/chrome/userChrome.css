@@ -6,8 +6,8 @@
  * labels. It stands on its own (no theme add-on needed) and matches the Crate
  * theme add-on when that is installed too.
  *
- * Installed by `crate-for-ryoku install --firefox-chrome`, which moves the
- * profile's previous chrome/ folder aside and puts it back on uninstall.
+ * Installed by `crate-for-ryoku install` (unless --no-firefox), which moves
+ * the profile's previous chrome/ folder aside and puts it back on uninstall.
  * Needs toolkit.legacyUserProfileCustomizations.stylesheets = true (the
  * installer sets it in user.js). Fonts: fonts/ beside this file (OFL 1.1).
  */

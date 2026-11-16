@@ -29,13 +29,14 @@ usage: install.sh [options]
   --no-lockscreen  skip the Crate lock skins (crate/hero, crate/orbit)
   --reapply        apply the rice again even if Crate is already active
                    (Ryoku's .previous snapshot then holds the current Crate state)
-  --no-obsidian    do not copy the Crate theme into your Obsidian vaults
-  --firefox-chrome replace your Firefox profile's chrome/ folder (WhiteSur, say)
-                   with Crate's userChrome.css; the old one is kept and restored
-                   by uninstall
+  --no-obsidian    leave your Obsidian vaults alone (by default each vault gets
+                   the Crate theme, selected; uninstall selects your old one)
+  --no-firefox     leave Firefox alone (by default its profile's chrome/ folder,
+                   WhiteSur say, makes way for Crate's userChrome.css; the old
+                   one is kept and restored by uninstall)
   --firefox-profile=DIR
-                   the Firefox profile for --firefox-chrome (default: the one
-                   Firefox starts with)
+                   the Firefox profile to theme (default: the one Firefox
+                   starts with)
   --firefox-theme  open the Crate theme add-on in Firefox to install it
   -h, --help       this help
 EOF
@@ -50,7 +51,8 @@ for a in "$@"; do
     --no-wallpapers) WALLS=0 ;;
     --no-lockscreen) LOCK=0 ;;
     --reapply) REAPPLY=1 ;;
-    --no-obsidian|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
+    # --firefox-chrome: the default since 0.7, still accepted
+    --no-obsidian|--no-firefox|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $a" >&2; usage >&2; exit 2 ;;
   esac
@@ -264,8 +266,8 @@ if command -v zapfast >/dev/null || [ -d "$CFG/zapfast" ]; then
   say "ZapFast: chat wallpaper $DATA/crate-for-ryoku/zapfast/chat.webp (Settings > Appearance > Wallpaper)"
 fi
 
-# Obsidian, Firefox and Chrome in Crate's look (apps.sh): the Obsidian theme
-# in every vault, the rest only when asked for
+# Obsidian and Firefox in Crate's look (apps.sh), each only where it is
+# installed: the Obsidian theme selected in every vault, Firefox's userChrome.css
 bash "$HERE/apps.sh" install ${APP_OPTS[@]+"${APP_OPTS[@]}"} || warn "the app themes did not install cleanly (bash $HERE/apps.sh status)"
 
 # what is installed, and a marker command Ryostore's bundle detects this

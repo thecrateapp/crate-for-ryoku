@@ -20,7 +20,8 @@ for a in "$@"; do
       cat <<EOF
 usage: uninstall.sh [--keep-files] [--purge]
   --keep-files  only revert the look; leave the theme, icons, rice and plugin installed
-                (Firefox gets its own chrome/ folder back either way)
+                (Firefox gets its own chrome/ folder and Obsidian its own theme
+                back either way)
   --purge       also delete the crate-*.webp wallpapers from $WALLDIR
 EOF
       exit 0 ;;
@@ -53,12 +54,13 @@ if [ "$KEEP" = 1 ]; then
   bash "$(dirname "${BASH_SOURCE[0]}")/lock-skins.sh" restore
 fi
 
-# the app themes: Firefox's chrome/ goes back to yours; Obsidian vaults lose
-# only the copies still exactly as installed (apps.sh keeps the record)
+# the app themes: Firefox's chrome/ and each vault's Obsidian theme go back to
+# yours; vaults lose only the Crate copies still exactly as installed (apps.sh
+# keeps the record). --keep-files keeps those copies.
 if [ "$KEEP" = 0 ]; then
   bash "$HERE/apps.sh" uninstall || warn "the app themes did not uninstall cleanly"
 else
-  CRATE_APPS_ONLY=firefox bash "$HERE/apps.sh" uninstall || warn "could not restore Firefox's chrome/ folder"
+  bash "$HERE/apps.sh" uninstall --look-only || warn "could not put Firefox's and Obsidian's own look back"
 fi
 
 if [ "$KEEP" = 0 ]; then
