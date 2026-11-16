@@ -162,7 +162,6 @@ ShellRoot {
             find(unlock, "unlockLink").activated();
             if (!eq(Checks.count(fake, "login"), before + 1, "unlock login calls")) return;
             fake.loginSucceeded();
-            if (!field.activeFocus) { /* success leaves focus where it is */ }
 
             settle.start();
         }

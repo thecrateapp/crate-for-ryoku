@@ -2,59 +2,11 @@ import QtQuick
 import "../common"
 import "../common/i18n"
 
-Item {
+SkinRoot {
     id: root
+    currentUser: userSwitch.currentUser
+    focusTarget: passwordField
 
-    // Set by qylock's loader when running as a session lock.
-    property bool clock24h: true
-    property var clockLocale: Qt.locale()
-    // The session lock shim exposes sddm.fingerprintHint; the real SDDM greeter does not.
-    readonly property bool sessionLock: typeof sddm !== "undefined" && sddm.fingerprintHint !== undefined
-    // theme.conf values. qylock and SDDM provide `config` as a context property; a root property
-    // named `config` would shadow it, so the skin reads it into themeConfig instead.
-    readonly property var themeConfig: typeof config !== "undefined" && config ? config : ({})
-    property date now: new Date()
-    // Production ticks `now` once a second; tests pin it.
-    property bool liveClock: true
-    readonly property string hostName: typeof sddm !== "undefined" && sddm && sddm.hostName ? String(sddm.hostName) : ""
-    readonly property int margin: Math.round(CratePalette.s(96, root.uiScale))
-    Timer {
-        interval: 1000; repeat: true; running: root.liveClock
-        onTriggered: root.now = new Date()
-    }
-    // theme.conf `showNowPlaying` is the string "true"/"false"; on by default.
-    readonly property bool showNowPlaying: String(themeConfig.showNowPlaying) !== "false"
-    // Tests inject a player here instead of the Mpris loader; production leaves it undefined.
-    property var playerOverride: undefined
-    readonly property var nowPlayingPlayer: playerOverride !== undefined ? playerOverride
-        : (mprisLoader.item ? mprisLoader.item.player : null)
-    readonly property var users: typeof userModel !== "undefined" ? userModel : null
-    // Login identity: the switcher's current user.
-    readonly property string user: userSwitch.currentUser !== "" ? userSwitch.currentUser : "user"
-    readonly property int sessionIndex: typeof sessionModel !== "undefined" && sessionModel && sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
-
-    readonly property real uiScale: height / 1200
-    readonly property bool fontsReady: CratePalette.fontsReady
-    readonly property bool reduceMotion: CratePalette.reduceMotion
-    readonly property bool tokensLinked: CratePalette.tokensLinked
-    readonly property string displayFamily: CratePalette.displayFamily
-
-    // Tokens exist only under the Ryoku shell; SDDM never touches them.
-    Component.onCompleted: {
-        if (sessionLock) CratePalette.linkTokens();
-        // The shim drops key PIN requests unless the skin says it draws them (keyState in AuthHint).
-        if (sessionLock) sddm.keyPrompts = true;
-        passwordField.focusField();
-    }
-
-    anchors.fill: parent
-    implicitWidth: 1366
-    implicitHeight: 768
-
-    Background {
-        anchors.fill: parent
-        kind: root.themeConfig.background === "sheen" ? "sheen" : "groove"
-    }
 
     // Header: locked state and host on the left, power on the right.
     Row {
@@ -143,8 +95,7 @@ Item {
         Row {
             id: clock
             objectName: "clock"
-            // "h" only means a 12 hour clock when the format also has AP; the marker is cut back out of the digits.
-            readonly property string marker: root.clockLocale.toString(root.now, "AP")
+            readonly property string marker: root.marker
             readonly property string text: root.clock24h ? root.clockLocale.toString(root.now, "HH:mm")
                 : root.clockLocale.toString(root.now, "h:mm AP").replace(marker, "").trim()
             readonly property string ampm: root.clock24h ? "" : marker.toUpperCase()
@@ -225,14 +176,6 @@ Item {
         width: Math.max(0, Math.min(Math.round(CratePalette.s(420, root.uiScale)), authColumn.x - root.margin - Math.round(CratePalette.s(48, root.uiScale))))
     }
 
-    // Crate's MPRIS player, session lock only: SDDM never loads the Mpris module.
-    Loader {
-        id: mprisLoader
-        objectName: "mprisLoader"
-        active: root.sessionLock && root.showNowPlaying && root.playerOverride === undefined
-        source: "../common/NowPlayingMpris.qml"
-    }
-
     // Bottom right: who is logging in, then the field.
     Column {
         id: authColumn
@@ -285,7 +228,7 @@ Item {
             focus: true
             user: root.user
             sessionIndex: root.sessionIndex
-            keyState: typeof sddm !== "undefined" && sddm && sddm.keyState !== undefined ? String(sddm.keyState) : ""
+            keyState: root.keyState
         }
         ErrorLine { uiScale: root.uiScale; width: parent.width; shown: passwordField.state === "error"; text: passwordField.errorText }
         AuthHint {
@@ -293,7 +236,7 @@ Item {
             width: parent.width
             authState: passwordField.state
             keyState: passwordField.keyState
-            fingerprintState: root.sessionLock && sddm.fingerprintState !== undefined ? String(sddm.fingerprintState) : ""
+            fingerprintState: root.fingerprintState
         }
     }
 }
