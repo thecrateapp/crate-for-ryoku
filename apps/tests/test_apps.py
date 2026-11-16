@@ -148,6 +148,45 @@ def test_builds_are_reproducible(tmp_path):
         assert (a / rel).read_bytes() == (b / rel).read_bytes(), rel
 
 
+# ---------- the Chrome .crx, with a throwaway key ----------
+
+def make_key(tmp_path):
+    key = tmp_path / "throwaway.pem"
+    subprocess.run(["openssl", "genpkey", "-algorithm", "RSA", "-pkeyopt", "rsa_keygen_bits:2048",
+                    "-out", str(key)], check=True, capture_output=True)
+    return key
+
+
+def test_crx_is_signed_and_carries_the_keys_id(tmp_path):
+    key = make_key(tmp_path)
+    theme = tmp_path / "theme"
+    theme.mkdir()
+    pub = base64.b64encode(build.public_key_der(str(key))).decode()
+    (theme / "manifest.json").write_text(json.dumps({"manifest_version": 3, "name": "t", "version": "1.0.0",
+                                                     "key": pub, "theme": {}}))
+    crx = tmp_path / "t.crx"
+    crx_id = build.pack_crx(str(theme), str(key), str(crx))
+    assert crx_id == build.chrome_id(pub)
+    assert build.verify_crx(str(crx)) == crx_id
+    data = crx.read_bytes()
+    assert data[:4] == b"Cr24" and data[4:8] == b"\x03\x00\x00\x00"
+    parts = build.read_crx(str(crx))
+    with zipfile.ZipFile(__import__("io").BytesIO(parts["zip"])) as z:
+        assert json.loads(z.read("manifest.json"))["key"] == pub
+    # a flipped byte in the zip breaks the signature
+    bad = tmp_path / "bad.crx"
+    bad.write_bytes(data[:-10] + bytes([data[-10] ^ 1]) + data[-9:])
+    with pytest.raises(SystemExit):
+        build.verify_crx(str(bad))
+
+
+def test_build_refuses_a_key_that_is_not_the_manifests(tmp_path):
+    key = make_key(tmp_path)
+    with pytest.raises(SystemExit, match="not the key in the Chrome manifest"):
+        build.main(["build.py", str(tmp_path / "out"), "--chrome-key", str(key)])
+    assert not list((tmp_path / "out/chrome").glob("*.crx"))
+
+
 # ---------- the installer, in a throwaway home ----------
 
 @pytest.fixture
