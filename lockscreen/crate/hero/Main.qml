@@ -14,8 +14,9 @@ Item {
     // named `config` would shadow it, so the skin reads it into themeConfig instead.
     readonly property var themeConfig: typeof config !== "undefined" && config ? config : ({})
     property date now: new Date()
-    // Login identity. Task 3 replaces the user with a switchable one.
-    readonly property string user: typeof userModel !== "undefined" && userModel && userModel.lastUser ? String(userModel.lastUser) : "user"
+    readonly property var users: typeof userModel !== "undefined" ? userModel : null
+    // Login identity: the switcher's current user.
+    readonly property string user: userSwitch.currentUser !== "" ? userSwitch.currentUser : "user"
     readonly property int sessionIndex: typeof sessionModel !== "undefined" && sessionModel && sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
 
     readonly property bool fontsReady: CratePalette.fontsReady
@@ -63,6 +64,24 @@ Item {
             sessionIndex: root.sessionIndex
             keyState: typeof sddm !== "undefined" && sddm && sddm.keyState !== undefined ? String(sddm.keyState) : ""
         }
+        Row {
+            width: parent.width
+            spacing: Math.round(CratePalette.s(12))
+            Text {
+                id: userLabel
+                text: I18n.tr("user").toUpperCase() + " \u00b7"
+                color: CratePalette.faint
+                font.family: CratePalette.monoFamily
+                font.pixelSize: Math.round(CratePalette.s(12))
+                font.letterSpacing: Math.round(CratePalette.s(12)) * 0.14
+            }
+            UserSwitch {
+                id: userSwitch
+                width: parent.width - userLabel.width - parent.spacing
+                model: root.users
+                onActivated: passwordField.focusField()
+            }
+        }
         ErrorLine { width: parent.width; shown: passwordField.state === "error"; text: passwordField.errorText }
         AuthHint {
             width: parent.width
@@ -70,5 +89,10 @@ Item {
             keyState: passwordField.keyState
             fingerprintState: root.sessionLock && sddm.fingerprintState !== undefined ? String(sddm.fingerprintState) : ""
         }
+    }
+
+    PowerRow {
+        anchors { left: parent.left; bottom: parent.bottom; leftMargin: Math.round(CratePalette.s(96)); bottomMargin: Math.round(CratePalette.s(96)) }
+        onActivated: passwordField.focusField()
     }
 }

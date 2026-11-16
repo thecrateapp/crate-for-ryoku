@@ -5,6 +5,7 @@ import QtQuick
 QtObject {
     readonly property var en: ({
         "password": "Password",
+        "user": "User",
         "suspend": "Suspend",
         "reboot": "Reboot",
         "shutdown": "Shut down",
