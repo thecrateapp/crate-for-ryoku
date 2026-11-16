@@ -38,10 +38,12 @@ Item {
     property real frameMs: Date.now()
     onDrivingChanged: if (driving) frameMs = Date.now()
     readonly property real timeMs: driving ? frameMs : now.getTime()
-    // Local milliseconds into the hour (a Date, so the time zone offset is the local one).
+    // Local milliseconds into the hour (a Date, so the time zone offset is the local one). Under
+    // reduced motion the rings stand on the whole second.
     readonly property real msOfHour: {
         var d = new Date(timeMs);
-        return d.getMinutes() * 60000 + d.getSeconds() * 1000 + d.getMilliseconds();
+        var ms = d.getMinutes() * 60000 + d.getSeconds() * 1000 + d.getMilliseconds();
+        return reduceMotion ? Math.floor(ms / 1000) * 1000 : ms;
     }
     readonly property int currentSecond: Math.floor((msOfHour % 60000) / 1000)
     readonly property int currentMinute: Math.floor(msOfHour / 60000)
@@ -91,12 +93,17 @@ Item {
 
     height: width
 
-    // The pointer: a reading window at three o'clock over both rings, under their ticks.
+    // The readout: a window at three o'clock between the two rings, holding the current minute
+    // and second as fixed text. The rings turn past it with their own spotlight; the readout
+    // never drifts with them.
     Rectangle {
+        id: readout
         objectName: "orbitPointer"
-        readonly property real pad: Math.round(CratePalette.s(14, root.uiScale))
-        x: root.width / 2 + root.minuteRadius - Math.round(CratePalette.s(78, root.uiScale))
-        width: root.secondRadius - root.minuteRadius + Math.round(CratePalette.s(78, root.uiScale)) + pad
+        readonly property real gap: Math.round(CratePalette.s(12, root.uiScale))
+        x: root.width / 2 + root.minuteRadius + gap
+        // Clear of the minute ticks (inside the inner ring) and of the seconds numbers (s(42)
+        // inside the outer ring).
+        width: Math.max(0, root.secondRadius - root.minuteRadius - gap - Math.round(CratePalette.s(56, root.uiScale)))
         height: Math.round(CratePalette.s(40, root.uiScale))
         y: root.height / 2 - height / 2
         radius: CratePalette.radius
@@ -104,6 +111,32 @@ Item {
         border.width: 1
         // Active while the rings wind up: the window warms to cyan with them.
         border.color: Qt.tint(CratePalette.hairline, Qt.rgba(6 / 255, 182 / 255, 212 / 255, Math.min(0.8, root.windupProgress)))
+        readonly property real px: Math.round(CratePalette.s(16, root.uiScale))
+        Text {
+            objectName: "minuteReadout"
+            anchors { verticalCenter: parent.verticalCenter; right: divider.left; rightMargin: readout.gap }
+            text: (root.currentMinute < 10 ? "0" : "") + root.currentMinute
+            color: CratePalette.cyanHi
+            font.family: CratePalette.monoFamily
+            font.pixelSize: readout.px
+            font.letterSpacing: readout.px * 0.12
+        }
+        Rectangle {
+            id: divider
+            anchors.centerIn: parent
+            width: 1
+            height: Math.round(parent.height * 0.45)
+            color: CratePalette.hairline
+        }
+        Text {
+            objectName: "secondReadout"
+            anchors { verticalCenter: parent.verticalCenter; left: divider.right; leftMargin: readout.gap }
+            text: (root.currentSecond < 10 ? "0" : "") + root.currentSecond
+            color: CratePalette.secondary
+            font.family: CratePalette.monoFamily
+            font.pixelSize: readout.px
+            font.letterSpacing: readout.px * 0.12
+        }
     }
 
     // Cyan streaks trail the rings while they wind up: fixed arcs on their own layer, which

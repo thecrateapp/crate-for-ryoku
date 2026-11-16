@@ -28,8 +28,13 @@ SkinRoot {
     readonly property bool motionAllowed: !root.reduceMotion
     readonly property real dialScale: root.motionAllowed ? 1 + 0.16 * (1 - Math.pow(1 - root.revealProgress, 3)) : 1
 
+    // How long a finished reveal may sit on screen before the UI comes back on its own (the lock
+    // shell should have dropped the surface well before; tests shorten it).
+    property int revealRestoreMs: sensorWindupMs + revealMs + 4000
+
     function startWindup(duration) {
-        if (!motionAllowed || motionState === "reveal") return;
+        // A security-key PIN is followed by a touch prompt: nothing to wind up for.
+        if (!motionAllowed || motionState === "reveal" || keyState === "pin") return;
         // Typing again during a settle: wind up from wherever the rings are now.
         progressSettle.stop();
         settleDone.stop();
@@ -97,12 +102,17 @@ SkinRoot {
     Timer { id: sensorWindup; interval: root.sensorWindupMs; onTriggered: root.reveal() }
     // Still here long after the lock shell should have dropped the surface: the unlock did not
     // happen, so show the lock again.
-    Timer { id: revealRestore; interval: root.sensorWindupMs + root.revealMs + 4000; onTriggered: root.restore() }
+    Timer { id: revealRestore; interval: root.revealRestoreMs; onTriggered: root.restore() }
+    // The key now waits for a touch: the rings stop pushing while it does.
+    onKeyStateChanged: if (keyState === "touch") settle()
 
     Connections {
         target: typeof sddm !== "undefined" && sddm && sddm.loginFailed !== undefined ? sddm : null
         ignoreUnknownSignals: true
-        function onLoginFailed() { root.settle(); }
+        // PAM accepted but the shell could not unlock (unlock.sh failed): it reports loginFailed.
+        // Bring the UI back at once so ACCESS DENIED and the field are visible.
+        function onLoginFailed() { if (root.motionState === "reveal") root.restore(); else root.settle(); }
+        function onKeyTimedOut() { root.settle(); }
         function onLoginSucceeded() {
             // A sensor win arrives with nothing typed: a short windup first, then the reveal.
             if (sddm.fingerprintUnlock === true && root.motionState === "idle" && root.motionAllowed) {

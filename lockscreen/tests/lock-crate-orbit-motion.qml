@@ -46,7 +46,8 @@ ShellRoot {
     property int step: 0
     property var t0: 0
     readonly property var steps: ["pinned", "live", "liveSecondLater", "windupStart", "windupFull", "failed", "retyped", "stillWinding", "settled",
-        "succeed", "revealed", "sensor", "sensorRevealed", "reduced", "reducedLater", "done"]
+        "succeed", "revealed", "unlockFailed", "restoreTimer", "restoredByTimer", "keyPin", "keyTouch", "keyTouchSettled",
+        "keyTimeout", "keyTimeoutSettled", "sensor", "sensorRevealed", "reduced", "reducedLater", "done"]
     Timer {
         id: runner
         interval: 700; running: true
@@ -91,8 +92,30 @@ ShellRoot {
         var hour = find(it, "hourText");
         if (hour.font.pixelSize > d.minuteRadius * 0.75) return fail("hour " + hour.font.pixelSize + " too big for the minute ring " + d.minuteRadius), -1;
         if (d.secondRadius <= d.minuteRadius) return fail("seconds ring is not outside the minute ring"), -1;
+        // The readout window holds the current minute and second as fixed text, wherever the
+        // rings have turned them.
+        for (const t of [[0, 0, 0], [30, 0, 0], [50, 0, 0], [44, 59, 999], [7, 0, 900]]) {
+            it.now = new Date(2026, 10, 16, 16, t[0], t[1], t[2]);
+            if (!readoutShows(it, t[0], t[1], "readout at " + t.join(":"))) return -1;
+        }
+        it.now = new Date(2026, 10, 16, 16, 42, 7, 350);
         it.liveClock = true;
         return 250;
+    }
+    function two(n) { return (n < 10 ? "0" : "") + n; }
+    function readoutShows(it, mm, ss, what) {
+        var win = find(it, "orbitPointer"), m = find(it, "minuteReadout"), sec = find(it, "secondReadout");
+        if (!win || !m || !sec) return fail(what + ": no readout window or text"), false;
+        if (!eq(m.text, two(mm), what + " minute") || !eq(sec.text, two(ss), what + " second")) return false;
+        if (!cyanHi(m)) return fail(what + ": minute readout is not cyan-hi"), false;
+        if (m.font.family !== it.monoFamily || sec.font.family !== it.monoFamily) return fail(what + ": readout is not mono"), false;
+        var w = Checks.rect(win);
+        for (const t of [m, sec]) {
+            var r = Checks.rect(t);
+            if (r.x < w.x || r.y < w.y || r.x + r.w > w.x + w.w || r.y + r.h > w.y + w.h)
+                return fail(what + ": " + t.objectName + " " + JSON.stringify(r) + " leaves the window " + JSON.stringify(w)), false;
+        }
+        return true;
     }
     property var secondTick0: null
     property real liveAngle: 0
@@ -104,15 +127,14 @@ ShellRoot {
         if (!sameAngle(d.secondRotation, expect, 1.5, "live seconds ring")) return -1;
         root.liveAngle = d.secondRotation;
         root.liveAt = Date.now();
-        return 120;
+        return 600;
     }
     function liveSecondLater() {
         var d = dial();
         var moved = ((((root.liveAngle - d.secondRotation) % 360) + 360) % 360);
         var expect = (Date.now() - root.liveAt) * 360 / 60000;
-        if (!near(moved, expect, 1.0, "seconds ring turned continuously")) return -1;
-        if (Math.abs(moved / 6 - Math.round(moved / 6)) < 0.01 && moved > 0.05)
-            return fail("seconds ring moved in whole-second steps"), -1;
+        // About 3.6 degrees in 600 ms; a ring stepping once a second would be 0 or 6 off.
+        if (!near(moved, expect, 0.5, "seconds ring turned continuously")) return -1;
         o().liveClock = false;
         o().now = new Date(2026, 10, 16, 16, 42, 7, 350);
         return 0;
@@ -199,6 +221,85 @@ ShellRoot {
         return 0;
     }
 
+    // PAM said yes but the shell could not unlock: it reports loginFailed. The UI is back at once,
+    // with ACCESS DENIED, not left invisible until a timer.
+    function unlockFailed() {
+        var it = o(), f = find(it, "passwordField");
+        f.text = "good";
+        f.input.accepted();
+        fake.loginSucceeded();
+        return it.revealMs + 120;
+    }
+    function restoreTimer() {
+        var it = o(), stage = find(it, "orbitStage");
+        if (!eq(stage.opacity, 0, "stage hidden after the reveal")) return -1;
+        fake.loginFailed();
+        if (!eq(stage.opacity, 1, "stage opacity after a failed unlock")) return -1;
+        if (!eq(it.motionState, "idle", "motion state after a failed unlock")) return -1;
+        if (!eq(find(it, "accessDenied").visible, true, "access denied after a failed unlock")) return -1;
+        if (!eq(dial().spin, 0, "spin after a failed unlock")) return -1;
+        // Nothing arrives at all: the fallback timer brings the lock back.
+        it.revealRestoreMs = 300;
+        var f = find(it, "passwordField");
+        f.text = "good";
+        f.input.accepted();
+        fake.loginSucceeded();
+        return it.revealMs + 400;
+    }
+    function restoredByTimer() {
+        var it = o();
+        if (!eq(it.motionState, "idle", "motion state after the restore timer")) return -1;
+        if (!eq(find(it, "orbitStage").opacity, 1, "stage opacity after the restore timer")) return -1;
+        it.revealRestoreMs = it.sensorWindupMs + it.revealMs + 4000;
+        return 0;
+    }
+
+    // Security key: a PIN is not wound up for; a touch prompt or a timeout settles a windup.
+    function keyPin() {
+        var it = o(), f = find(it, "passwordField");
+        fake.requestKeyState("pin");
+        f.text = "1234";
+        f.input.accepted();
+        if (!eq(Checks.count(fake, "loginKeyPin") > 0, true, "PIN sent")) return -1;
+        if (!eq(it.motionState, "idle", "no windup for a PIN")) return -1;
+        if (!eq(it.windupProgress, 0, "no windup progress for a PIN")) return -1;
+        fake.loginFailed();
+        fake.usePassword();
+        f.text = "pw";
+        f.input.accepted();
+        if (!eq(it.motionState, "windup", "windup for a password")) return -1;
+        return 300;
+    }
+    function keyTouch() {
+        var it = o();
+        fake.requestKeyState("touch");
+        if (!eq(it.motionState, "settling", "touch prompt settles the windup")) return -1;
+        return 1400;
+    }
+    function keyTouchSettled() {
+        var it = o(), f = find(it, "passwordField");
+        if (!eq(it.motionState, "idle", "settled after the touch prompt")) return -1;
+        fake.usePassword();
+        fake.loginFailed();
+        f.text = "pw";
+        f.input.accepted();
+        if (!eq(it.motionState, "windup", "windup before the key timeout")) return -1;
+        return 300;
+    }
+    function keyTimeout() {
+        var it = o();
+        fake.keyTimedOut();
+        if (!eq(it.motionState, "settling", "key timeout settles the windup")) return -1;
+        return 1400;
+    }
+    function keyTimeoutSettled() {
+        var it = o();
+        if (!eq(it.motionState, "idle", "settled after the key timeout")) return -1;
+        if (!eq(dial().spin, 0, "spin after the key timeout")) return -1;
+        fake.loginFailed();
+        return 0;
+    }
+
     // A sensor win: a short windup, then the same reveal. Nothing typed, no second login.
     function sensor() {
         var it = o();
@@ -234,9 +335,12 @@ ShellRoot {
         if (!eq(it.windupProgress, 0, "windup under reduced motion")) return -1;
         if (!eq(it.motionState, "idle", "motion state under reduced motion")) return -1;
         if (!eq(d.spin, 0, "spin under reduced motion")) return -1;
-        // Still: the rings show the clock's own second, not a smooth sweep.
-        var n = it.now;
-        if (!near(d.secondRotation, -((n.getSeconds() * 1000 + n.getMilliseconds()) * 360 / 60000), 1e-6, "reduced-motion ring on the clock")) return -1;
+        // Still: not sampled per frame, and standing on the clock's whole second.
+        if (!eq(d.driving, false, "dial driving under reduced motion")) return -1;
+        it.liveClock = false;
+        it.now = new Date(2026, 10, 16, 16, 42, 7, 650);
+        if (!near(d.secondRotation, -(7000 * 360 / 60000), 1e-6, "reduced-motion seconds ring on the whole second")) return -1;
+        if (!near(d.ringRotation, -((42 * 60000 + 7000) * 360 / 3600000), 1e-6, "reduced-motion minute ring on the whole second")) return -1;
         fake.loginFailed();
         fake.loginSucceeded();
         if (!eq(it.dialScale, 1, "no scale under reduced motion")) return -1;

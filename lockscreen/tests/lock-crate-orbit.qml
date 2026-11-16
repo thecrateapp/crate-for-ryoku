@@ -42,16 +42,16 @@ ShellRoot {
         return "";
     }
 
-    // The minute spotlight reads the given minute in cyan-hi, mono, inside the reading window.
+    // The readout window holds the given minute (cyan-hi, mono) as fixed text inside its bounds.
     function windowShows(o, mm, what) {
-        var spot = find(o, "minuteSpot"), win = find(o, "orbitPointer");
-        if (!spot || !win) return fail(what + ": no minuteSpot or orbitPointer"), false;
-        if (!eq(spot.text, mm, what)) return false;
-        if (!eq(String(spot.color).toLowerCase(), "#67e8f9", what + " colour")) return false;
-        if (!eq(spot.font.family, o.monoFamily, what + " family")) return false;
-        var c = spot.mapToItem(null, spot.width / 2, spot.height / 2), w = Checks.rect(win);
-        if (c.x < w.x || c.x > w.x + w.w || c.y < w.y || c.y > w.y + w.h)
-            return fail(what + ": spotlight at " + Math.round(c.x) + "," + Math.round(c.y) + " is outside the window"), false;
+        var t = find(o, "minuteReadout"), win = find(o, "orbitPointer");
+        if (!t || !win) return fail(what + ": no minuteReadout or orbitPointer"), false;
+        if (!eq(t.text, mm, what)) return false;
+        if (!eq(String(t.color).toLowerCase(), "#67e8f9", what + " colour")) return false;
+        if (!eq(t.font.family, o.monoFamily, what + " family")) return false;
+        var r = Checks.rect(t), w = Checks.rect(win);
+        if (r.x < w.x || r.y < w.y || r.x + r.w > w.x + w.w || r.y + r.h > w.y + w.h)
+            return fail(what + ": readout " + JSON.stringify(r) + " leaves the window " + JSON.stringify(w)), false;
         return true;
     }
 
