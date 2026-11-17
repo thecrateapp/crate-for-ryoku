@@ -1,0 +1,189 @@
+/*
+ * crate-for-ryoku: Firefox userChrome.css
+ *
+ * Crate's look on Firefox's own interface: the canvas, hairlines instead of
+ * filled boxes, one cyan accent, 6 px corners, Roboto with JetBrains Mono caps
+ * labels. It stands on its own (no theme add-on needed) and matches the Crate
+ * theme add-on when that is installed too.
+ *
+ * Installed by `crate-for-ryoku install` (unless --no-firefox), which moves
+ * the profile's previous chrome/ folder aside and puts it back on uninstall.
+ * Needs toolkit.legacyUserProfileCustomizations.stylesheets = true (the
+ * installer sets it in user.js). Fonts: fonts/ beside this file (OFL 1.1).
+ */
+
+@font-face {
+  font-family: "Roboto";
+  font-weight: 100 900;
+  src: url("fonts/roboto-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 400;
+  src: url("fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+}
+
+:root {
+  --crate-canvas: #0a0a0f;
+  --crate-object: #0d0e14;
+  --crate-popover: #111218;
+  --crate-secondary: #15161d;
+  --crate-text: #f1f5f9;
+  --crate-text-secondary: rgba(241, 245, 249, 0.62);
+  --crate-text-faint: rgba(241, 245, 249, 0.42);
+  --crate-hairline: rgba(241, 245, 249, 0.1);
+  --crate-hairline-strong: rgba(241, 245, 249, 0.16);
+  --crate-accent: #06b6d4;
+  --crate-accent-hi: #67e8f9;
+  --crate-font-body: "Roboto", system-ui, sans-serif;
+  --crate-font-mono: "JetBrains Mono", "JetBrainsMono Nerd Font", ui-monospace, monospace;
+
+  /* colours: the frame, toolbars and tabs on the canvas */
+  --toolbox-background-color: var(--crate-canvas) !important;
+  --toolbox-background-color-inactive: var(--crate-canvas) !important;
+  --toolbox-text-color: var(--crate-text) !important;
+  --toolbox-text-color-inactive: var(--crate-text-secondary) !important;
+  --toolbar-background-color: var(--crate-canvas) !important;
+  --toolbar-text-color: var(--crate-text) !important;
+  --toolbar-color-scheme: dark !important;
+  --tabs-navbar-separator-color: var(--crate-hairline) !important;
+  --chrome-content-separator-color: var(--crate-hairline) !important;
+
+  --tab-text-color: var(--crate-text-secondary) !important;
+  --tab-text-color-hover: var(--crate-text) !important;
+  --tab-text-color-selected: var(--crate-text) !important;
+  --tab-background-color-hover: rgba(241, 245, 249, 0.05) !important;
+  --tab-background-color-selected: rgba(241, 245, 249, 0.06) !important;
+  --tab-box-shadow-selected: none !important;
+  --tab-selected-color-scheme: dark !important;
+  --tab-attention-dot-color: var(--crate-accent-hi) !important;
+
+  --toolbarbutton-background-color-hover: rgba(241, 245, 249, 0.07) !important;
+  --toolbarbutton-background-color-active: rgba(241, 245, 249, 0.12) !important;
+  --toolbar-button-background-hover: rgba(241, 245, 249, 0.07) !important;
+  --toolbar-button-background-active: rgba(241, 245, 249, 0.12) !important;
+  --toolbarbutton-badge-background-color: var(--crate-accent) !important;
+
+  --toolbar-field-background-color: var(--crate-popover) !important;
+  --toolbar-field-background-color-focus: var(--crate-popover) !important;
+  --toolbar-field-text-color: var(--crate-text) !important;
+  --toolbar-field-text-color-focus: var(--crate-text) !important;
+  --toolbar-field-border-color: var(--crate-hairline) !important;
+  --toolbar-field-border-color-focus: var(--crate-accent-hi) !important;
+  --urlbar-box-background-color: rgba(241, 245, 249, 0.04) !important;
+  --urlbar-box-background-color-hover: rgba(241, 245, 249, 0.08) !important;
+  --urlbar-box-text-color: var(--crate-text-secondary) !important;
+
+  --panel-background-color: var(--crate-popover) !important;
+  --panel-text-color: var(--crate-text) !important;
+  --panel-border-color: var(--crate-hairline-strong) !important;
+  --panel-separator-color: var(--crate-hairline) !important;
+  --panel-section-header-color: var(--crate-text-faint) !important;
+  --panel-list-background-color: var(--crate-popover) !important;
+  --panel-list-text-color: var(--crate-text) !important;
+  --panel-list-border-color: var(--crate-hairline-strong) !important;
+  --panel-box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+
+  --sidebar-background-color: var(--crate-canvas) !important;
+  --sidebar-text-color: var(--crate-text) !important;
+  --sidebar-border-color: var(--crate-hairline) !important;
+
+  --focus-outline-color: var(--crate-accent-hi) !important;
+  --color-accent-primary: var(--crate-accent) !important;
+  --color-accent-primary-hover: #22d3ee !important;
+  --color-accent-primary-active: var(--crate-accent-hi) !important;
+  --button-background-color-primary: var(--crate-accent) !important;
+  --button-text-color-primary: var(--crate-canvas) !important;
+  --link-color: var(--crate-accent-hi) !important;
+  --text-color: var(--crate-text) !important;
+  --text-color-deemphasized: var(--crate-text-secondary) !important;
+  --border-color: var(--crate-hairline) !important;
+  --border-color-deemphasized: var(--crate-hairline) !important;
+  --background-color-canvas: var(--crate-canvas) !important;
+  --background-color-box: var(--crate-object) !important;
+
+  /* shape: 6 px corners */
+  --border-radius-small: 4px !important;
+  --border-radius-medium: 6px !important;
+  --border-radius-large: 6px !important;
+  --tab-border-radius: 6px !important;
+  --toolbarbutton-border-radius: 6px !important;
+  --urlbar-border-radius: 6px !important;
+  --urlbar-inner-border-radius: 4px !important;
+  --urlbar-background-border-radius: 6px !important;
+  --panel-border-radius: 6px !important;
+  --arrowpanel-border-radius: 6px !important;
+
+  font-family: var(--crate-font-body) !important;
+}
+
+/* type: Roboto across the interface */
+#navigator-toolbox,
+#urlbar,
+#sidebar-main,
+menupopup,
+menu,
+menuitem,
+panel,
+panelview,
+.tab-label {
+  font-family: var(--crate-font-body) !important;
+}
+
+/* breathing room: the tabs sit 6 px off the strip's edges instead of
+   touching the window edge */
+:root {
+  --tab-margin-block: 6px !important;
+}
+
+#TabsToolbar {
+  padding-inline: 6px !important;
+}
+
+/* the selected tab: a cyan hairline, not a raised fill */
+.tabbrowser-tab:is([selected], [multiselected]) .tab-background {
+  outline: 1px solid rgba(103, 232, 249, 0.55) !important;
+  outline-offset: -1px !important;
+  box-shadow: none !important;
+}
+
+.tabbrowser-tab[selected] .tab-label {
+  font-weight: 500 !important;
+}
+
+/* the address bar: a hairline field, cyan stroke when focused */
+#urlbar-background {
+  border: 1px solid var(--crate-hairline) !important;
+  box-shadow: none !important;
+}
+
+#urlbar:is([focused], [open]) > #urlbar-background {
+  border-color: var(--crate-accent-hi) !important;
+  outline: none !important;
+}
+
+/* JetBrains Mono caps for section labels */
+menucaption,
+.panel-subview-body .subview-subheader,
+.urlbarView-row[label]::before,
+.panel-header > h1,
+#identity-popup .identity-popup-headline {
+  font-family: var(--crate-font-mono) !important;
+  font-weight: 400 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  color: var(--crate-text-faint) !important;
+}
+
+/* hairlines between toolbars and around popups */
+#nav-bar {
+  border-bottom: 1px solid var(--crate-hairline) !important;
+  box-shadow: none !important;
+}
+
+panel,
+menupopup {
+  --panel-border-radius: 6px !important;
+}

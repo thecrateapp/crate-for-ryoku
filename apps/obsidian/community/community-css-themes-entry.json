@@ -1,0 +1,7 @@
+{
+  "name": "Crate",
+  "author": "thecrateapp",
+  "repo": "thecrateapp/obsidian-crate",
+  "screenshot": "screenshot.png",
+  "modes": ["dark"]
+}

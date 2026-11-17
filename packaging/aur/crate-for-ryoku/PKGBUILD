@@ -3,15 +3,21 @@
 # Crate for Ryoku: the Crate rice, the crate-mark bar plugin, Solar app icons
 # and Crate's terminal styling for a Ryoku desktop. The package holds the
 # pieces; each user lays them into their home with `crate-for-ryoku install`.
+#
+# The Chrome theme is the one piece offered to every user from here: Google
+# Chrome and Chromium read an external-extension file and ask each user once.
+# Its .crx is signed with the theme's private key, which is not public, so a
+# build without that key (the AUR's, CI's) ships no Chrome theme
+# (package/build-chrome.sh).
 pkgname=crate-for-ryoku
-pkgver=0.6.0
+pkgver=0.7.0
 pkgrel=1
 pkgdesc="Crate for Ryoku: Crate's look and Crate integration for the Ryoku desktop"
 arch=('any')
 url="https://github.com/thecrateapp/crate-for-ryoku"
 license=('MIT' 'CC-BY-4.0' 'OFL-1.1')
 depends=('ryoku-desktop' 'python' 'python-numpy' 'python-pillow' 'librsvg' 'fontconfig' 'qt6-imageformats')
-makedepends=('git' 'python-cairo' 'quickshell' 'qt6-imageformats' 'python-fonttools' 'python-brotli')
+makedepends=('git' 'python-cairo' 'quickshell' 'qt6-imageformats' 'python-fonttools' 'python-brotli' 'openssl')
 optdepends=(
   'crate-desktop-bin: the Crate app (now playing, the launcher provider, the bar panel)'
   'eza: the Crate eza theme'
@@ -21,6 +27,7 @@ optdepends=(
 )
 source=("$pkgname::git+https://github.com/thecrateapp/crate-for-ryoku.git#tag=v$pkgver")
 sha256sums=('SKIP')
+_chrome_id=jddiejdibphncbpfehopofclalbeghbc  # fixed by the key in apps/chrome/theme/manifest.json
 
 build() {
   cd "$pkgname"
@@ -35,4 +42,10 @@ package() {
   ln -s "/usr/share/$pkgname/bin/crate-for-ryoku" "$pkgdir/usr/bin/crate-for-ryoku"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
   install -Dm644 NOTICE "$pkgdir/usr/share/licenses/$pkgname/NOTICE"
+  # the Chrome theme (/usr/share/crate-for-ryoku/chrome/crate-theme.crx), when
+  # the build had its key: Google Chrome and Arch's Chromium read these folders
+  if [ -f "dist/$pkgname-$pkgver/chrome/crate-theme.crx" ]; then
+    install -Dm644 "dist/$pkgname-$pkgver/chrome/$_chrome_id.json" "$pkgdir/usr/share/google-chrome/extensions/$_chrome_id.json"
+    install -Dm644 "dist/$pkgname-$pkgver/chrome/$_chrome_id.json" "$pkgdir/usr/share/chromium/extensions/$_chrome_id.json"
+  fi
 }

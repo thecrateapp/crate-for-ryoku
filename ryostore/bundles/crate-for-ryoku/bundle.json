@@ -2,7 +2,7 @@
   "schema": 1,
   "id": "crate-for-ryoku",
   "category": "bundles",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "destination": "ryoku/bundles/crate-for-ryoku",
   "name": "Crate for Ryoku",
   "description": "Crate's look, and Crate itself, on Ryoku: the Crate rice, the crate-mark bar plugin with Crate's equalizer, Solar app icons, and the terminal in Crate's palette.",

@@ -1,0 +1,68 @@
+{
+  "manifest_version": 3,
+  "name": "Crate",
+  "version": "1.0.0",
+  "description": "Crate's look for Firefox: a near-black canvas, hairlines instead of filled boxes and one cyan accent.",
+  "author": "thecrateapp",
+  "homepage_url": "https://github.com/thecrateapp/crate-for-ryoku",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "crate-theme@cratemusic.app",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  },
+  "theme": {
+    "colors": {
+      "frame": "#0a0a0f",
+      "frame_inactive": "#0a0a0f",
+      "tab_background_text": "rgba(241, 245, 249, 0.62)",
+      "tab_text": "#f1f5f9",
+      "tab_selected": "#15161d",
+      "tab_line": "#67e8f9",
+      "tab_loading": "#06b6d4",
+      "tab_background_separator": "rgba(241, 245, 249, 0.1)",
+      "toolbar": "#0a0a0f",
+      "toolbar_text": "#f1f5f9",
+      "toolbar_top_separator": "rgba(241, 245, 249, 0.1)",
+      "toolbar_bottom_separator": "rgba(241, 245, 249, 0.1)",
+      "toolbar_vertical_separator": "rgba(241, 245, 249, 0.1)",
+      "toolbar_field": "#111218",
+      "toolbar_field_text": "#f1f5f9",
+      "toolbar_field_border": "rgba(241, 245, 249, 0.1)",
+      "toolbar_field_focus": "#111218",
+      "toolbar_field_text_focus": "#f1f5f9",
+      "toolbar_field_border_focus": "#67e8f9",
+      "toolbar_field_highlight": "rgba(6, 182, 212, 0.35)",
+      "toolbar_field_highlight_text": "#f1f5f9",
+      "icons": "rgba(241, 245, 249, 0.8)",
+      "icons_attention": "#67e8f9",
+      "button_background_hover": "rgba(241, 245, 249, 0.07)",
+      "button_background_active": "rgba(241, 245, 249, 0.12)",
+      "popup": "#111218",
+      "popup_text": "#f1f5f9",
+      "popup_border": "rgba(241, 245, 249, 0.16)",
+      "popup_highlight": "rgba(6, 182, 212, 0.18)",
+      "popup_highlight_text": "#f1f5f9",
+      "sidebar": "#0a0a0f",
+      "sidebar_text": "#f1f5f9",
+      "sidebar_border": "rgba(241, 245, 249, 0.1)",
+      "sidebar_highlight": "#06b6d4",
+      "sidebar_highlight_text": "#0a0a0f",
+      "ntp_background": "#0a0a0f",
+      "ntp_text": "#f1f5f9",
+      "ntp_card_background": "#0d0e14"
+    },
+    "properties": {
+      "color_scheme": "dark",
+      "content_color_scheme": "dark"
+    }
+  }
+}

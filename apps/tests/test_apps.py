@@ -1,0 +1,591 @@
+"""run: python3 -m pytest apps/tests -q
+
+The app themes (apps/build.py) and their installer (package/apps.sh), run
+against a throwaway HOME: never a real Obsidian vault or Firefox profile.
+"""
+import base64
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import zipfile
+
+import pytest
+
+APPS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(APPS)
+APPS_SH = os.path.join(ROOT, "package", "apps.sh")
+sys.path.insert(0, APPS)
+
+import build  # noqa: E402
+
+TOKENS = json.load(open(os.path.join(APPS, "tokens.json")))
+
+
+def rgb(hex_colour):
+    h = hex_colour.lstrip("#")
+    return [int(h[i:i + 2], 16) for i in (0, 2, 4)]
+
+
+@pytest.fixture(scope="module")
+def out(tmp_path_factory):
+    d = tmp_path_factory.mktemp("apps")
+    assert build.main(["build.py", str(d)]) == 0
+    return d
+
+
+# ---------- the built themes ----------
+
+def test_obsidian_theme_inlines_every_font(out):
+    css = (out / "obsidian/Crate/theme.css").read_text()
+    assert "crate-font:" not in css
+    assert len(re.findall(r'url\("data:font/woff2;base64,', css)) == 3
+    for family in ("Roboto", "Bricolage Grotesque", "JetBrains Mono"):
+        assert f'font-family: "{family}"' in css
+
+
+def test_obsidian_theme_loads_nothing_remote(out):
+    css = (out / "obsidian/Crate/theme.css").read_text()
+    assert not re.search(r"url\(\s*[\"']?(https?:)?//", css)
+    assert "@import" not in css
+
+
+def test_obsidian_manifest_follows_the_community_rules():
+    m = json.load(open(os.path.join(APPS, "obsidian/manifest.json")))
+    assert {"name", "version", "minAppVersion", "author"} <= m.keys()
+    assert re.fullmatch(r"\d+\.\d+\.\d+", m["version"])
+    assert "theme" not in m["name"].lower() and "obsidian" not in m["name"].lower()
+
+
+def test_obsidian_dark_colours_are_crate():
+    css = open(os.path.join(APPS, "obsidian/theme.css")).read()
+    dark = css[css.index(".theme-dark {"):]
+    dark = dark[:dark.index("\n}\n")]
+    for token in ("canvas", "object", "popover", "text", "text_secondary", "text_faint", "hairline",
+                  "accent", "accent_hi", "warning", "danger"):
+        assert TOKENS[token] in dark, token
+    assert "--background-primary: var(--crate-canvas)" in dark
+    assert "--background-modifier-border: var(--crate-hairline)" in dark
+    assert "--interactive-accent: var(--crate-accent)" in dark
+    assert "--text-accent: var(--crate-accent-hi)" in dark
+
+
+def test_obsidian_shape_and_type_apply_in_both_modes():
+    css = open(os.path.join(APPS, "obsidian/theme.css")).read()
+    body = css[css.index("\nbody {"):]
+    body = body[:body.index("\n}\n")]
+    assert "--radius-m: 6px" in body
+    assert '--font-interface-theme: "Roboto"' in body
+    assert "--h1-font: var(--crate-font-display)" in body
+    assert "--h6-letter-spacing: var(--crate-label-tracking)" in body
+    assert "--crate-label-tracking: 0.12em" in body
+
+
+def test_firefox_theme_matches_the_tokens(out):
+    m = json.load(open(os.path.join(APPS, "firefox/theme/manifest.json")))
+    c = m["theme"]["colors"]
+    assert c["frame"] == c["toolbar"] == c["ntp_background"] == TOKENS["canvas"]
+    assert c["tab_text"] == c["toolbar_text"] == TOKENS["text"]
+    assert c["toolbar_field_border_focus"] == c["tab_line"] == TOKENS["accent_hi"]
+    assert m["theme"]["properties"]["color_scheme"] == "dark"
+    assert m["browser_specific_settings"]["gecko"]["id"] == "crate-theme@cratemusic.app"
+    with zipfile.ZipFile(out / "firefox/crate-theme-1.0.0.xpi") as z:
+        assert json.loads(z.read("manifest.json")) == m
+
+
+def test_firefox_chrome_layer_ships_its_fonts(out):
+    chrome = out / "firefox/chrome"
+    for css in ("userChrome.css", "userContent.css"):
+        text = (chrome / css).read_text()
+        for url in re.findall(r'url\("(fonts/[^"]+)"\)', text):
+            assert (chrome / url).is_file(), url
+    assert (chrome / "fonts/OFL-roboto.txt").is_file()
+
+
+def test_firefox_settings_nav_is_a_cyan_mark_not_a_pill(out):
+    text = (out / "firefox/chrome/userContent.css").read_text()
+    # the overrides sit on the component hosts, where Nova redeclares them
+    assert re.search(r"moz-page-nav-button,\s*moz-input-search", text)
+    decls = dict(re.findall(r"(--[\w-]+):\s*([^;]+?)\s*!important;", text))
+    assert decls["--page-nav-button-background-color-selected"] == "rgba(6, 182, 212, 0.1)"
+    assert decls["--page-nav-button-indicator-width"] == "2px"
+    assert decls["--page-nav-button-border-radius"] == "6px"
+    assert decls["--input-search-border-radius"] == "6px"
+
+
+def test_firefox_tabs_sit_off_the_strip_edges(out):
+    text = (out / "firefox/chrome/userChrome.css").read_text()
+    assert "--tab-margin-block: 6px !important;" in text
+    assert re.search(r"#TabsToolbar\s*\{\s*padding-inline: 6px !important;", text)
+
+
+def test_chrome_theme_has_a_fixed_id_and_crate_colours(out):
+    m = json.load(open(out / "chrome/crate-theme/manifest.json"))
+    assert build.chrome_id(m["key"]) == "jddiejdibphncbpfehopofclalbeghbc"
+    assert "CHROME_ID=jddiejdibphncbpfehopofclalbeghbc" in open(APPS_SH).read()
+    c = m["theme"]["colors"]
+    assert c["frame"] == rgb(TOKENS["canvas"])
+    assert c["tab_text"] == rgb(TOKENS["text"])
+    assert c["ntp_link"] == rgb(TOKENS["accent_hi"])
+    # the key is a public key only: an RSA SubjectPublicKeyInfo, no private part
+    der = base64.b64decode(m["key"])
+    assert der[:3] == b"\x30\x82\x01" and len(der) < 400
+
+
+def test_chrome_webstore_zip_drops_the_key(out):
+    with zipfile.ZipFile(out / "chrome/crate-theme-1.0.0-webstore.zip") as z:
+        m = json.loads(z.read("manifest.json"))
+    assert "key" not in m and m["theme"]
+
+
+def test_builds_are_reproducible(tmp_path):
+    a, b = tmp_path / "a", tmp_path / "b"
+    build.main(["build.py", str(a)])
+    build.main(["build.py", str(b)])
+    for rel in ("firefox/crate-theme-1.0.0.xpi", "chrome/crate-theme-1.0.0-webstore.zip",
+                "obsidian/Crate/theme.css"):
+        assert (a / rel).read_bytes() == (b / rel).read_bytes(), rel
+
+
+# ---------- the Chrome .crx, with a throwaway key ----------
+
+def make_key(tmp_path):
+    key = tmp_path / "throwaway.pem"
+    subprocess.run(["openssl", "genpkey", "-algorithm", "RSA", "-pkeyopt", "rsa_keygen_bits:2048",
+                    "-out", str(key)], check=True, capture_output=True)
+    return key
+
+
+def test_crx_is_signed_and_carries_the_keys_id(tmp_path):
+    key = make_key(tmp_path)
+    theme = tmp_path / "theme"
+    theme.mkdir()
+    pub = base64.b64encode(build.public_key_der(str(key))).decode()
+    (theme / "manifest.json").write_text(json.dumps({"manifest_version": 3, "name": "t", "version": "1.0.0",
+                                                     "key": pub, "theme": {}}))
+    crx = tmp_path / "t.crx"
+    crx_id = build.pack_crx(str(theme), str(key), str(crx))
+    assert crx_id == build.chrome_id(pub)
+    assert build.verify_crx(str(crx)) == crx_id
+    data = crx.read_bytes()
+    assert data[:4] == b"Cr24" and data[4:8] == b"\x03\x00\x00\x00"
+    parts = build.read_crx(str(crx))
+    with zipfile.ZipFile(__import__("io").BytesIO(parts["zip"])) as z:
+        assert json.loads(z.read("manifest.json"))["key"] == pub
+    # a flipped byte in the zip breaks the signature
+    bad = tmp_path / "bad.crx"
+    bad.write_bytes(data[:-10] + bytes([data[-10] ^ 1]) + data[-9:])
+    with pytest.raises(SystemExit):
+        build.verify_crx(str(bad))
+
+
+def test_build_refuses_a_key_that_is_not_the_manifests(tmp_path):
+    key = make_key(tmp_path)
+    with pytest.raises(SystemExit, match="not the key in the Chrome manifest"):
+        build.main(["build.py", str(tmp_path / "out"), "--chrome-key", str(key)])
+    assert not list((tmp_path / "out/chrome").glob("*.crx"))
+
+
+# ---------- the installer, in a throwaway home ----------
+
+# the commands apps.sh uses; PATH holds only these, so a browser or Obsidian on
+# this machine never counts as installed unless a test puts a stub there
+TOOLS = ("bash", "python3", "sha256sum", "cut", "grep", "mkdir", "touch", "cp", "mv", "cmp", "rm", "rmdir",
+         "find", "sort", "xargs", "cat", "date", "ls", "head", "dirname", "env", "sed")
+
+
+@pytest.fixture
+def home(tmp_path, out):
+    h = tmp_path / "home"
+    (h / ".config").mkdir(parents=True)
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    for tool in TOOLS:
+        os.symlink(shutil.which(tool), bindir / tool)
+    env = dict(os.environ, HOME=str(h), XDG_CONFIG_HOME=str(h / ".config"),
+               XDG_STATE_HOME=str(h / ".local/state"), CRATE_APPS_DIR=str(out),
+               CRATE_SYSTEM_ROOT=str(tmp_path / "root"), PATH=str(bindir))
+
+    def run(*args, **extra):
+        r = subprocess.run([shutil.which("bash"), APPS_SH, *args], env=dict(env, **extra),
+                           capture_output=True, text=True)
+        assert r.returncode == 0, r.stderr
+        return r.stdout + r.stderr
+
+    run.bindir = bindir
+    run.root = tmp_path / "root"
+    return h, run
+
+
+def stub(run, name):
+    """A command that does nothing, so apps.sh sees that app as installed."""
+    path = run.bindir / name
+    path.write_text("#!/bin/sh\nexit 0\n")
+    path.chmod(0o755)
+
+
+def appearance(vault):
+    return json.loads((vault / ".obsidian/appearance.json").read_text())
+
+
+def make_vaults(h, *names, appearance_json='{"cssTheme":"Nord","enabledCssSnippets":["mine"],"baseFontSize":17}'):
+    vaults = {}
+    for i, name in enumerate(names):
+        v = h / name
+        (v / ".obsidian").mkdir(parents=True)
+        if appearance_json is not None:
+            (v / ".obsidian/appearance.json").write_text(appearance_json)
+        vaults[f"id{i}"] = {"path": str(v), "ts": 1, "open": i == 0}
+    vaults["gone"] = {"path": str(h / "moved-away"), "ts": 1}
+    (h / ".config/obsidian").mkdir(parents=True)
+    (h / ".config/obsidian/obsidian.json").write_text(json.dumps({"vaults": vaults}))
+    return [h / n for n in names]
+
+
+def test_nothing_installed_installs_quietly(home):
+    h, run = home
+    log = run("install")
+    assert "Obsidian" not in log and "Firefox" not in log
+    status = run("status")
+    assert re.search(r"Obsidian +not installed", status)
+    assert re.search(r"Firefox +not installed", status)
+    assert re.search(r"Chrome +not installed", status)
+    run("uninstall")
+    assert not (h / ".mozilla").exists()
+
+
+def test_obsidian_without_vaults_is_one_line(home):
+    h, run = home
+    stub(run, "obsidian")
+    log = run("install")
+    assert len(log.splitlines()) == 1 and "no vaults yet" in log
+    assert "Crate in 0 of 0 vault(s)" in run("status")
+
+
+def test_obsidian_install_copies_and_selects_crate_keeping_every_other_key(home, out):
+    h, run = home
+    a, b = make_vaults(h, "Notes", "Work")
+    log = run("install")
+    assert "2 vault(s), selected in 2" in log and "reopen" in log
+    for v in (a, b):
+        theme = v / ".obsidian/themes/Crate"
+        assert (theme / "theme.css").read_bytes() == (out / "obsidian/Crate/theme.css").read_bytes()
+        assert json.loads((theme / "manifest.json").read_text())["name"] == "Crate"
+        assert appearance(v) == {"cssTheme": "Crate", "enabledCssSnippets": ["mine"], "baseFontSize": 17}
+    assert not (h / "moved-away").exists()
+    run("install")  # idempotent
+    assert "Crate in 2 of 2 vault(s), selected in 2" in run("status")
+    run("uninstall")
+    for v in (a, b):
+        assert appearance(v) == {"cssTheme": "Nord", "enabledCssSnippets": ["mine"], "baseFontSize": 17}
+        assert not (v / ".obsidian/themes/Crate").exists()
+
+
+def test_obsidian_vault_on_the_default_theme_goes_back_to_it(home):
+    h, run = home
+    (a,) = make_vaults(h, "Notes", appearance_json='{"accentColor":"#ff0000"}')
+    run("install")
+    assert appearance(a) == {"accentColor": "#ff0000", "cssTheme": "Crate"}
+    run("uninstall")
+    assert appearance(a) == {"accentColor": "#ff0000"}
+
+
+def test_obsidian_empty_css_theme_is_put_back_as_it_was(home):
+    h, run = home
+    (a,) = make_vaults(h, "Notes", appearance_json='{"cssTheme":""}')
+    run("install")
+    run("uninstall")
+    assert appearance(a) == {"cssTheme": ""}
+
+
+def test_obsidian_creates_a_missing_appearance_json_and_removes_it_again(home):
+    h, run = home
+    (a,) = make_vaults(h, "Notes", appearance_json=None)
+    run("install")
+    assert appearance(a) == {"cssTheme": "Crate"}
+    run("uninstall")
+    assert not (a / ".obsidian/appearance.json").exists()
+
+
+def test_obsidian_uninstall_leaves_a_theme_you_picked_since(home):
+    h, run = home
+    a, b = make_vaults(h, "Notes", "Work")
+    run("install")
+    (b / ".obsidian/appearance.json").write_text('{"cssTheme":"Minimal","enabledCssSnippets":["mine"]}')
+    log = run("install")  # a later install respects the pick too
+    assert "uses Minimal since" in log and appearance(b)["cssTheme"] == "Minimal"
+    log = run("uninstall")
+    assert appearance(a)["cssTheme"] == "Nord"
+    assert appearance(b) == {"cssTheme": "Minimal", "enabledCssSnippets": ["mine"]}
+    assert "another theme selected now" in log
+
+
+def test_obsidian_turns_ryokus_snippet_off_and_back_on(home):
+    h, run = home
+    (a,) = make_vaults(h, "Notes", appearance_json='{"enabledCssSnippets":["mine","ryoku"]}')
+    run("install")
+    assert appearance(a) == {"enabledCssSnippets": ["mine"], "cssTheme": "Crate"}
+    assert "greys it out" not in run("status")
+    # stock Ryoku's doctor puts it back over the theme: status says so
+    (a / ".obsidian/appearance.json").write_text('{"enabledCssSnippets":["mine","ryoku"],"cssTheme":"Crate"}')
+    assert "palette snippet is on in 1" in run("status")
+    (a / ".obsidian/appearance.json").write_text('{"enabledCssSnippets":["mine"],"cssTheme":"Crate"}')
+    run("uninstall")
+    assert appearance(a) == {"enabledCssSnippets": ["mine", "ryoku"]}
+
+
+def test_obsidian_snippet_stays_off_when_the_old_theme_comes_back(home):
+    h, run = home
+    (a,) = make_vaults(h, "Notes", appearance_json='{"cssTheme":"Nord","enabledCssSnippets":["ryoku"]}')
+    run("install")
+    run("uninstall")
+    # a vault with its own theme keeps the snippet off, as Ryoku's doctor would
+    assert appearance(a) == {"cssTheme": "Nord", "enabledCssSnippets": []}
+
+
+def test_obsidian_invalid_appearance_json_is_left_alone(home):
+    h, run = home
+    (a,) = make_vaults(h, "Notes", appearance_json="{not json")
+    log = run("install")
+    assert "not valid JSON" in log
+    assert (a / ".obsidian/themes/Crate/theme.css").is_file()
+    assert (a / ".obsidian/appearance.json").read_text() == "{not json"
+    run("uninstall")
+    assert (a / ".obsidian/appearance.json").read_text() == "{not json"
+
+
+def test_obsidian_leaves_a_crate_theme_it_did_not_install(home):
+    h, run = home
+    (a,) = make_vaults(h, "Notes")
+    theirs = a / ".obsidian/themes/Crate"
+    theirs.mkdir(parents=True)
+    (theirs / "theme.css").write_text("/* from the community store, another version */")
+    assert "not ours" in run("install")
+    assert appearance(a)["cssTheme"] == "Nord"
+    run("uninstall")
+    assert (theirs / "theme.css").read_text().startswith("/* from the community store")
+
+
+def test_obsidian_uninstall_removes_only_unchanged_copies(home):
+    h, run = home
+    a, b = make_vaults(h, "Notes", "Work")
+    run("install")
+    edited = b / ".obsidian/themes/Crate/theme.css"
+    edited.write_text(edited.read_text() + "\n/* my tweak */\n")
+    log = run("uninstall")
+    assert not (a / ".obsidian/themes/Crate").exists()
+    assert (a / ".obsidian/themes").is_dir()
+    assert edited.is_file() and "changed since install" in log
+
+
+def test_no_obsidian_leaves_vaults_alone(home):
+    h, run = home
+    (a,) = make_vaults(h, "Notes")
+    before = (a / ".obsidian/appearance.json").read_bytes()
+    run("install", "--no-obsidian")
+    assert not (a / ".obsidian/themes").exists()
+    assert (a / ".obsidian/appearance.json").read_bytes() == before
+
+
+def make_firefox(h, chrome="symlink", pref=True):
+    base = h / ".mozilla/firefox"
+    main, other = base / "abc.default-release", base / "xyz.default"
+    for p in (main, other):
+        p.mkdir(parents=True)
+    (base / "profiles.ini").write_text(
+        "[Install4F96D1932A9F858E]\nDefault=abc.default-release\nLocked=1\n\n"
+        "[Profile1]\nName=default\nIsRelative=1\nPath=xyz.default\nDefault=1\n\n"
+        "[Profile0]\nName=default-release\nIsRelative=1\nPath=abc.default-release\n\n"
+        "[General]\nStartWithLastProfile=1\nVersion=2\n")
+    themes = base / "firefox-themes"
+    themes.mkdir()
+    (themes / "userChrome.css").write_text('@import "WhiteSur/theme.css";\n')
+    if chrome == "symlink":
+        (main / "chrome").symlink_to(themes)
+    elif chrome == "dir":
+        (main / "chrome").mkdir()
+        (main / "chrome/userChrome.css").write_text("/* mine */\n")
+    if pref:
+        (main / "user.js").write_text('user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);\n')
+    return main, other, themes
+
+
+def test_firefox_chrome_replaces_whitesur_by_default_and_restores_the_symlink(home, out):
+    h, run = home
+    main, other, themes = make_firefox(h)
+    user_js = (main / "user.js").read_text()
+    log = run("install")
+    assert "restart Firefox" in log
+    chrome = main / "chrome"
+    assert chrome.is_dir() and not chrome.is_symlink()
+    assert (chrome / "userChrome.css").read_bytes() == (out / "firefox/chrome/userChrome.css").read_bytes()
+    assert (chrome / "fonts/roboto-latin.woff2").is_file()
+    backup = main / "chrome.before-crate"
+    assert backup.is_symlink() and os.readlink(backup) == str(themes)
+    assert (themes / "userChrome.css").read_text().startswith('@import "WhiteSur')
+    assert (main / "user.js").read_text() == user_js  # the pref was already there
+    assert not (other / "chrome").exists()  # only the profile Firefox starts with
+    assert "Crate userChrome in 1 of 1 profile(s)" in run("status")
+
+    run("install")  # a second run refreshes, keeps the backup
+    assert backup.is_symlink()
+
+    run("uninstall")
+    assert chrome.is_symlink() and os.readlink(chrome) == str(themes)
+    assert not backup.exists() and not backup.is_symlink()
+    assert (themes / "userChrome.css").read_text().startswith('@import "WhiteSur')
+    assert "Crate userChrome in 0 of 1 profile(s)" in run("status")
+
+
+def test_firefox_chrome_flag_is_still_accepted(home):
+    h, run = home
+    main, _, _ = make_firefox(h)
+    run("install", "--firefox-chrome")
+    assert (main / "chrome/.crate-for-ryoku").is_file()
+
+
+def test_no_firefox_leaves_the_profile_alone(home):
+    h, run = home
+    main, _, themes = make_firefox(h)
+    log = run("install", "--no-firefox")
+    assert (main / "chrome").is_symlink() and "Firefox" not in log
+    assert not (main / "chrome.before-crate").exists()
+
+
+def test_firefox_profile_without_a_chrome_folder(home):
+    h, run = home
+    main, _, _ = make_firefox(h, chrome=None, pref=False)
+    run("install")
+    assert (main / "chrome/userChrome.css").is_file()
+    assert not (main / "chrome.before-crate").exists()
+    assert '"toolkit.legacyUserProfileCustomizations.stylesheets", true' in (main / "user.js").read_text()
+    run("uninstall")
+    assert not (main / "chrome").exists() and not (main / "chrome.before-crate").exists()
+    assert "legacyUserProfileCustomizations" not in (main / "user.js").read_text()
+
+
+def test_firefox_chrome_sets_the_pref_and_takes_it_back(home):
+    h, run = home
+    main, _, _ = make_firefox(h, chrome="dir", pref=False)
+    (main / "user.js").write_text('user_pref("browser.tabs.drawInTitlebar", true);\n')
+    run("install")
+    assert '"toolkit.legacyUserProfileCustomizations.stylesheets", true' in (main / "user.js").read_text()
+    assert (main / "chrome.before-crate/userChrome.css").read_text() == "/* mine */\n"
+    run("uninstall")
+    assert (main / "user.js").read_text() == 'user_pref("browser.tabs.drawInTitlebar", true);\n'
+    assert (main / "chrome/userChrome.css").read_text() == "/* mine */\n"
+
+
+def test_firefox_chrome_keeps_your_edits_on_uninstall(home):
+    h, run = home
+    main, _, themes = make_firefox(h)
+    run("install")
+    with open(main / "chrome/userChrome.css", "a") as f:
+        f.write("\n/* my tweak */\n")
+    log = run("uninstall")
+    edited = [p for p in main.iterdir() if p.name.startswith("chrome.crate-edited-")]
+    assert len(edited) == 1 and "my tweak" in (edited[0] / "userChrome.css").read_text()
+    assert (main / "chrome").is_symlink() and "had edits" in log
+
+
+def test_firefox_profile_can_be_named(home):
+    h, run = home
+    main, other, _ = make_firefox(h)
+    run("install", "--firefox-profile", str(other))
+    assert (other / "chrome/userChrome.css").is_file()
+    assert (main / "chrome").is_symlink()
+
+
+def test_firefox_installed_without_a_profile_is_one_line(home):
+    h, run = home
+    stub(run, "firefox")
+    log = run("install")
+    assert len(log.splitlines()) == 1 and "no profile yet" in log
+    assert re.search(r"Firefox +installed; Crate userChrome in 0 of 0", run("status"))
+
+
+def test_firefox_status_names_the_add_ons(home):
+    h, run = home
+    main, _, _ = make_firefox(h)
+    (main / "extensions.json").write_text(json.dumps({"addons": [
+        {"id": "crate-theme@cratemusic.app", "active": True},
+        {"id": "ryoku-theme@ryoku.arch", "active": True}]}))
+    status = run("status")
+    assert re.search(r"Firefox theme add-on +yes \(the Ryoku Theme extension recolours Firefox over it\)", status)
+
+
+def test_look_only_uninstall_restores_the_looks_and_keeps_the_files(home, out):
+    h, run = home
+    (a,) = make_vaults(h, "Notes")
+    main, _, themes = make_firefox(h)
+    run("install")
+    run("uninstall", "--look-only")
+    assert (main / "chrome").is_symlink()
+    assert appearance(a)["cssTheme"] == "Nord"
+    assert (a / ".obsidian/themes/Crate/theme.css").is_file()
+    run("uninstall")
+    assert not (a / ".obsidian/themes/Crate").exists()
+    assert appearance(a)["cssTheme"] == "Nord"
+
+
+def test_the_pre_07_keep_files_switch_still_means_look_only(home):
+    h, run = home
+    (a,) = make_vaults(h, "Notes")
+    run("install")
+    run("uninstall", CRATE_APPS_ONLY="firefox")
+    assert appearance(a)["cssTheme"] == "Nord"
+    assert (a / ".obsidian/themes/Crate/theme.css").is_file()
+
+
+def make_chrome_package(root):
+    (root / "usr/share/crate-for-ryoku/chrome").mkdir(parents=True)
+    (root / "usr/share/crate-for-ryoku/chrome/crate-theme.crx").write_bytes(b"Cr24")
+    (root / "usr/share/google-chrome/extensions").mkdir(parents=True)
+    (root / "usr/share/google-chrome/extensions/jddiejdibphncbpfehopofclalbeghbc.json").write_text("{}")
+
+
+def test_chrome_status_reports_the_package_and_the_selection(home):
+    h, run = home
+    stub(run, "google-chrome-stable")
+    assert re.search(r"Chrome +installed \(google-chrome-stable\); Crate theme not packaged", run("status"))
+    make_chrome_package(run.root)
+    prefs = h / ".config/google-chrome/Default/Preferences"
+    prefs.parent.mkdir(parents=True)
+    prefs.write_text(json.dumps({"extensions": {"theme": {"id": "jddiejdibphncbpfehopofclalbeghbc"}}}))
+    other = h / ".config/google-chrome/Profile 1/Preferences"
+    other.parent.mkdir(parents=True)
+    other.write_text(json.dumps({"extensions": {"theme": {"id": ""}}}))
+    assert "Crate theme offered by the package, selected in 1 profile(s)" in run("status")
+    log = run("install")  # nothing per user for Chrome
+    assert "Chrome" not in log
+
+
+def test_chrome_package_without_a_browser(home):
+    h, run = home
+    make_chrome_package(run.root)
+    assert re.search(r"Chrome +not installed; Crate theme packaged", run("status"))
+
+
+def test_install_sh_passes_the_app_options_through():
+    text = open(os.path.join(ROOT, "package/install.sh")).read()
+    assert '--no-obsidian|--no-firefox|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
+    assert 'bash "$HERE/apps.sh" install' in text
+    uninstall = open(os.path.join(ROOT, "package/uninstall.sh")).read()
+    assert 'bash "$HERE/apps.sh" uninstall ||' in uninstall
+    assert 'bash "$HERE/apps.sh" uninstall --look-only' in uninstall
+    assert 'apps.sh" status' in open(os.path.join(ROOT, "bin/crate-for-ryoku")).read()
+
+
+def test_chrome_manifest_icons_exist_and_the_package_uses_the_same_id():
+    m = json.load(open(os.path.join(APPS, "chrome/theme/manifest.json")))
+    for rel in m.get("icons", {}).values():
+        assert os.path.isfile(os.path.join(APPS, "chrome/theme", rel)), rel
+    pkgbuild = open(os.path.join(ROOT, "packaging/aur/crate-for-ryoku/PKGBUILD")).read()
+    assert f"_chrome_id={build.chrome_id(m['key'])}" in pkgbuild
+    ext = json.load(open(os.path.join(APPS, "chrome/external/crx.json")))
+    assert ext == {"external_crx": "/usr/share/crate-for-ryoku/chrome/crate-theme.crx", "external_version": "@VERSION@"}
+    assert f"CHROME_CRX={ext['external_crx']}" in open(APPS_SH).read()
+    assert not os.path.exists(os.path.join(ROOT, "packaging/aur/crate-for-ryoku-chrome-theme"))
+    assert not [f for f in os.listdir(os.path.join(APPS, "chrome/theme")) if f.endswith((".pem", ".pak"))]

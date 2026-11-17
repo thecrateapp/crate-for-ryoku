@@ -14,6 +14,7 @@ PICS=$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")
 WALLDIR=$PICS/Wallpapers
 
 APPLY=1 ICONS=1 AUTO=1 PLUGIN=1 WALLS=1 LOCK=1 REAPPLY=0
+APP_OPTS=()
 
 usage() {
   cat <<EOF
@@ -28,6 +29,15 @@ usage: install.sh [options]
   --no-lockscreen  skip the Crate lock skins (crate/hero, crate/orbit)
   --reapply        apply the rice again even if Crate is already active
                    (Ryoku's .previous snapshot then holds the current Crate state)
+  --no-obsidian    leave your Obsidian vaults alone (by default each vault gets
+                   the Crate theme, selected; uninstall selects your old one)
+  --no-firefox     leave Firefox alone (by default its profile's chrome/ folder,
+                   WhiteSur say, makes way for Crate's userChrome.css; the old
+                   one is kept and restored by uninstall)
+  --firefox-profile=DIR
+                   the Firefox profile to theme (default: the one Firefox
+                   starts with)
+  --firefox-theme  open the Crate theme add-on in Firefox to install it
   -h, --help       this help
 EOF
 }
@@ -41,6 +51,8 @@ for a in "$@"; do
     --no-wallpapers) WALLS=0 ;;
     --no-lockscreen) LOCK=0 ;;
     --reapply) REAPPLY=1 ;;
+    # --firefox-chrome: the default since 0.7, still accepted
+    --no-obsidian|--no-firefox|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $a" >&2; usage >&2; exit 2 ;;
   esac
@@ -253,6 +265,10 @@ if command -v zapfast >/dev/null || [ -d "$CFG/zapfast" ]; then
   mkdir -p "$DATA/crate-for-ryoku/zapfast" && cp "$HERE/apps/zapfast/chat.webp" "$DATA/crate-for-ryoku/zapfast/chat.webp"
   say "ZapFast: chat wallpaper $DATA/crate-for-ryoku/zapfast/chat.webp (Settings > Appearance > Wallpaper)"
 fi
+
+# Obsidian and Firefox in Crate's look (apps.sh), each only where it is
+# installed: the Obsidian theme selected in every vault, Firefox's userChrome.css
+bash "$HERE/apps.sh" install ${APP_OPTS[@]+"${APP_OPTS[@]}"} || warn "the app themes did not install cleanly (bash $HERE/apps.sh status)"
 
 # what is installed, and a marker command Ryostore's bundle detects this
 # per-user setup by (crate-for-ryoku-installed prints the version)

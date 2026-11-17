@@ -4,6 +4,7 @@
 # you pass --purge.
 set -euo pipefail
 
+HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 CFG=${XDG_CONFIG_HOME:-$HOME/.config}
 DATA=${XDG_DATA_HOME:-$HOME/.local/share}
 STATE=${XDG_STATE_HOME:-$HOME/.local/state}/crate-for-ryoku
@@ -19,6 +20,8 @@ for a in "$@"; do
       cat <<EOF
 usage: uninstall.sh [--keep-files] [--purge]
   --keep-files  only revert the look; leave the theme, icons, rice and plugin installed
+                (Firefox gets its own chrome/ folder and Obsidian its own theme
+                back either way)
   --purge       also delete the crate-*.webp wallpapers from $WALLDIR
 EOF
       exit 0 ;;
@@ -49,6 +52,15 @@ ryoku-hub desktop icon-theme set "$target" || warn "could not set $target; choos
 # the lock skin is part of the look (after the rice restore above, which may already have set one)
 if [ "$KEEP" = 1 ]; then
   bash "$(dirname "${BASH_SOURCE[0]}")/lock-skins.sh" restore
+fi
+
+# the app themes: Firefox's chrome/ and each vault's Obsidian theme go back to
+# yours; vaults lose only the Crate copies still exactly as installed (apps.sh
+# keeps the record). --keep-files keeps those copies.
+if [ "$KEEP" = 0 ]; then
+  bash "$HERE/apps.sh" uninstall || warn "the app themes did not uninstall cleanly"
+else
+  bash "$HERE/apps.sh" uninstall --look-only || warn "could not put Firefox's and Obsidian's own look back"
 fi
 
 if [ "$KEEP" = 0 ]; then
