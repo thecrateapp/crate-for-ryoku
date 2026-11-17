@@ -31,6 +31,8 @@ Built for and tested on Ryoku 1.0.7 (Hyprland 0.57.2, Quickshell 0.3.2).
 ./install.sh --help     # --no-lockscreen, --no-apply, --no-icons, --no-auto-icons, --no-plugin, --no-wallpapers, --reapply
 ./install.sh --no-firefox       # keep Firefox's own userChrome.css (WhiteSur, say)
 ./install.sh --no-obsidian      # leave your Obsidian vaults alone
+./install.sh --no-zed           # keep the Zed theme you use
+./install.sh --no-lazygit       # leave lazygit's config.yml alone
 ```
 
 It only uses Ryoku's own commands: `ryoku plugin add`, `ryoku-hub rice apply crate`,

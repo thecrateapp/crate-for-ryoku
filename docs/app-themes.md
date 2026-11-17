@@ -1,4 +1,4 @@
-# App themes: Obsidian, Firefox and Chrome
+# App themes: Obsidian, Firefox, Chrome, Zed and lazygit
 
 Crate's look outside the desktop shell, from the same tokens (`apps/tokens.json`):
 the `#0a0a0f` canvas, `#f1f5f9` text at 62 % and 42 % for secondary and faint,
@@ -7,7 +7,7 @@ strokes and key words, amber `#fbbf24` and red `#ef4444` only for status, 6 px
 corners, Bricolage Grotesque titles, JetBrains Mono caps labels (0.12em) and
 Roboto for the rest.
 
-`python3 apps/build.py OUT` builds all three; `python3 -m pytest apps/tests`
+`python3 apps/build.py OUT` builds them all; `python3 -m pytest apps/tests`
 checks them and their installer (`package/apps.sh`) in a throwaway home, and
 `bash apps/tests/package-apps.sh` checks the Chrome theme's packaging with a
 throwaway key.
@@ -23,6 +23,8 @@ app that is not installed is skipped with one line at most, never an error.
 | Firefox | `profiles.ini` (`~/.mozilla/firefox`, `~/.config/mozilla/firefox`): the profile each install starts with | `apps/firefox/chrome/` `userChrome.css` + `userContent.css` + fonts | the profile's `chrome/` (WhiteSur, say) is moved to `chrome.before-crate`, ours goes in its place; `user.js` gets `toolkit.legacyUserProfileCustomizations.stylesheets` if it lacks it | `--no-firefox` |
 | Firefox | | `apps/firefox/theme/` static theme add-on | addons.mozilla.org (listed); `install --firefox-theme` opens it in Firefox, which asks | opt-in |
 | Chrome | `google-chrome-stable`, `google-chrome` or `chromium` on PATH | `apps/chrome/theme/` theme extension with a fixed key | the `crate-for-ryoku` package, for every user (below), and the Chrome Web Store | Chrome asks each user once |
+| Zed | `zed` on PATH, `~/.local/zed.app` or `~/.config/zed` | `apps/zed/crate.json` dark theme (schema v0.2.0; terminal = the Crate kitty palette) | copied to `~/.config/zed/themes/crate.json`; `package/zed_settings.py` sets `"dark": "Crate"` in `settings.json` (or `"theme"`, when it is a single name), keeping every comment and line; a missing `settings.json` is created | `--no-zed` |
+| lazygit | `lazygit` on PATH | `apps/lazygit/config.yml` (`gui.theme` only, first line `# crate-for-ryoku: lazygit`) | written to `~/.config/lazygit/config.yml` only when there is none, it is empty, or it is ours | `--no-lazygit` |
 
 Obsidian reads `appearance.json` when a vault opens: a vault that is open
 during the install shows Crate once it is reopened (or Obsidian restarted).
@@ -45,6 +47,11 @@ whether the package's files are there).
 - Firefox: the old `chrome/` (folder or symlink) comes back, and the pref line
   goes if the install added it. A `chrome/` you edited is kept as
   `chrome.crate-edited-<date>`.
+- Zed: the dark theme `settings.json` had comes back (or the key, or the whole
+  file, goes again if the install added it), while it is still `Crate`; the
+  theme file goes while it is exactly as installed.
+- lazygit: our `config.yml` goes (an empty one is left empty, as it was). Delete
+  its first line to keep it as yours.
 - `--keep-files` puts both looks back (Obsidian's previous theme, Firefox's old
   `chrome/`) and keeps the Obsidian theme copies.
 

@@ -24,9 +24,11 @@ desktop. One install gives you:
 - **Other apps in Crate's look**, each only where it is installed: the Crate
   theme copied into every Obsidian vault and selected, Crate's `userChrome.css`
   for Firefox (it replaces WhiteSur or whatever you had and gives it back on
-  uninstall; `--no-firefox` skips it), and the Chrome theme, which the package
-  offers to Chrome and Chromium for every user. Uninstall puts back the theme
-  each vault had. See [docs/app-themes.md](docs/app-themes.md).
+  uninstall; `--no-firefox` skips it), the Chrome theme, which the package
+  offers to Chrome and Chromium for every user, a Crate theme for Zed (selected
+  as its dark theme; `--no-zed` skips it) and Crate colours for lazygit (only
+  where you have no `config.yml` of your own; `--no-lazygit` skips it).
+  Uninstall puts back the theme each vault and Zed had. See [docs/app-themes.md](docs/app-themes.md).
 
 ## Install
 
@@ -93,7 +95,7 @@ plugin/crate-mark the bar plugin
 launcher/         Crate Palette, the Super+Space launcher (node --test launcher/crate-palette/tests/)
 shell/            the eza theme and the Pure prompt
 wallpaper/        the Groove and Sheen wallpaper generators (render.sh)
-apps/             app themes: ZapFast, Obsidian, Firefox and Chrome (build.py; python3 -m pytest apps/tests)
+apps/             app themes: ZapFast, Obsidian, Firefox, Chrome, Zed and lazygit (build.py; python3 -m pytest apps/tests)
 package/          build.sh, install.sh, uninstall.sh, the lock-skin helpers and the icon watcher units
 lockscreen/       the Crate lock skins crate/hero and crate/orbit for Ryoku's qylock (lockscreen/preview.sh, lockscreen/tests/run.sh)
 bin/              the crate-for-ryoku command

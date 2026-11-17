@@ -763,7 +763,7 @@ def test_lazygit_not_installed_is_reported(home):
 
 def test_install_sh_passes_the_app_options_through():
     text = open(os.path.join(ROOT, "package/install.sh")).read()
-    assert '--no-obsidian|--no-firefox|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
+    assert '--no-obsidian|--no-firefox|--no-zed|--no-lazygit|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
     assert 'bash "$HERE/apps.sh" install' in text
     uninstall = open(os.path.join(ROOT, "package/uninstall.sh")).read()
     assert 'bash "$HERE/apps.sh" uninstall ||' in uninstall

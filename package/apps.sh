@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Crate's look for third-party apps: Obsidian, Firefox and Chrome. Each app is
+# Crate's look for third-party apps: Obsidian, Firefox, Chrome, Zed and lazygit. Each app is
 # detected on its own and skipped quietly when it is not there.
 #
 #   apps.sh install [opts]          lay the app themes into your home and turn them on

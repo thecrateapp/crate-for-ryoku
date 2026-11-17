@@ -38,6 +38,10 @@ usage: install.sh [options]
                    the Firefox profile to theme (default: the one Firefox
                    starts with)
   --firefox-theme  open the Crate theme add-on in Firefox to install it
+  --no-zed         leave Zed alone (by default it gets the Crate theme as its
+                   dark theme; uninstall gives back the one you had)
+  --no-lazygit     leave lazygit alone (by default it gets Crate's config.yml
+                   where you have none or an empty one)
   -h, --help       this help
 EOF
 }
@@ -52,7 +56,7 @@ for a in "$@"; do
     --no-lockscreen) LOCK=0 ;;
     --reapply) REAPPLY=1 ;;
     # --firefox-chrome: the default since 0.7, still accepted
-    --no-obsidian|--no-firefox|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
+    --no-obsidian|--no-firefox|--no-zed|--no-lazygit|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $a" >&2; usage >&2; exit 2 ;;
   esac
