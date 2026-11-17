@@ -692,6 +692,18 @@ def test_zed_uninstall_keeps_an_edited_theme_file(home):
     assert t.exists()
 
 
+def test_zed_keeps_the_theme_file_while_settings_still_select_it(home):
+    h, run = home
+    stub(run, "zed")
+    s = h / ".config/zed/settings.json"
+    s.parent.mkdir(parents=True)
+    s.write_text(ZED_DEFAULT)
+    run("install")
+    s.write_text('{ "theme": "Crate" }')  # Crate picked again, another way
+    run("uninstall")
+    assert (h / ".config/zed/themes/crate.json").exists()
+
+
 def test_no_zed_leaves_zed_alone(home):
     h, run = home
     stub(run, "zed")

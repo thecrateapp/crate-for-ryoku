@@ -101,3 +101,52 @@ def test_theme_object_without_dark_gets_one_and_loses_it(tmp_path):
     assert (mode, prev) == ("added-dark", "-") and zs.current(str(p)) == "Crate"
     assert zs.restore(str(p), "Crate", mode, prev) is True
     assert p.read_text() == src
+
+
+# ---------- final review fixes ----------
+
+def test_added_theme_is_a_name_zed_accepts(tmp_path):
+    # Zed's object form needs both light and dark; a bare name is always valid
+    p = tmp_path / "settings.json"
+    p.write_text('{\n  "vim_mode": true\n}\n')
+    zs.select(str(p), "Crate")
+    assert '"theme": "Crate"' in p.read_text()
+
+
+def test_added_member_is_removed_by_position_after_a_reformat(tmp_path):
+    src = '{\n  "vim_mode": true\n}\n'
+    p = tmp_path / "settings.json"
+    p.write_text(src)
+    mode, prev = zs.select(str(p), "Crate")
+    p.write_text('{\n  "theme": "Crate",\n  "vim_mode": true\n}\n')  # the user split the line
+    assert zs.restore(str(p), "Crate", mode, prev) is True
+    assert p.read_text() == src
+
+
+def test_added_dark_is_removed_by_position_after_a_reformat(tmp_path):
+    p = tmp_path / "settings.json"
+    p.write_text('{ "theme": { "mode": "dark", "light": "One Light" } }')
+    mode, prev = zs.select(str(p), "Crate")
+    p.write_text('{\n  "theme": {\n    "dark": "Crate",\n    "mode": "dark",\n    "light": "One Light"\n  }\n}\n')
+    assert zs.restore(str(p), "Crate", mode, prev) is True
+    assert zs.current(str(p)) == "" and '"light": "One Light"' in p.read_text()
+
+
+def test_created_file_edited_since_loses_only_the_theme(tmp_path):
+    p = tmp_path / "zed/settings.json"
+    mode, prev = zs.select(str(p), "Crate")
+    p.write_text(p.read_text().replace("{", '{"ui_font_size": 18, ', 1))
+    assert zs.restore(str(p), "Crate", mode, prev) is True
+    assert zs.current(str(p)) == "" and '"ui_font_size": 18' in p.read_text()
+
+
+def test_a_symlinked_settings_file_stays_a_symlink_with_its_mode(tmp_path):
+    real = tmp_path / "dotfiles/settings.json"
+    real.parent.mkdir()
+    real.write_text(DEFAULT)
+    real.chmod(0o600)
+    link = tmp_path / "settings.json"
+    link.symlink_to(real)
+    zs.select(str(link), "Crate")
+    assert link.is_symlink() and '"dark": "Crate"' in real.read_text()
+    assert real.stat().st_mode & 0o777 == 0o600

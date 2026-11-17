@@ -30,7 +30,8 @@ def _created(theme):
 
 
 def _top_insert(theme):
-    return '"theme": {"dark": %s}' % json.dumps(theme)
+    # a bare name: Zed's object form needs both "light" and "dark"
+    return '"theme": %s' % json.dumps(theme)
 
 
 def _dark_insert(theme):
@@ -99,7 +100,7 @@ def _value_end(text, i):
 
 
 def _object(text, i):
-    """Members [(key, value_start, value_end)] of the object at text[i] == '{', and its end."""
+    """Members [(key, key_start, value_start, value_end)] of the object at text[i] == '{', and its end."""
     if i >= len(text) or text[i] != "{":
         raise ValueError("expected {")
     members = []
@@ -111,6 +112,7 @@ def _object(text, i):
             return members, i + 1
         if text[i] != '"':
             raise ValueError("expected a key")
+        kstart = i
         kend = _string_end(text, i)
         key = json.loads(text[i:kend])
         i = _skip(text, kend)
@@ -118,7 +120,7 @@ def _object(text, i):
             raise ValueError("expected :")
         vstart = _skip(text, i + 1)
         vend = _value_end(text, vstart)
-        members.append((key, vstart, vend))
+        members.append((key, kstart, vstart, vend))
         i = _skip(text, vend)
         if i < len(text) and text[i] == ",":
             i = _skip(text, i + 1)
@@ -142,10 +144,36 @@ def _member(members, key):
 
 
 def _write(path, text):
+    # through a symlink (a dotfiles repo, say) to the real file, keeping its mode
+    path = os.path.realpath(path)
     tmp = path + ".crate-tmp"
     with open(tmp, "w") as f:
         f.write(text)
+    if os.path.exists(path):
+        os.chmod(tmp, os.stat(path).st_mode & 0o7777)
     os.replace(tmp, path)
+
+
+def _without(text, members, index):
+    """text with members[index] removed, with its comma, so the object stays valid."""
+    _, ks, _, ve = members[index]
+    if index + 1 < len(members):
+        # the member, its comma and the one space an insertion puts after it;
+        # a line left blank goes with its indentation and newline
+        b = _skip(text, ve) + 1  # past the comma (comments between are skipped)
+        if text[b:b + 1] == " ":
+            b += 1
+        line = text.rfind("\n", 0, ks) + 1
+        nl = text.find("\n", b)
+        if not text[line:ks].strip() and nl >= 0 and not text[b:nl].strip():
+            ks, b = line, nl + 1
+        return text[:ks] + text[b:]
+    if index > 0:
+        return text[:members[index - 1][3]] + text[ve:]
+    end = _skip(text, ve)
+    if end < len(text) and text[end] == ",":
+        ve = end + 1
+    return text[:ks] + text[ve:]
 
 
 def _read(path):
@@ -167,7 +195,7 @@ def select(path, theme):
         ins = _top_insert(theme) + (", " if members else "")
         _write(path, text[:start + 1] + ins + text[start + 1:])
         return "added", "-"
-    _, vs, ve = m
+    _, _, vs, ve = m
     if text[vs] == "{":
         sub, _ = _object(text, vs)
         d = _member(sub, "dark")
@@ -175,7 +203,7 @@ def select(path, theme):
             ins = _dark_insert(theme) + (", " if sub else "")
             _write(path, text[:vs + 1] + ins + text[vs + 1:])
             return "added-dark", "-"
-        _, ds, de = d
+        _, _, ds, de = d
         prev = json.dumps(json.loads(text[ds:de]))
         _write(path, text[:ds] + new + text[de:])
         return "dark", prev
@@ -194,51 +222,57 @@ def current(path):
     m = _member(members, "theme")
     if m is None:
         return ""
-    _, vs, ve = m
+    _, _, vs, ve = m
     if text[vs] == "{":
         sub, _ = _object(text, vs)
         d = _member(sub, "dark")
         if d is None:
             return ""
-        value = json.loads(text[d[1]:d[2]])
+        value = json.loads(text[d[2]:d[3]])
     else:
         value = json.loads(text[vs:ve])
     return value if isinstance(value, str) else ""
 
 
-def _remove_insert(path, text, ins):
-    for piece in (ins + ", ", ins):
-        if piece in text:
-            _write(path, text.replace(piece, "", 1))
-            return True
-    return False
+def _index(members, key):
+    for i, m in enumerate(members):
+        if m[0] == key:
+            return i
+    return -1
 
 
 def restore(path, theme, mode, previous):
     """Undo select() while `theme` is still the one in effect."""
     if mode == "created":
         try:
-            if _read(path) != _created(theme):
-                return False
+            if _read(path) == _created(theme):
+                os.remove(path)
+                return True
         except OSError:
             return False
-        os.remove(path)
-        return True
+        # edited since: keep the file, drop only the theme it was created for
+        mode = "added"
     if current(path) != theme:
         return False
     text = _read(path)
     _, members = _root(text)
+    i = _index(members, "theme")
+    _, _, vs, ve = members[i]
     if mode == "added":
-        return _remove_insert(path, text, _top_insert(theme))
-    if mode == "added-dark":
-        return _remove_insert(path, text, _dark_insert(theme))
-    _, vs, ve = _member(members, "theme")
-    if mode == "dark" and text[vs] == "{":
-        sub, _ = _object(text, vs)
-        _, ds, de = _member(sub, "dark")
-        _write(path, text[:ds] + previous + text[de:])
+        _write(path, _without(text, members, i))
         return True
-    if mode == "string" and text[vs] != "{":
+    if text[vs] == "{":
+        sub, _ = _object(text, vs)
+        j = _index(sub, "dark")
+        if mode == "added-dark":
+            _write(path, _without(text, sub, j))
+            return True
+        if mode == "dark":
+            _, _, ds, de = sub[j]
+            _write(path, text[:ds] + previous + text[de:])
+            return True
+        return False
+    if mode == "string":
         _write(path, text[:vs] + previous + text[ve:])
         return True
     return False

@@ -301,7 +301,10 @@ zed_unselect() {
 zed_uninstall() {
   [ -f "$REC/zed-theme.sha" ] || return 0
   local dest=$CFG/zed/themes/crate.json
-  if [ -f "$dest" ]; then
+  if [ -f "$dest" ] && [ "$(python3 "$HERE/zed_settings.py" current "$CFG/zed/settings.json")" = Crate ]; then
+    # settings.json still names Crate: without the file Zed would report a missing theme
+    warn "Zed: settings.json still selects Crate; $dest left in place"
+  elif [ -f "$dest" ]; then
     if [ "$(sha "$dest")" = "$(cat "$REC/zed-theme.sha")" ]; then
       rm -f -- "$dest"
       rmdir -- "$CFG/zed/themes" "$CFG/zed" 2>/dev/null || true
