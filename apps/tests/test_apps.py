@@ -187,6 +187,28 @@ def test_nvim_syntax_is_crate_and_marked(out):
     assert re.search(r'Comment = \{ fg = "%s", italic = true' % over_canvas("text_faint"), text)
 
 
+def test_gtk_css_is_crate(out):
+    css = (out / "gtk/crate.css").read_text()
+    allowed = {v.lower() for v in TOKENS.values() if isinstance(v, str) and v.startswith("#")}
+    assert {c.lower() for c in re.findall(r"#[0-9a-fA-F]{6}\b", css)} <= allowed
+    rgba = {v.replace(" ", "") for v in TOKENS.values() if isinstance(v, str) and v.startswith("rgba(")}
+    assert {c.replace(" ", "") for c in re.findall(r"rgba\([^)]*\)", css)} <= rgba
+    for decl in ("--dialog-bg-color: #111218;", "--thumbnail-bg-color: #111218;",
+                 "--headerbar-border-color: rgba(241, 245, 249, 0.1);", "--window-radius: 6px;"):
+        assert decl in css, decl
+    assert "border-radius: 6px;" in css
+    assert re.search(r"imageview[^{]*\{[^}]*background-color: #0a0a0f;", css)
+
+
+def test_gtk3_css_has_no_libadwaita_variables(out):
+    # GTK 3 rejects :root and custom properties and drops the whole sheet
+    css = (out / "gtk/crate-gtk3.css").read_text()
+    assert ":root" not in css and not re.search(r"--[a-z-]+\s*:", css)
+    assert "@define-color dialog_bg_color #111218;" in css and "border-radius: 6px;" in css
+    allowed = {v.lower() for v in TOKENS.values() if isinstance(v, str) and v.startswith("#")}
+    assert {c.lower() for c in re.findall(r"#[0-9a-fA-F]{6}\b", css)} <= allowed
+
+
 def test_lazygit_hides_the_amber_random_tip(out):
     # the tip draws in ANSI yellow: amber that is no status (Diego, 2026-11-17)
     assert "\n  showRandomTip: false\n" in (out / "lazygit/config.yml").read_text()
