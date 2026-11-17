@@ -34,6 +34,8 @@ Built for and tested on Ryoku 1.0.7 (Hyprland 0.57.2, Quickshell 0.3.2).
 ./install.sh --no-zed           # keep the Zed theme you use
 ./install.sh --no-lazygit       # leave lazygit's config.yml alone
 ./install.sh --no-nvim          # leave Neovim's plugins folder alone
+./install.sh --no-gtk           # leave GTK's user.css alone
+./install.sh --no-gtksourceview # keep Text Editor's colour scheme
 ```
 
 It only uses Ryoku's own commands: `ryoku plugin add`, `ryoku-hub rice apply crate`,

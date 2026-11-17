@@ -44,6 +44,11 @@ usage: install.sh [options]
                    where you have none or an empty one)
   --no-nvim        leave Neovim alone (by default a lazy.nvim config gets
                    Crate's syntax as lua/plugins/crate.lua)
+  --no-gtk         leave GTK alone (by default Crate's corners and hairlines
+                   load from ~/.config/gtk-{4,3}.0/user.css)
+  --no-gtksourceview
+                   leave GtkSourceView alone (by default the Crate scheme is
+                   installed and selected in GNOME Text Editor)
   -h, --help       this help
 EOF
 }
@@ -58,7 +63,7 @@ for a in "$@"; do
     --no-lockscreen) LOCK=0 ;;
     --reapply) REAPPLY=1 ;;
     # --firefox-chrome: the default since 0.7, still accepted
-    --no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
+    --no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--no-gtk|--no-gtksourceview|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $a" >&2; usage >&2; exit 2 ;;
   esac

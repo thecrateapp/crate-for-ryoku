@@ -1,4 +1,4 @@
-# App themes: Obsidian, Firefox, Chrome, Zed, lazygit and Neovim
+# App themes: Obsidian, Firefox, Chrome, Zed, lazygit, Neovim, GTK and GtkSourceView
 
 Crate's look outside the desktop shell, from the same tokens (`apps/tokens.json`):
 the `#0a0a0f` canvas, `#f1f5f9` text at 62 % and 42 % for secondary and faint,
@@ -26,6 +26,8 @@ app that is not installed is skipped with one line at most, never an error.
 | Zed | `zed` on PATH, `~/.local/zed.app` or `~/.config/zed` | `apps/zed/crate.json` dark theme (schema v0.2.0; terminal = the Crate kitty palette) | copied to `~/.config/zed/themes/crate.json`; `package/zed_settings.py` sets `"dark": "Crate"` in `settings.json` (or `"theme"`, when it is a single name), keeping every comment and line; a missing `settings.json` is created | `--no-zed` |
 | lazygit | `lazygit` on PATH | `apps/lazygit/config.yml` (`gui.theme` only, first line `# crate-for-ryoku: lazygit`) | written to `~/.config/lazygit/config.yml` only when there is none, it is empty, or it is ours | `--no-lazygit` |
 | Neovim | `nvim` on PATH and a lazy.nvim `~/.config/nvim/lua/plugins/` (LazyVim, as Ryoku ships) | `apps/nvim/crate.lua` (first line `-- crate-for-ryoku: neovim`): an `on_highlights` over Ryoku's tokyonight with Crate's sober syntax | copied to `lua/plugins/crate.lua` when there is none or it is ours; nvim reads it at its next start | `--no-nvim` |
+| GTK apps | the `gtk.css` Ryoku renders in `~/.config/gtk-4.0` and `gtk-3.0` | `apps/gtk/crate.css` (GTK 4 / libadwaita) and `crate-gtk3.css` (GTK 3: no custom properties) | copied as `crate.css` beside each `gtk.css`; one line `@import url("crate.css"); /* crate-for-ryoku */` added to `user.css`, which the fork's `gtk.css` imports last; stock Ryoku does not, and `status` says so | `--no-gtk` |
+| GtkSourceView, GNOME Text Editor | `gnome-text-editor` on PATH (the scheme itself is installed for every GtkSourceView 5 app) | `apps/gtksourceview/crate.xml` (`id="crate"`) | copied to `~/.local/share/gtksourceview-5/styles/`; Text Editor's `style-scheme` set to `crate` once, the old one recorded | `--no-gtksourceview` |
 
 Obsidian reads `appearance.json` when a vault opens: a vault that is open
 during the install shows Crate once it is reopened (or Obsidian restarted).
@@ -54,6 +56,10 @@ whether the package's files are there).
 - lazygit: our `config.yml` goes (an empty one is left empty, as it was). Delete
   its first line to keep it as yours.
 - Neovim: our `lua/plugins/crate.lua` goes; one without the first line is yours.
+- GTK: the marked line leaves `user.css` (a `user.css` the install created, left
+  empty, goes); each `crate.css` goes while it is exactly as installed.
+- Text Editor: the scheme you had comes back while `crate` is still selected; the
+  scheme file goes while unchanged.
 - `--keep-files` puts both looks back (Obsidian's previous theme, Firefox's old
   `chrome/`) and keeps the Obsidian theme copies.
 
