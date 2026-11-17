@@ -50,12 +50,14 @@ warn() { printf '\033[33m!!\033[0m %s\n' "$*" >&2; }
 
 usage() {
   cat <<EOF
-usage: apps.sh install [--no-obsidian] [--no-firefox] [--no-zed] [--firefox-theme]
+usage: apps.sh install [--no-obsidian] [--no-firefox] [--no-zed] [--no-lazygit]
+                       [--firefox-theme]
                        [--firefox-profile DIR]...
        apps.sh uninstall [--look-only]
        apps.sh status
   --no-obsidian        leave your Obsidian vaults alone
   --no-zed             leave Zed's theme and settings.json alone
+  --no-lazygit         leave lazygit's config.yml alone
   --no-firefox         leave your Firefox profiles alone (by default each
                        profile's chrome/ folder gets Crate's userChrome.css;
                        the old one is kept and restored by uninstall)
@@ -311,6 +313,49 @@ zed_uninstall() {
   rm -f -- "$REC/zed-theme.sha"
 }
 
+# ---------- lazygit ----------
+# lazygit: Crate's theme is a config.yml whose first line is LAZYGIT_MARK. It is
+#   written only where there is no config.yml, an empty one, or ours; a config of
+#   your own is left alone. Uninstall removes ours (or empties it again, if it
+#   was an empty file before) unless the marker line is gone.
+LAZYGIT_MARK='# crate-for-ryoku: lazygit'
+lazygit_present() { command -v lazygit >/dev/null; }
+lazygit_ours() { [ -f "$1" ] && [ "$(head -n 1 "$1")" = "$LAZYGIT_MARK" ]; }
+
+lazygit_install() {
+  local src=$APPS/lazygit/config.yml dest=$CFG/lazygit/config.yml
+  [ -f "$src" ] || { warn "no lazygit theme in $src"; return 0; }
+  lazygit_present || return 0
+  mkdir -p "$REC"
+  if [ ! -e "$dest" ] || [ ! -s "$dest" ]; then
+    # remember what was there the first time, so uninstall can put it back
+    [ -f "$REC/lazygit.state" ] || { [ -e "$dest" ] && echo empty || echo absent; } > "$REC/lazygit.state"
+  elif ! lazygit_ours "$dest"; then
+    say "lazygit: you have your own config.yml; left as it is"
+    return 0
+  fi
+  mkdir -p "$(dirname "$dest")"
+  cp "$src" "$dest"
+  say "lazygit: Crate theme ($dest)"
+}
+
+lazygit_uninstall() {
+  [ -f "$REC/lazygit.state" ] || return 0
+  local dest=$CFG/lazygit/config.yml
+  if lazygit_ours "$dest"; then
+    if [ "$(cat "$REC/lazygit.state")" = empty ]; then
+      : > "$dest"
+    else
+      rm -f -- "$dest"
+      rmdir -- "$CFG/lazygit" 2>/dev/null || true
+    fi
+    say "lazygit: Crate theme removed"
+  elif [ -f "$dest" ]; then
+    say "lazygit: $dest is yours now; left as it is"
+  fi
+  rm -f -- "$REC/lazygit.state"
+}
+
 # ---------- Firefox ----------
 
 firefox_present() { command -v firefox >/dev/null || [ -f "$CFG/mozilla/firefox/profiles.ini" ] || [ -f "$HOME/.mozilla/firefox/profiles.ini" ]; }
@@ -554,6 +599,19 @@ status() {
   fi
   printf '  %-22s %s\n' "Zed" "$line"
 
+  if lazygit_present; then
+    if lazygit_ours "$CFG/lazygit/config.yml"; then
+      line="Crate theme"
+    elif [ -s "$CFG/lazygit/config.yml" ]; then
+      line="your own config.yml"
+    else
+      line="installed; no theme"
+    fi
+  else
+    line="not installed"
+  fi
+  printf '  %-22s %s\n' "lazygit" "$line"
+
   local prof ff=0 fftotal=0
   if firefox_present; then
     while IFS= read -r prof; do
@@ -593,12 +651,13 @@ status() {
 cmd=${1:-help}; shift || true
 case $cmd in
   install)
-    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 ZED=1 PROFILES=()
+    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 ZED=1 LAZYGIT=1 PROFILES=()
     while [ $# -gt 0 ]; do
       case $1 in
         --no-obsidian) OBSIDIAN=0 ;;
         --no-firefox) FIREFOX=0 ;;
         --no-zed) ZED=0 ;;
+        --no-lazygit) LAZYGIT=0 ;;
         --firefox-chrome) ;;  # the default since 0.7; kept so older command lines still work
         --firefox-theme) FFTHEME=1 ;;
         --firefox-profile) shift; PROFILES+=("${1:?--firefox-profile needs a folder}") ;;
@@ -612,6 +671,7 @@ case $cmd in
     [ "$FIREFOX" = 1 ] && firefox_chrome_install ${PROFILES[@]+"${PROFILES[@]}"}
     [ "$FFTHEME" = 1 ] && firefox_theme_install
     [ "$ZED" = 1 ] && zed_install
+    [ "$LAZYGIT" = 1 ] && lazygit_install
     exit 0 ;;
   uninstall)
     LOOK=0
@@ -627,6 +687,7 @@ case $cmd in
     firefox_chrome_uninstall
     zed_unselect
     [ "$LOOK" = 1 ] || zed_uninstall
+    lazygit_uninstall
     exit 0 ;;
   status) status ;;
   -h|--help|help) usage ;;

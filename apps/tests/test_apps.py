@@ -704,6 +704,63 @@ def test_zed_not_installed_is_reported(home):
     assert re.search(r"Zed +not installed", run("status"))
 
 
+# ---------- lazygit ----------
+
+def test_lazygit_empty_config_gets_crate_and_goes_back_to_empty(home, out):
+    h, run = home
+    stub(run, "lazygit")
+    c = h / ".config/lazygit/config.yml"
+    c.parent.mkdir(parents=True)
+    c.write_text("")
+    run("install")
+    assert c.read_bytes() == (out / "lazygit/config.yml").read_bytes()
+    assert re.search(r"lazygit +Crate theme", run("status"))
+    run("uninstall")
+    assert c.exists() and c.read_text() == ""
+
+
+def test_lazygit_without_config_gets_one_and_loses_it(home):
+    h, run = home
+    stub(run, "lazygit")
+    run("install")
+    assert (h / ".config/lazygit/config.yml").exists()
+    run("uninstall")
+    assert not (h / ".config/lazygit/config.yml").exists()
+
+
+def test_lazygit_own_config_is_left_alone(home):
+    h, run = home
+    stub(run, "lazygit")
+    c = h / ".config/lazygit/config.yml"
+    c.parent.mkdir(parents=True)
+    c.write_text("gui:\n  nerdFontsVersion: 3\n")
+    log = run("install")
+    assert c.read_text() == "gui:\n  nerdFontsVersion: 3\n" and "your own config.yml" in log
+    assert re.search(r"lazygit +your own config.yml", run("status"))
+
+
+def test_lazygit_config_edited_without_the_marker_survives_uninstall(home):
+    h, run = home
+    stub(run, "lazygit")
+    run("install")
+    c = h / ".config/lazygit/config.yml"
+    c.write_text(c.read_text().split("\n", 1)[1])
+    run("uninstall")
+    assert c.exists()
+
+
+def test_no_lazygit_leaves_it_alone(home):
+    h, run = home
+    stub(run, "lazygit")
+    run("install", "--no-lazygit")
+    assert not (h / ".config/lazygit").exists()
+
+
+def test_lazygit_not_installed_is_reported(home):
+    h, run = home
+    assert re.search(r"lazygit +not installed", run("status"))
+
+
 def test_install_sh_passes_the_app_options_through():
     text = open(os.path.join(ROOT, "package/install.sh")).read()
     assert '--no-obsidian|--no-firefox|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
