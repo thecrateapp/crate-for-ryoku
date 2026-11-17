@@ -83,6 +83,61 @@ def test_obsidian_shape_and_type_apply_in_both_modes():
     assert "--crate-label-tracking: 0.12em" in body
 
 
+SCHEME = json.load(open(os.path.join(ROOT, "theme/crate/scheme.json")))["dark"]
+
+
+def crate_bases():
+    """Every #rrggbb a Crate app theme may use."""
+    bases = {v.lower() for v in TOKENS.values() if isinstance(v, str) and v.startswith("#")}
+    for v in TOKENS.values():
+        if isinstance(v, str) and v.startswith("rgba("):
+            r, g, b = (int(x) for x in v[5:-1].split(",")[:3])
+            bases.add("#%02x%02x%02x" % (r, g, b))
+    t = SCHEME["terminal"]
+    bases |= {v.lower() for v in t.values() if isinstance(v, str)}
+    bases |= {v.lower() for group in ("normal", "bright") for v in t[group].values()}
+    return bases
+
+
+def colours(node):
+    if isinstance(node, dict):
+        for v in node.values():
+            yield from colours(v)
+    elif isinstance(node, list):
+        for v in node:
+            yield from colours(v)
+    elif isinstance(node, str) and re.fullmatch(r"#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?", node):
+        yield node.lower()
+
+
+def test_zed_theme_is_one_dark_crate_theme(out):
+    doc = json.load(open(out / "zed/crate.json"))
+    assert doc["$schema"] == "https://zed.dev/schema/themes/v0.2.0.json"
+    assert doc["name"] == "Crate" and len(doc["themes"]) == 1
+    theme = doc["themes"][0]
+    assert theme["name"] == "Crate" and theme["appearance"] == "dark"
+    s = theme["style"]
+    assert s["editor.background"].lower() == TOKENS["canvas"]
+    assert s["border.focused"].lower() == TOKENS["accent"]
+    assert s["border"].lower() == "#f1f5f91a"  # hairline: text at 0.1
+
+
+def test_zed_theme_uses_only_crate_colours(out):
+    doc = json.load(open(out / "zed/crate.json"))
+    bad = sorted({c for c in colours(doc) if c[:7] not in crate_bases()})
+    assert bad == []
+
+
+def test_zed_terminal_matches_kitty(out):
+    s = json.load(open(out / "zed/crate.json"))["themes"][0]["style"]
+    t = SCHEME["terminal"]
+    for name, hexv in t["normal"].items():
+        assert s[f"terminal.ansi.{name}"].lower() == hexv
+    for name, hexv in t["bright"].items():
+        assert s[f"terminal.ansi.bright_{name}"].lower() == hexv
+    assert s["terminal.background"].lower() == t["background"]
+
+
 def test_firefox_theme_matches_the_tokens(out):
     m = json.load(open(os.path.join(APPS, "firefox/theme/manifest.json")))
     c = m["theme"]["colors"]

@@ -115,6 +115,13 @@ def build_firefox(out):
     return xpi, chrome
 
 
+def build_zed(out):
+    dest = os.path.join(out, "zed", "crate.json")
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    shutil.copyfile(os.path.join(APPS, "zed/crate.json"), dest)
+    return dest
+
+
 def build_chrome(out):
     src = os.path.join(APPS, "chrome/theme")
     manifest = json.loads(read(os.path.join(src, "manifest.json")))
@@ -319,6 +326,7 @@ def main(argv):
     xpi, chrome = build_firefox(out)
     print("firefox ", xpi)
     print("firefox ", chrome)
+    print("zed     ", build_zed(out))
     unpacked, webstore = build_chrome(out)
     key = json.loads(read(os.path.join(unpacked, "manifest.json")))["key"]
     print("chrome  ", unpacked, f"(id {chrome_id(key)})")
