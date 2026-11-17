@@ -42,6 +42,10 @@ Not Crate today:
   cyans (`#06b6d4`, `#67e8f9`), yellow is `warning`, red is `danger` and stays for status (diff
   deletions, errors, unstaged changes); black and white stay the greys. lazygit's diffs, hashes
   and staged files, git in kitty and Zed's terminal all follow it.
+- After the live review (Diego, 2026-11-17): lazygit hides its random tip (`showRandomTip: false`,
+  it draws in amber that is no status), and Neovim gets Crate's sober syntax too: `apps/nvim/crate.lua`,
+  installed as `~/.config/nvim/lua/plugins/crate.lua` (first line `-- crate-for-ryoku: neovim`), an
+  `on_highlights` over Ryoku's tokyonight, with the same groups as Zed's syntax (`--no-nvim`).
 - Everything installs, reports and uninstalls through `package/apps.sh`, the same way as the
   Obsidian, Firefox and eza pieces: detected per app, skipped quietly when absent, never over a
   file of the user's own.
@@ -139,5 +143,5 @@ changes up live (it watches its themes folder and settings); lazygit reads its c
 
 ## Out of scope
 
-Zed's fonts and UI settings (a theme cannot set them, and they are the user's); neovim, btop and
-yazi rebuilds (they follow the palette); the 9b, 9c and 9d sub-waves.
+Zed's fonts and UI settings (a theme cannot set them, and they are the user's); btop and yazi
+rebuilds (they follow the palette); the 9b, 9c and 9d sub-waves.

@@ -129,6 +129,13 @@ def build_lazygit(out):
     return dest
 
 
+def build_nvim(out):
+    dest = os.path.join(out, "nvim", "crate.lua")
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    shutil.copyfile(os.path.join(APPS, "nvim/crate.lua"), dest)
+    return dest
+
+
 def build_chrome(out):
     src = os.path.join(APPS, "chrome/theme")
     manifest = json.loads(read(os.path.join(src, "manifest.json")))
@@ -335,6 +342,7 @@ def main(argv):
     print("firefox ", chrome)
     print("zed     ", build_zed(out))
     print("lazygit ", build_lazygit(out))
+    print("nvim    ", build_nvim(out))
     unpacked, webstore = build_chrome(out)
     key = json.loads(read(os.path.join(unpacked, "manifest.json")))["key"]
     print("chrome  ", unpacked, f"(id {chrome_id(key)})")

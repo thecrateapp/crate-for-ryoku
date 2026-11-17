@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Crate's look for third-party apps: Obsidian, Firefox, Chrome, Zed and lazygit. Each app is
+# Crate's look for third-party apps: Obsidian, Firefox, Chrome, Zed, lazygit and Neovim. Each app is
 # detected on its own and skipped quietly when it is not there.
 #
 #   apps.sh install [opts]          lay the app themes into your home and turn them on
@@ -50,7 +50,7 @@ warn() { printf '\033[33m!!\033[0m %s\n' "$*" >&2; }
 
 usage() {
   cat <<EOF
-usage: apps.sh install [--no-obsidian] [--no-firefox] [--no-zed] [--no-lazygit]
+usage: apps.sh install [--no-obsidian] [--no-firefox] [--no-zed] [--no-lazygit] [--no-nvim]
                        [--firefox-theme]
                        [--firefox-profile DIR]...
        apps.sh uninstall [--look-only]
@@ -58,6 +58,7 @@ usage: apps.sh install [--no-obsidian] [--no-firefox] [--no-zed] [--no-lazygit]
   --no-obsidian        leave your Obsidian vaults alone
   --no-zed             leave Zed's theme and settings.json alone
   --no-lazygit         leave lazygit's config.yml alone
+  --no-nvim            leave Neovim's plugins folder alone
   --no-firefox         leave your Firefox profiles alone (by default each
                        profile's chrome/ folder gets Crate's userChrome.css;
                        the old one is kept and restored by uninstall)
@@ -359,6 +360,39 @@ lazygit_uninstall() {
   rm -f -- "$REC/lazygit.state"
 }
 
+# ---------- Neovim ----------
+# Neovim with a lazy.nvim config (LazyVim, as Ryoku ships): Crate's sober syntax
+#   goes to ~/.config/nvim/lua/plugins/crate.lua, first line NVIM_MARK, as an
+#   on_highlights over Ryoku's tokyonight. Written only where there is no
+#   crate.lua or ours; uninstall removes ours. Takes effect at nvim's next start.
+NVIM_MARK='-- crate-for-ryoku: neovim'
+nvim_present() { command -v nvim >/dev/null; }
+nvim_ours() { [ -f "$1" ] && [ "$(head -n 1 "$1")" = "$NVIM_MARK" ]; }
+
+nvim_install() {
+  local src=$APPS/nvim/crate.lua dir=$CFG/nvim/lua/plugins
+  [ -f "$src" ] || { warn "no Neovim syntax in $src"; return 0; }
+  nvim_present || return 0
+  if [ ! -d "$dir" ]; then
+    say "Neovim: no lazy.nvim plugins folder ($dir); skipped"
+    return 0
+  fi
+  if [ -e "$dir/crate.lua" ] && ! nvim_ours "$dir/crate.lua"; then
+    say "Neovim: you have your own $dir/crate.lua; left as it is"
+    return 0
+  fi
+  cp "$src" "$dir/crate.lua"
+  say "Neovim: Crate syntax ($dir/crate.lua, from nvim's next start)"
+}
+
+nvim_uninstall() {
+  local f=$CFG/nvim/lua/plugins/crate.lua
+  if nvim_ours "$f"; then
+    rm -f -- "$f"
+    say "Neovim: Crate syntax removed"
+  fi
+}
+
 # ---------- Firefox ----------
 
 firefox_present() { command -v firefox >/dev/null || [ -f "$CFG/mozilla/firefox/profiles.ini" ] || [ -f "$HOME/.mozilla/firefox/profiles.ini" ]; }
@@ -615,6 +649,21 @@ status() {
   fi
   printf '  %-22s %s\n' "lazygit" "$line"
 
+  if nvim_present; then
+    if nvim_ours "$CFG/nvim/lua/plugins/crate.lua"; then
+      line="Crate syntax"
+    elif [ -e "$CFG/nvim/lua/plugins/crate.lua" ]; then
+      line="your own crate.lua"
+    elif [ -d "$CFG/nvim/lua/plugins" ]; then
+      line="installed; no Crate syntax"
+    else
+      line="installed; no lazy.nvim plugins folder"
+    fi
+  else
+    line="not installed"
+  fi
+  printf '  %-22s %s\n' "Neovim" "$line"
+
   local prof ff=0 fftotal=0
   if firefox_present; then
     while IFS= read -r prof; do
@@ -654,13 +703,14 @@ status() {
 cmd=${1:-help}; shift || true
 case $cmd in
   install)
-    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 ZED=1 LAZYGIT=1 PROFILES=()
+    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 ZED=1 LAZYGIT=1 NVIM=1 PROFILES=()
     while [ $# -gt 0 ]; do
       case $1 in
         --no-obsidian) OBSIDIAN=0 ;;
         --no-firefox) FIREFOX=0 ;;
         --no-zed) ZED=0 ;;
         --no-lazygit) LAZYGIT=0 ;;
+        --no-nvim) NVIM=0 ;;
         --firefox-chrome) ;;  # the default since 0.7; kept so older command lines still work
         --firefox-theme) FFTHEME=1 ;;
         --firefox-profile) shift; PROFILES+=("${1:?--firefox-profile needs a folder}") ;;
@@ -675,6 +725,7 @@ case $cmd in
     [ "$FFTHEME" = 1 ] && firefox_theme_install
     [ "$ZED" = 1 ] && zed_install
     [ "$LAZYGIT" = 1 ] && lazygit_install
+    [ "$NVIM" = 1 ] && nvim_install
     exit 0 ;;
   uninstall)
     LOOK=0
@@ -691,6 +742,7 @@ case $cmd in
     zed_unselect
     [ "$LOOK" = 1 ] || zed_uninstall
     lazygit_uninstall
+    nvim_uninstall
     exit 0 ;;
   status) status ;;
   -h|--help|help) usage ;;

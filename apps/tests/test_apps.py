@@ -166,6 +166,20 @@ def test_lazygit_theme_is_marked_and_crate(out):
     assert found and found <= allowed
 
 
+def test_nvim_syntax_is_crate_and_marked(out):
+    text = (out / "nvim/crate.lua").read_text()
+    assert text.splitlines()[0] == "-- crate-for-ryoku: neovim"
+    assert '"folke/tokyonight.nvim"' in text and "on_highlights" in text
+    found = {c.lower() for c in re.findall(r"#[0-9a-fA-F]{6}\b", text)}
+    allowed = crate_bases() | {over_canvas(t) for t in ("hairline", "text_secondary", "text_faint")}
+    assert found and found <= allowed
+    # the sober syntax: amber only for numbers, constants and escapes
+    for group, token in (("Keyword", "accent"), ("Function", "accent"), ("String", "accent_hi"),
+                         ("Number", "warning")):
+        assert re.search(r'%s = \{ fg = "%s"' % (re.escape(group), TOKENS[token]), text), group
+    assert re.search(r'Comment = \{ fg = "%s", italic = true' % over_canvas("text_faint"), text)
+
+
 def test_lazygit_hides_the_amber_random_tip(out):
     # the tip draws in ANSI yellow: amber that is no status (Diego, 2026-11-17)
     assert "\n  showRandomTip: false\n" in (out / "lazygit/config.yml").read_text()
@@ -790,9 +804,56 @@ def test_lazygit_not_installed_is_reported(home):
     assert re.search(r"lazygit +not installed", run("status"))
 
 
+# ---------- neovim ----------
+
+def make_lazyvim(h):
+    d = h / ".config/nvim/lua/plugins"
+    d.mkdir(parents=True)
+    (d / "ryoku.lua").write_text("return {}\n")
+    return d
+
+
+def test_nvim_gets_crate_syntax_and_loses_it(home, out):
+    h, run = home
+    stub(run, "nvim")
+    d = make_lazyvim(h)
+    run("install")
+    assert (d / "crate.lua").read_bytes() == (out / "nvim/crate.lua").read_bytes()
+    assert re.search(r"Neovim +Crate syntax", run("status"))
+    run("uninstall")
+    assert not (d / "crate.lua").exists() and (d / "ryoku.lua").exists()
+
+
+def test_nvim_own_crate_lua_is_left_alone(home):
+    h, run = home
+    stub(run, "nvim")
+    d = make_lazyvim(h)
+    (d / "crate.lua").write_text("return { 'mine' }\n")
+    log = run("install")
+    assert (d / "crate.lua").read_text() == "return { 'mine' }\n" and "your own" in log
+    run("uninstall")
+    assert (d / "crate.lua").exists()
+
+
+def test_nvim_without_a_lazy_config_is_skipped(home):
+    h, run = home
+    stub(run, "nvim")
+    run("install")
+    assert not (h / ".config/nvim").exists()
+    assert re.search(r"Neovim +installed; no lazy.nvim plugins folder", run("status"))
+
+
+def test_no_nvim_leaves_it_alone(home):
+    h, run = home
+    stub(run, "nvim")
+    d = make_lazyvim(h)
+    run("install", "--no-nvim")
+    assert not (d / "crate.lua").exists()
+
+
 def test_install_sh_passes_the_app_options_through():
     text = open(os.path.join(ROOT, "package/install.sh")).read()
-    assert '--no-obsidian|--no-firefox|--no-zed|--no-lazygit|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
+    assert '--no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
     assert 'bash "$HERE/apps.sh" install' in text
     uninstall = open(os.path.join(ROOT, "package/uninstall.sh")).read()
     assert 'bash "$HERE/apps.sh" uninstall ||' in uninstall
