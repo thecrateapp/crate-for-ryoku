@@ -37,6 +37,11 @@ Not Crate today:
 
 - Zed gets a fixed, hand-built "Crate" theme from `apps/tokens.json` (Diego, 2026-11-17), not the
   matugen one. It does not follow the wallpaper, like the rest of the Crate look.
+- The Crate terminal palette (`theme/crate/scheme.json` `dark.terminal`) keeps only Crate hues
+  (Diego, 2026-11-17, after the live lazygit review): ANSI green, blue and magenta become the two
+  cyans (`#06b6d4`, `#67e8f9`), yellow is `warning`, red is `danger` and stays for status (diff
+  deletions, errors, unstaged changes); black and white stay the greys. lazygit's diffs, hashes
+  and staged files, git in kitty and Zed's terminal all follow it.
 - Everything installs, reports and uninstalls through `package/apps.sh`, the same way as the
   Obsidian, Firefox and eza pieces: detected per app, skipped quietly when absent, never over a
   file of the user's own.

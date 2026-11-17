@@ -138,6 +138,18 @@ def test_zed_terminal_matches_kitty(out):
     assert s["terminal.background"].lower() == t["background"]
 
 
+def test_crate_terminal_palette_has_only_crate_hues():
+    # Crate has no green, blue or magenta: they collapse into the two cyans, and
+    # red and amber stay for status only (Diego, 2026-11-17)
+    hues = {TOKENS[t] for t in ("accent", "accent_hi", "warning", "danger")}
+    t = SCHEME["terminal"]
+    for group in ("normal", "bright"):
+        for name, hexv in t[group].items():
+            if name in ("black", "white"):
+                continue  # the greys
+            assert hexv.lower() in hues, f"{group}.{name} {hexv}"
+
+
 def over_canvas(token):
     r, g, b, a = (float(x) for x in TOKENS[token][5:-1].split(","))
     c = rgb(TOKENS["canvas"])

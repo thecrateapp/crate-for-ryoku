@@ -45,20 +45,20 @@
             "normal": {
                 "black": "#16171d",
                 "red": "#ef4444",
-                "green": "#22c55e",
-                "yellow": "#f59e0b",
-                "blue": "#3b82f6",
-                "magenta": "#a78bfa",
+                "green": "#67e8f9",
+                "yellow": "#fbbf24",
+                "blue": "#06b6d4",
+                "magenta": "#67e8f9",
                 "cyan": "#06b6d4",
                 "white": "#cbd5e1"
             },
             "bright": {
                 "black": "#4a4c52",
-                "red": "#f87171",
-                "green": "#4ade80",
+                "red": "#ef4444",
+                "green": "#67e8f9",
                 "yellow": "#fbbf24",
-                "blue": "#60a5fa",
-                "magenta": "#c4b5fd",
+                "blue": "#67e8f9",
+                "magenta": "#67e8f9",
                 "cyan": "#67e8f9",
                 "white": "#f1f5f9"
             }
