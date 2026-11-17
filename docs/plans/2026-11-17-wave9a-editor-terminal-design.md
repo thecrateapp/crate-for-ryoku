@@ -37,11 +37,13 @@ Not Crate today:
 
 - Zed gets a fixed, hand-built "Crate" theme from `apps/tokens.json` (Diego, 2026-11-17), not the
   matugen one. It does not follow the wallpaper, like the rest of the Crate look.
-- The Crate terminal palette (`theme/crate/scheme.json` `dark.terminal`) keeps only Crate hues
-  (Diego, 2026-11-17, after the live lazygit review): ANSI green, blue and magenta become the two
-  cyans (`#06b6d4`, `#67e8f9`), yellow is `warning`, red is `danger` and stays for status (diff
-  deletions, errors, unstaged changes); black and white stay the greys. lazygit's diffs, hashes
-  and staged files, git in kitty and Zed's terminal all follow it.
+- The Crate terminal palette (`theme/crate/scheme.json` `dark.terminal`) is a near-monochrome
+  console (Diego, 2026-11-17, after the live lazygit review): cyan in six intensities
+  (`apps/tokens.json` `cyan_scale` 100-600, whose 500 and 300 are `accent` and `accent_hi`) for
+  green, blue, magenta and cyan; four greys; amber (`amber_scale` 500 and 400 = `warning`) for
+  yellow and bright red, so bold errors read amber; Crate red (`danger`) only for plain red, which
+  programs use for deletions and errors. lazygit's diffs, hashes and staged files, git in kitty
+  and Zed's terminal all follow it.
 - After the live review (Diego, 2026-11-17): lazygit hides its random tip (`showRandomTip: false`,
   it draws in amber that is no status), and Neovim gets Crate's sober syntax too: `apps/nvim/crate.lua`,
   installed as `~/.config/nvim/lua/plugins/crate.lua` (first line `-- crate-for-ryoku: neovim`), an

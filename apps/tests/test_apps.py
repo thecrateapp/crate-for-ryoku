@@ -138,16 +138,23 @@ def test_zed_terminal_matches_kitty(out):
     assert s["terminal.background"].lower() == t["background"]
 
 
-def test_crate_terminal_palette_has_only_crate_hues():
-    # Crate has no green, blue or magenta: they collapse into the two cyans, and
-    # red and amber stay for status only (Diego, 2026-11-17)
-    hues = {TOKENS[t] for t in ("accent", "accent_hi", "warning", "danger")}
+def test_crate_terminal_palette_is_cyan_white_and_amber():
+    # a near-monochrome console (Diego, 2026-11-17): cyan in six intensities,
+    # four greys, amber for warnings and bright (bold) errors, Crate red for
+    # deletions and plain errors
+    cyan, amber = TOKENS["cyan_scale"], TOKENS["amber_scale"]
     t = SCHEME["terminal"]
-    for group in ("normal", "bright"):
-        for name, hexv in t[group].items():
-            if name in ("black", "white"):
-                continue  # the greys
-            assert hexv.lower() in hues, f"{group}.{name} {hexv}"
+    want = {
+        "normal": {"black": "#16171d", "red": TOKENS["danger"], "green": cyan["400"],
+                   "yellow": amber["500"], "blue": cyan["600"], "magenta": cyan["200"],
+                   "cyan": cyan["500"], "white": "#cbd5e1"},
+        "bright": {"black": "#4a4c52", "red": amber["400"], "green": cyan["300"],
+                   "yellow": amber["400"], "blue": cyan["400"], "magenta": cyan["100"],
+                   "cyan": cyan["300"], "white": TOKENS["text"]},
+    }
+    assert {g: t[g] for g in want} == want
+    assert cyan["500"] == TOKENS["accent"] and cyan["300"] == TOKENS["accent_hi"]
+    assert amber["400"] == TOKENS["warning"]
 
 
 def over_canvas(token):
