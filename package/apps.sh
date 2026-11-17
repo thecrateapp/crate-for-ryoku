@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Crate's look for third-party apps: Obsidian, Firefox, Chrome, Zed, lazygit and Neovim. Each app is
+# Crate's look for third-party apps: Obsidian, Firefox, Chrome, Zed, lazygit, Neovim, GTK and Text Editor. Each app is
 # detected on its own and skipped quietly when it is not there.
 #
 #   apps.sh install [opts]          lay the app themes into your home and turn them on
@@ -51,6 +51,7 @@ warn() { printf '\033[33m!!\033[0m %s\n' "$*" >&2; }
 usage() {
   cat <<EOF
 usage: apps.sh install [--no-obsidian] [--no-firefox] [--no-zed] [--no-lazygit] [--no-nvim]
+                       [--no-gtk] [--no-gtksourceview]
                        [--firefox-theme]
                        [--firefox-profile DIR]...
        apps.sh uninstall [--look-only]
@@ -59,6 +60,8 @@ usage: apps.sh install [--no-obsidian] [--no-firefox] [--no-zed] [--no-lazygit] 
   --no-zed             leave Zed's theme and settings.json alone
   --no-lazygit         leave lazygit's config.yml alone
   --no-nvim            leave Neovim's plugins folder alone
+  --no-gtk             leave GTK's user.css alone
+  --no-gtksourceview   leave GtkSourceView and Text Editor's scheme alone
   --no-firefox         leave your Firefox profiles alone (by default each
                        profile's chrome/ folder gets Crate's userChrome.css;
                        the old one is kept and restored by uninstall)
@@ -393,6 +396,121 @@ nvim_uninstall() {
   fi
 }
 
+# ---------- GTK ----------
+# GTK 4 / libadwaita and GTK 3 apps: Crate's corners, hairlines and surfaces go
+#   to ~/.config/gtk-{4,3}.0/crate.css, loaded by a marked line in user.css,
+#   which Ryoku's gtk.css imports last (the fork's user include). Your own lines
+#   in user.css stay; uninstall takes back the line, and crate.css while it is
+#   unchanged. GTK apps read it at start.
+GTK_LINE='@import url("crate.css"); /* crate-for-ryoku */'
+DATA=${XDG_DATA_HOME:-$HOME/.local/share}
+
+gtk_install() {
+  local ver src dir dest user n=0
+  for ver in 4.0 3.0; do
+    # only where Ryoku renders a gtk.css: that is what imports user.css
+    [ -f "$CFG/gtk-$ver/gtk.css" ] || continue
+    src=$APPS/gtk/crate.css
+    [ "$ver" = 3.0 ] && src=$APPS/gtk/crate-gtk3.css
+    [ -f "$src" ] || { warn "no GTK stylesheet in $src"; return 0; }
+    dir=$CFG/gtk-$ver dest=$dir/crate.css user=$dir/user.css
+    mkdir -p "$dir" "$REC"
+    if [ -f "$dest" ] && ! { [ -f "$REC/gtk-$ver.sha" ] && [ "$(sha "$dest")" = "$(cat "$REC/gtk-$ver.sha")" ]; } \
+       && ! cmp -s "$src" "$dest"; then
+      say "GTK $ver: $dest is not ours; left as it is"
+      continue
+    fi
+    cp "$src" "$dest"
+    sha "$dest" > "$REC/gtk-$ver.sha"
+    if [ ! -e "$user" ]; then
+      : > "$REC/gtk-$ver.created"
+      printf '%s\n' "$GTK_LINE" > "$user"
+    elif ! grep -qxF "$GTK_LINE" "$user"; then
+      if [ -s "$user" ] && [ -n "$(tail -c 1 "$user")" ]; then echo >> "$user"; fi
+      printf '%s\n' "$GTK_LINE" >> "$user"
+    fi
+    n=$((n + 1))
+  done
+  [ "$n" -gt 0 ] || return 0
+  say "GTK: Crate's corners and hairlines (apps show them once restarted)"
+  if ! grep -qF 'url("user.css")' "$CFG/gtk-4.0/gtk.css" 2>/dev/null; then
+    warn "GTK: this Ryoku's gtk.css does not load user.css yet; Crate's CSS waits for it"
+  fi
+}
+
+gtk_uninstall() {
+  local ver dir user
+  for ver in 4.0 3.0; do
+    dir=$CFG/gtk-$ver user=$dir/user.css
+    if [ -f "$user" ] && grep -qxF "$GTK_LINE" "$user"; then
+      grep -vxF "$GTK_LINE" "$user" > "$user.crate-tmp" || true
+      mv "$user.crate-tmp" "$user"
+      if [ -f "$REC/gtk-$ver.created" ] && [ ! -s "$user" ]; then rm -f -- "$user"; fi
+    fi
+    if [ -f "$REC/gtk-$ver.sha" ] && [ -f "$dir/crate.css" ]; then
+      if [ "$(sha "$dir/crate.css")" = "$(cat "$REC/gtk-$ver.sha")" ]; then
+        rm -f -- "$dir/crate.css"
+      else
+        warn "GTK $ver: $dir/crate.css changed since install; left in place"
+      fi
+    fi
+    rm -f -- "$REC/gtk-$ver.sha" "$REC/gtk-$ver.created"
+  done
+}
+
+# ---------- Text Editor (GtkSourceView) ----------
+# The Crate GtkSourceView 5 scheme goes to ~/.local/share/gtksourceview-5/styles
+#   for every app built on it; GNOME Text Editor, when installed, gets it as its
+#   style-scheme once (the old one recorded and put back by uninstall while
+#   Crate is still selected). Text Editor follows the setting live.
+TE_SCHEMA=org.gnome.TextEditor
+texteditor_present() { command -v gnome-text-editor >/dev/null; }
+texteditor_scheme() { gsettings get "$TE_SCHEMA" style-scheme 2>/dev/null | sed "s/'//g"; }
+
+gtksourceview_install() {
+  local src=$APPS/gtksourceview/crate.xml dest=$DATA/gtksourceview-5/styles/crate.xml cur
+  [ -f "$src" ] || { warn "no GtkSourceView scheme in $src"; return 0; }
+  mkdir -p "$REC"
+  if [ -f "$dest" ] && ! { [ -f "$REC/gtksourceview.sha" ] && [ "$(sha "$dest")" = "$(cat "$REC/gtksourceview.sha")" ]; } \
+     && ! cmp -s "$src" "$dest"; then
+    say "GtkSourceView: $dest is not ours; left as it is"
+  else
+    mkdir -p "$(dirname "$dest")"
+    cp "$src" "$dest"
+    sha "$dest" > "$REC/gtksourceview.sha"
+  fi
+  texteditor_present && command -v gsettings >/dev/null || return 0
+  if [ -f "$REC/texteditor.scheme" ]; then
+    cur=$(texteditor_scheme)
+    [ "$cur" = crate ] || say "Text Editor: you use ${cur:-another scheme} since; left as it is"
+    return 0
+  fi
+  texteditor_scheme > "$REC/texteditor.scheme"
+  gsettings set "$TE_SCHEMA" style-scheme crate
+  say "Text Editor: Crate scheme selected"
+}
+
+gtksourceview_uninstall() {
+  local dest=$DATA/gtksourceview-5/styles/crate.xml prev
+  if [ -f "$REC/texteditor.scheme" ]; then
+    prev=$(cat "$REC/texteditor.scheme")
+    if command -v gsettings >/dev/null && [ "$(texteditor_scheme)" = crate ]; then
+      gsettings set "$TE_SCHEMA" style-scheme "${prev:-Adwaita}"
+      say "Text Editor: ${prev:-Adwaita} is back"
+    fi
+    rm -f -- "$REC/texteditor.scheme"
+  fi
+  if [ -f "$REC/gtksourceview.sha" ] && [ -f "$dest" ]; then
+    if [ "$(sha "$dest")" = "$(cat "$REC/gtksourceview.sha")" ]; then
+      rm -f -- "$dest"
+      rmdir -- "$(dirname "$dest")" "$DATA/gtksourceview-5" 2>/dev/null || true
+    else
+      warn "GtkSourceView: $dest changed since install; left in place"
+    fi
+  fi
+  rm -f -- "$REC/gtksourceview.sha"
+}
+
 # ---------- Firefox ----------
 
 firefox_present() { command -v firefox >/dev/null || [ -f "$CFG/mozilla/firefox/profiles.ini" ] || [ -f "$HOME/.mozilla/firefox/profiles.ini" ]; }
@@ -664,6 +782,28 @@ status() {
   fi
   printf '  %-22s %s\n' "Neovim" "$line"
 
+  if grep -qxF "$GTK_LINE" "$CFG/gtk-4.0/user.css" 2>/dev/null && [ -f "$CFG/gtk-4.0/crate.css" ]; then
+    if grep -qF 'url("user.css")' "$CFG/gtk-4.0/gtk.css" 2>/dev/null; then
+      line="Crate CSS"
+    else
+      line="Crate CSS, but this Ryoku does not load user.css"
+    fi
+  else
+    line="no"
+  fi
+  printf '  %-22s %s\n' "GTK" "$line"
+
+  if texteditor_present; then
+    if [ -f "$DATA/gtksourceview-5/styles/crate.xml" ] && [ "$(texteditor_scheme)" = crate ]; then
+      line="Crate scheme selected"
+    else
+      line="installed; Crate not selected"
+    fi
+  else
+    line="not installed"
+  fi
+  printf '  %-22s %s\n' "Text Editor" "$line"
+
   local prof ff=0 fftotal=0
   if firefox_present; then
     while IFS= read -r prof; do
@@ -703,7 +843,7 @@ status() {
 cmd=${1:-help}; shift || true
 case $cmd in
   install)
-    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 ZED=1 LAZYGIT=1 NVIM=1 PROFILES=()
+    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 ZED=1 LAZYGIT=1 NVIM=1 GTK=1 SOURCE=1 PROFILES=()
     while [ $# -gt 0 ]; do
       case $1 in
         --no-obsidian) OBSIDIAN=0 ;;
@@ -711,6 +851,8 @@ case $cmd in
         --no-zed) ZED=0 ;;
         --no-lazygit) LAZYGIT=0 ;;
         --no-nvim) NVIM=0 ;;
+        --no-gtk) GTK=0 ;;
+        --no-gtksourceview) SOURCE=0 ;;
         --firefox-chrome) ;;  # the default since 0.7; kept so older command lines still work
         --firefox-theme) FFTHEME=1 ;;
         --firefox-profile) shift; PROFILES+=("${1:?--firefox-profile needs a folder}") ;;
@@ -726,6 +868,8 @@ case $cmd in
     [ "$ZED" = 1 ] && zed_install
     [ "$LAZYGIT" = 1 ] && lazygit_install
     [ "$NVIM" = 1 ] && nvim_install
+    [ "$GTK" = 1 ] && gtk_install
+    [ "$SOURCE" = 1 ] && gtksourceview_install
     exit 0 ;;
   uninstall)
     LOOK=0
@@ -743,6 +887,8 @@ case $cmd in
     [ "$LOOK" = 1 ] || zed_uninstall
     lazygit_uninstall
     nvim_uninstall
+    gtk_uninstall
+    gtksourceview_uninstall
     exit 0 ;;
   status) status ;;
   -h|--help|help) usage ;;

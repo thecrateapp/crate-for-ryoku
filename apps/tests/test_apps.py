@@ -902,9 +902,139 @@ def test_no_nvim_leaves_it_alone(home):
     assert not (d / "crate.lua").exists()
 
 
+# ---------- GTK ----------
+
+GTK_LINE = '@import url("crate.css"); /* crate-for-ryoku */'
+
+
+def gtk_with_hook(h, ver="4.0"):
+    d = h / f".config/gtk-{ver}"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "gtk.css").write_text(':root { --accent-color: #06b6d4; }\n@import url("user.css");\n')
+    return d
+
+
+def test_gtk_install_adds_crate_css_and_takes_it_back(home, out):
+    h, run = home
+    d4, d3 = gtk_with_hook(h, "4.0"), gtk_with_hook(h, "3.0")
+    run("install")
+    assert (d4 / "crate.css").read_bytes() == (out / "gtk/crate.css").read_bytes()
+    assert (d3 / "crate.css").read_bytes() == (out / "gtk/crate-gtk3.css").read_bytes()
+    assert (d4 / "user.css").read_text().splitlines() == [GTK_LINE]
+    assert re.search(r"GTK +Crate CSS$", run("status"), re.M)
+    run("uninstall")
+    for d in (d4, d3):
+        assert not (d / "crate.css").exists() and not (d / "user.css").exists()
+
+
+def test_gtk_keeps_your_own_user_css(home):
+    h, run = home
+    d4 = gtk_with_hook(h)
+    mine = "window { padding: 2px; }\n"
+    (d4 / "user.css").write_text(mine)
+    run("install")
+    run("install")
+    assert (d4 / "user.css").read_text() == mine + GTK_LINE + "\n"
+    run("uninstall")
+    assert (d4 / "user.css").read_text() == mine
+
+
+def test_gtk_status_says_when_ryoku_does_not_load_user_css(home):
+    h, run = home
+    d4 = h / ".config/gtk-4.0"
+    d4.mkdir(parents=True)
+    (d4 / "gtk.css").write_text(":root { --accent-color: #06b6d4; }\n")
+    run("install")
+    assert "does not load user.css" in run("status")
+
+
+def test_gtk_uninstall_keeps_an_edited_crate_css(home):
+    h, run = home
+    d4 = gtk_with_hook(h)
+    run("install")
+    (d4 / "crate.css").write_text("/* mine now */\n")
+    run("uninstall")
+    assert (d4 / "crate.css").read_text() == "/* mine now */\n"
+
+
+def test_no_gtk_leaves_it_alone(home):
+    h, run = home
+    d4 = gtk_with_hook(h)
+    run("install", "--no-gtk")
+    assert not (d4 / "crate.css").exists() and not (d4 / "user.css").exists()
+
+
+# ---------- Text Editor (GtkSourceView) ----------
+
+def gsettings_stub(run, h, value="'Adwaita'"):
+    state = h / ".gsettings-style-scheme"
+    state.write_text(value)
+    path = run.bindir / "gsettings"
+    path.write_text(f"""#!/bin/sh
+case "$1" in
+  get) cat "{state}"; echo ;;
+  set) printf "'%s'" "$4" > "{state}" ;;
+esac
+""")
+    path.chmod(0o755)
+    return state
+
+
+def test_text_editor_gets_the_crate_scheme_and_its_old_one_back(home, out):
+    h, run = home
+    stub(run, "gnome-text-editor")
+    state = gsettings_stub(run, h)
+    run("install")
+    xml = h / ".local/share/gtksourceview-5/styles/crate.xml"
+    assert xml.read_bytes() == (out / "gtksourceview/crate.xml").read_bytes()
+    assert state.read_text() == "'crate'"
+    assert re.search(r"Text Editor +Crate scheme selected", run("status"))
+    run("uninstall")
+    assert state.read_text() == "'Adwaita'" and not xml.exists()
+
+
+def test_text_editor_scheme_picked_since_stays(home):
+    h, run = home
+    stub(run, "gnome-text-editor")
+    state = gsettings_stub(run, h)
+    run("install")
+    state.write_text("'kate-dark'")
+    log = run("install")
+    assert state.read_text() == "'kate-dark'" and "kate-dark" in log
+    run("uninstall")
+    assert state.read_text() == "'kate-dark'"
+
+
+def test_gtksourceview_scheme_without_text_editor_selects_nothing(home):
+    h, run = home
+    state = gsettings_stub(run, h)
+    run("install")
+    assert (h / ".local/share/gtksourceview-5/styles/crate.xml").exists()
+    assert state.read_text() == "'Adwaita'"
+
+
+def test_edited_scheme_survives_uninstall(home):
+    h, run = home
+    stub(run, "gnome-text-editor")
+    gsettings_stub(run, h)
+    run("install")
+    xml = h / ".local/share/gtksourceview-5/styles/crate.xml"
+    xml.write_text(xml.read_text().replace("Crate's sober", "my"))
+    run("uninstall")
+    assert xml.exists()
+
+
+def test_no_gtksourceview_leaves_it_alone(home):
+    h, run = home
+    stub(run, "gnome-text-editor")
+    state = gsettings_stub(run, h)
+    run("install", "--no-gtksourceview")
+    assert not (h / ".local/share/gtksourceview-5").exists() and state.read_text() == "'Adwaita'"
+
+
 def test_install_sh_passes_the_app_options_through():
     text = open(os.path.join(ROOT, "package/install.sh")).read()
-    assert '--no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
+    assert '--no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--no-gtk|--no-gtksourceview|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
     assert 'bash "$HERE/apps.sh" install' in text
     uninstall = open(os.path.join(ROOT, "package/uninstall.sh")).read()
     assert 'bash "$HERE/apps.sh" uninstall ||' in uninstall
