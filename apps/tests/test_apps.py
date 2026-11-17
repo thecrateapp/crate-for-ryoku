@@ -230,6 +230,17 @@ def test_gtksourceview_scheme_is_crate(out):
     assert used and used <= allowed
 
 
+def test_gtk_css_leaves_buttons_entries_and_osd_to_libadwaita(out):
+    # a user sheet outranks the theme: a corner rule on buttons or entries
+    # rounds the inner corners of linked groups and squares round titlebuttons
+    for name in ("gtk/crate.css", "gtk/crate-gtk3.css"):
+        css = (out / name).read_text()
+        for rule in re.findall(r"([^{}]+)\{([^}]*)\}", css):
+            if "border-radius" in rule[1]:
+                sel = rule[0]
+                assert not re.search(r"\b(button|entry|spinbutton)\b|\.osd", sel), (name, sel.strip())
+
+
 def test_lazygit_hides_the_amber_random_tip(out):
     # the tip draws in ANSI yellow: amber that is no status (Diego, 2026-11-17)
     assert "\n  showRandomTip: false\n" in (out / "lazygit/config.yml").read_text()
@@ -954,6 +965,30 @@ def test_gtk_uninstall_keeps_an_edited_crate_css(home):
     (d4 / "crate.css").write_text("/* mine now */\n")
     run("uninstall")
     assert (d4 / "crate.css").read_text() == "/* mine now */\n"
+
+
+def test_gtk_symlinked_user_css_stays_a_symlink(home):
+    h, run = home
+    d4 = gtk_with_hook(h)
+    real = h / "dotfiles/user.css"
+    real.parent.mkdir()
+    real.write_text("window { padding: 2px; }\n")
+    (d4 / "user.css").symlink_to(real)
+    run("install")
+    run("uninstall")
+    assert (d4 / "user.css").is_symlink() and real.read_text() == "window { padding: 2px; }\n"
+
+
+def test_text_editor_selects_crate_after_a_failed_gsettings_run(home):
+    h, run = home
+    stub(run, "gnome-text-editor")
+    broken = run.bindir / "gsettings"
+    broken.write_text("#!/bin/sh\nexit 1\n")
+    broken.chmod(0o755)
+    run("install")
+    state = gsettings_stub(run, h)
+    run("install")
+    assert state.read_text() == "'crate'"
 
 
 def test_no_gtk_leaves_it_alone(home):

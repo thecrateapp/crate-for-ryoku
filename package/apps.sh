@@ -444,7 +444,9 @@ gtk_uninstall() {
     dir=$CFG/gtk-$ver user=$dir/user.css
     if [ -f "$user" ] && grep -qxF "$GTK_LINE" "$user"; then
       grep -vxF "$GTK_LINE" "$user" > "$user.crate-tmp" || true
-      mv "$user.crate-tmp" "$user"
+      # written back through the file, so a symlinked user.css (dotfiles) stays a link
+      cat "$user.crate-tmp" > "$user"
+      rm -f -- "$user.crate-tmp"
       if [ -f "$REC/gtk-$ver.created" ] && [ ! -s "$user" ]; then rm -f -- "$user"; fi
     fi
     if [ -f "$REC/gtk-$ver.sha" ] && [ -f "$dir/crate.css" ]; then
@@ -465,7 +467,11 @@ gtk_uninstall() {
 #   Crate is still selected). Text Editor follows the setting live.
 TE_SCHEMA=org.gnome.TextEditor
 texteditor_present() { command -v gnome-text-editor >/dev/null; }
-texteditor_scheme() { gsettings get "$TE_SCHEMA" style-scheme 2>/dev/null | sed "s/'//g"; }
+texteditor_scheme() {
+  local v
+  v=$(gsettings get "$TE_SCHEMA" style-scheme 2>/dev/null) || return 0
+  printf '%s\n' "$v" | sed "s/'//g"
+}
 
 gtksourceview_install() {
   local src=$APPS/gtksourceview/crate.xml dest=$DATA/gtksourceview-5/styles/crate.xml cur
@@ -485,8 +491,15 @@ gtksourceview_install() {
     [ "$cur" = crate ] || say "Text Editor: you use ${cur:-another scheme} since; left as it is"
     return 0
   fi
-  texteditor_scheme > "$REC/texteditor.scheme"
-  gsettings set "$TE_SCHEMA" style-scheme crate
+  local prev
+  # the record is written only once gsettings has answered and taken the change,
+  # so a run where it fails is simply tried again by the next install
+  if ! prev=$(gsettings get "$TE_SCHEMA" style-scheme 2>/dev/null) \
+     || ! gsettings set "$TE_SCHEMA" style-scheme crate 2>/dev/null; then
+    warn "Text Editor: gsettings did not answer; Crate scheme not selected"
+    return 0
+  fi
+  printf '%s\n' "$prev" | sed "s/'//g" > "$REC/texteditor.scheme"
   say "Text Editor: Crate scheme selected"
 }
 

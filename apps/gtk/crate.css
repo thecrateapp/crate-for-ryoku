@@ -20,7 +20,8 @@
 @define-color borders rgba(241, 245, 249, 0.1);
 @define-color unfocused_borders rgba(241, 245, 249, 0.1);
 
-/* 6 px corners on every floating and framed surface */
+/* 6 px corners on every floating and framed surface; buttons and entries keep
+   libadwaita's own 6 px, whose linked groups square their inner corners */
 popover > contents,
 popover.menu > contents,
 menu,
@@ -31,21 +32,12 @@ list.boxed-list,
 window.dialog,
 dialog sheet,
 messagedialog,
-.osd,
 toast,
 tooltip,
 tooltip > box {
   border-radius: 6px;
 }
 
-button:not(.circular):not(.pill),
-entry,
-spinbutton,
-dropdown > button,
-combobox > button,
-searchbar entry {
-  border-radius: 6px;
-}
 
 /* hairlines instead of solid grey rules */
 separator {
