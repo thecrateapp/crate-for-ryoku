@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Crate for Ryoku: Crate's sober code colours for GtkSourceView 5 (GNOME Text
+  Editor and every app built on it), the same as Crate's Zed and Neovim themes:
+  cyan keywords and functions, light cyan strings, types and headings, amber
+  only for numbers and constants, faint italic comments, text tones for the
+  rest. Laid down by `crate-for-ryoku install`, removed by uninstall.
+-->
+<style-scheme id="crate" name="Crate" version="1.0">
+  <author>Crate</author>
+  <description>Crate's sober code colours on the Crate canvas</description>
+  <metadata>
+    <property name="variant">dark</property>
+  </metadata>
+
+  <!-- surfaces and chrome -->
+  <style name="text" foreground="#f1f5f9" background="#0a0a0f"/>
+  <style name="selection" foreground="#f1f5f9" background="#06b6d440"/>
+  <style name="selection-unfocused" foreground="#f1f5f9" background="#15161d"/>
+  <style name="cursor" foreground="#67e8f9"/>
+  <style name="secondary-cursor" foreground="#06b6d4"/>
+  <style name="current-line" background="#0f1016"/>
+  <style name="line-numbers" foreground="#6b6d71" background="#0a0a0f"/>
+  <style name="current-line-number" foreground="#f1f5f9" background="#0f1016"/>
+  <style name="right-margin" foreground="#212226" background="#0a0a0f"/>
+  <style name="background-pattern" background="#0f1016"/>
+  <style name="draw-spaces" foreground="#212226"/>
+  <style name="bracket-match" foreground="#67e8f9" bold="true"/>
+  <style name="bracket-mismatch" foreground="#ef4444" underline="true"/>
+  <style name="search-match" foreground="#f1f5f9" background="#fbbf2440"/>
+  <style name="map-overlay" background="#f1f5f91a"/>
+
+  <!-- the sober syntax -->
+  <style name="def:comment" foreground="#6b6d71" italic="true"/>
+  <style name="def:doc-comment" foreground="#6b6d71" italic="true"/>
+  <style name="def:doc-comment-element" foreground="#999ca0" italic="true"/>
+  <style name="def:keyword" foreground="#06b6d4"/>
+  <style name="def:statement" foreground="#06b6d4"/>
+  <style name="def:function" foreground="#06b6d4"/>
+  <style name="def:builtin" foreground="#06b6d4"/>
+  <style name="def:preprocessor" foreground="#06b6d4"/>
+  <style name="def:type" foreground="#67e8f9"/>
+  <style name="def:string" foreground="#67e8f9"/>
+  <style name="def:character" foreground="#67e8f9"/>
+  <style name="def:number" foreground="#fbbf24"/>
+  <style name="def:floating-point" foreground="#fbbf24"/>
+  <style name="def:decimal" foreground="#fbbf24"/>
+  <style name="def:base-n-integer" foreground="#fbbf24"/>
+  <style name="def:boolean" foreground="#fbbf24"/>
+  <style name="def:constant" foreground="#fbbf24"/>
+  <style name="def:special-char" foreground="#fbbf24"/>
+  <style name="def:special-constant" foreground="#fbbf24"/>
+  <style name="def:identifier" foreground="#f1f5f9"/>
+  <style name="def:operator" foreground="#999ca0"/>
+  <style name="def:emphasis" italic="true"/>
+  <style name="def:strong-emphasis" bold="true"/>
+  <style name="def:heading" foreground="#67e8f9" bold="true"/>
+  <style name="def:link-text" foreground="#67e8f9"/>
+  <style name="def:link-destination" foreground="#999ca0" underline="true"/>
+  <style name="def:underlined" underline="true"/>
+  <style name="def:inline-code" foreground="#67e8f9"/>
+  <style name="def:list-marker" foreground="#06b6d4"/>
+  <style name="def:error" foreground="#ef4444" underline="error"/>
+  <style name="def:warning" foreground="#fbbf24" underline="error"/>
+  <style name="def:note" foreground="#0a0a0f" background="#fbbf24"/>
+  <style name="def:net-address" foreground="#67e8f9" underline="true"/>
+  <style name="def:shebang" foreground="#6b6d71" italic="true"/>
+
+  <!-- diffs: additions in the light cyan, removals in Crate red -->
+  <style name="diff:added-line" foreground="#67e8f9"/>
+  <style name="diff:removed-line" foreground="#ef4444"/>
+  <style name="diff:changed-line" foreground="#fbbf24"/>
+  <style name="diff:location" foreground="#06b6d4"/>
+  <style name="diff:diff-file" foreground="#f1f5f9" bold="true"/>
+  <style name="diff:special-case" foreground="#999ca0"/>
+</style-scheme>

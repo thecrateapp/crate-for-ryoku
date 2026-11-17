@@ -209,6 +209,28 @@ def test_gtk3_css_has_no_libadwaita_variables(out):
     assert {c.lower() for c in re.findall(r"#[0-9a-fA-F]{6}\b", css)} <= allowed
 
 
+def test_gtksourceview_scheme_is_crate(out):
+    import xml.etree.ElementTree as ET
+    root = ET.parse(out / "gtksourceview/crate.xml").getroot()
+    assert root.tag == "style-scheme" and root.get("id") == "crate" and root.get("name") == "Crate"
+    props = {p.get("name"): p.text for p in root.iter("property")}
+    assert props.get("variant") == "dark"
+    styles = {st.get("name"): st for st in root.iter("style")}
+    assert styles["def:keyword"].get("foreground") == TOKENS["accent"]
+    assert styles["def:string"].get("foreground") == TOKENS["accent_hi"]
+    assert styles["def:number"].get("foreground") == TOKENS["warning"]
+    comment = styles["def:comment"]
+    assert comment.get("foreground") == over_canvas("text_faint") and comment.get("italic") == "true"
+    allowed = crate_bases() | {over_canvas(t) for t in ("hairline", "text_secondary", "text_faint")}
+    used = set()
+    for st in root.iter("style"):
+        for attr in ("foreground", "background"):
+            v = st.get(attr)
+            if v:
+                used.add(v.lower()[:7])
+    assert used and used <= allowed
+
+
 def test_lazygit_hides_the_amber_random_tip(out):
     # the tip draws in ANSI yellow: amber that is no status (Diego, 2026-11-17)
     assert "\n  showRandomTip: false\n" in (out / "lazygit/config.yml").read_text()

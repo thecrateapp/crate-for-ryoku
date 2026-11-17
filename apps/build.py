@@ -144,6 +144,13 @@ def build_gtk(out):
     return dest
 
 
+def build_gtksourceview(out):
+    dest = os.path.join(out, "gtksourceview", "crate.xml")
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    shutil.copyfile(os.path.join(APPS, "gtksourceview/crate.xml"), dest)
+    return dest
+
+
 def build_chrome(out):
     src = os.path.join(APPS, "chrome/theme")
     manifest = json.loads(read(os.path.join(src, "manifest.json")))
@@ -352,6 +359,7 @@ def main(argv):
     print("lazygit ", build_lazygit(out))
     print("nvim    ", build_nvim(out))
     print("gtk     ", build_gtk(out))
+    print("source  ", build_gtksourceview(out))
     unpacked, webstore = build_chrome(out)
     key = json.loads(read(os.path.join(unpacked, "manifest.json")))["key"]
     print("chrome  ", unpacked, f"(id {chrome_id(key)})")
