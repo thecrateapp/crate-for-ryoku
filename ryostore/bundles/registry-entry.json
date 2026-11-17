@@ -1,7 +1,7 @@
 {
   "id": "crate-for-ryoku",
   "name": "Crate for Ryoku",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "path": "bundles/crate-for-ryoku",
   "author": "Diego 🥷🏻",
   "upstream": "https://github.com/thecrateapp/crate-for-ryoku",
@@ -23,7 +23,7 @@
     "assets/crate-mark-panel.png"
   ],
   "manifest": "bundle.json",
-  "manifestSha256": "bb9423a35e9777b413e146e3a64668b035422a34cf4a64888b4b67d673340bac",
+  "manifestSha256": "218264e2310082ad0ac26c6be90e3e8b98fab0efa7595511fbd233055c603fc2",
   "components": [
     {
       "type": "package",

@@ -10,7 +10,7 @@
 # build without that key (the AUR's, CI's) ships no Chrome theme
 # (package/build-chrome.sh).
 pkgname=crate-for-ryoku
-pkgver=0.6.0
+pkgver=0.7.0
 pkgrel=1
 pkgdesc="Crate for Ryoku: Crate's look and Crate integration for the Ryoku desktop"
 arch=('any')
