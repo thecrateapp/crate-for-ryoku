@@ -50,11 +50,12 @@ warn() { printf '\033[33m!!\033[0m %s\n' "$*" >&2; }
 
 usage() {
   cat <<EOF
-usage: apps.sh install [--no-obsidian] [--no-firefox] [--firefox-theme]
+usage: apps.sh install [--no-obsidian] [--no-firefox] [--no-zed] [--firefox-theme]
                        [--firefox-profile DIR]...
        apps.sh uninstall [--look-only]
        apps.sh status
   --no-obsidian        leave your Obsidian vaults alone
+  --no-zed             leave Zed's theme and settings.json alone
   --no-firefox         leave your Firefox profiles alone (by default each
                        profile's chrome/ folder gets Crate's userChrome.css;
                        the old one is kept and restored by uninstall)
@@ -239,6 +240,75 @@ obsidian_uninstall() {
     say "Obsidian: removed $dest"
   done < "$REC/obsidian.list"
   rm -f -- "$REC/obsidian.list"
+}
+
+# ---------- Zed ----------
+# Zed (zed on PATH, its user install in ~/.local/zed.app, or ~/.config/zed): the
+#   Crate theme goes to ~/.config/zed/themes/crate.json and settings.json gets
+#   "Crate" as its dark theme through zed_settings.py, which edits only that value
+#   and keeps your comments. Uninstall puts your previous theme back unless you
+#   have picked another since. Zed picks both up live.
+zed_present() { command -v zed >/dev/null || [ -d "$HOME/.local/zed.app" ] || [ -d "$CFG/zed" ]; }
+
+zed_install() {
+  local src=$APPS/zed/crate.json dest=$CFG/zed/themes/crate.json file=$CFG/zed/settings.json out cur
+  [ -f "$src" ] || { warn "no Zed theme in $src"; return 0; }
+  zed_present || return 0
+  mkdir -p "$REC"
+  if [ -f "$dest" ] && [ -f "$REC/zed-theme.sha" ] && [ "$(sha "$dest")" != "$(cat "$REC/zed-theme.sha")" ]; then
+    say "Zed: $dest changed since install; left as it is"
+  elif [ -f "$dest" ] && [ ! -f "$REC/zed-theme.sha" ] && ! cmp -s "$src" "$dest"; then
+    say "Zed: $dest is not ours; left as it is"
+  else
+    mkdir -p "$(dirname "$dest")"
+    cp "$src" "$dest"
+    sha "$dest" > "$REC/zed-theme.sha"
+  fi
+  if [ -s "$REC/zed-settings.list" ]; then
+    # selected by an earlier install: a theme you picked since stays
+    cur=$(python3 "$HERE/zed_settings.py" current "$file")
+    if [ "$cur" = Crate ]; then
+      say "Zed: Crate theme selected"
+    else
+      say "Zed: you use ${cur:-the default theme} since; left as it is"
+    fi
+    return 0
+  fi
+  if out=$(python3 "$HERE/zed_settings.py" select "$file" Crate); then
+    printf '%s\t%s\n' "$file" "$out" > "$REC/zed-settings.list"
+    say "Zed: Crate theme selected (Zed picks it up live)"
+  else
+    warn "Zed: $file is not valid JSON; Crate is there but not selected"
+  fi
+}
+
+# zed_unselect: the theme install replaced comes back, while Crate is still selected
+zed_unselect() {
+  [ -s "$REC/zed-settings.list" ] || return 0
+  local file mode prev r
+  IFS=$'\t' read -r file mode prev < "$REC/zed-settings.list"
+  r=$(python3 "$HERE/zed_settings.py" restore "$file" Crate "$mode" "$prev" 2>/dev/null || echo kept)
+  if [ "$r" = restored ]; then
+    say "Zed: your previous theme is back"
+  else
+    say "Zed: you use another theme since; left as it is"
+  fi
+  rm -f -- "$REC/zed-settings.list"
+}
+
+zed_uninstall() {
+  [ -f "$REC/zed-theme.sha" ] || return 0
+  local dest=$CFG/zed/themes/crate.json
+  if [ -f "$dest" ]; then
+    if [ "$(sha "$dest")" = "$(cat "$REC/zed-theme.sha")" ]; then
+      rm -f -- "$dest"
+      rmdir -- "$CFG/zed/themes" "$CFG/zed" 2>/dev/null || true
+      say "Zed: removed $dest"
+    else
+      warn "Zed: $dest changed since install; left in place"
+    fi
+  fi
+  rm -f -- "$REC/zed-theme.sha"
 }
 
 # ---------- Firefox ----------
@@ -473,6 +543,17 @@ status() {
   fi
   printf '  %-22s %s\n' "Obsidian" "$line"
 
+  if zed_present; then
+    if [ -f "$CFG/zed/themes/crate.json" ] && [ "$(python3 "$HERE/zed_settings.py" current "$CFG/zed/settings.json")" = Crate ]; then
+      line="installed; Crate selected"
+    else
+      line="installed; Crate not selected"
+    fi
+  else
+    line="not installed"
+  fi
+  printf '  %-22s %s\n' "Zed" "$line"
+
   local prof ff=0 fftotal=0
   if firefox_present; then
     while IFS= read -r prof; do
@@ -512,11 +593,12 @@ status() {
 cmd=${1:-help}; shift || true
 case $cmd in
   install)
-    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 PROFILES=()
+    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 ZED=1 PROFILES=()
     while [ $# -gt 0 ]; do
       case $1 in
         --no-obsidian) OBSIDIAN=0 ;;
         --no-firefox) FIREFOX=0 ;;
+        --no-zed) ZED=0 ;;
         --firefox-chrome) ;;  # the default since 0.7; kept so older command lines still work
         --firefox-theme) FFTHEME=1 ;;
         --firefox-profile) shift; PROFILES+=("${1:?--firefox-profile needs a folder}") ;;
@@ -529,6 +611,7 @@ case $cmd in
     [ "$OBSIDIAN" = 1 ] && obsidian_install
     [ "$FIREFOX" = 1 ] && firefox_chrome_install ${PROFILES[@]+"${PROFILES[@]}"}
     [ "$FFTHEME" = 1 ] && firefox_theme_install
+    [ "$ZED" = 1 ] && zed_install
     exit 0 ;;
   uninstall)
     LOOK=0
@@ -542,6 +625,8 @@ case $cmd in
     obsidian_unselect
     [ "$LOOK" = 1 ] || obsidian_uninstall
     firefox_chrome_uninstall
+    zed_unselect
+    [ "$LOOK" = 1 ] || zed_uninstall
     exit 0 ;;
   status) status ;;
   -h|--help|help) usage ;;

@@ -639,6 +639,71 @@ def test_chrome_package_without_a_browser(home):
     assert re.search(r"Chrome +not installed; Crate theme packaged", run("status"))
 
 
+# ---------- Zed ----------
+
+ZED_DEFAULT = ('// Zed\n{\n  "theme": {\n    "mode": "system",\n    "light": "One Light",\n'
+               '    "dark": "One Dark"\n  }\n}\n')
+
+
+def test_zed_install_selects_crate_and_uninstall_puts_one_dark_back(home, out):
+    h, run = home
+    stub(run, "zed")
+    s = h / ".config/zed/settings.json"
+    s.parent.mkdir(parents=True)
+    s.write_text(ZED_DEFAULT)
+    run("install")
+    assert (h / ".config/zed/themes/crate.json").read_bytes() == (out / "zed/crate.json").read_bytes()
+    assert '"dark": "Crate"' in s.read_text()
+    assert re.search(r"Zed +installed; Crate selected", run("status"))
+    run("uninstall")
+    assert s.read_text() == ZED_DEFAULT
+    assert not (h / ".config/zed/themes/crate.json").exists()
+
+
+def test_zed_second_install_keeps_a_theme_picked_since(home):
+    h, run = home
+    stub(run, "zed")
+    s = h / ".config/zed/settings.json"
+    s.parent.mkdir(parents=True)
+    s.write_text(ZED_DEFAULT)
+    run("install")
+    s.write_text(s.read_text().replace('"Crate"', '"Gruvbox"'))
+    log = run("install")
+    assert '"Gruvbox"' in s.read_text() and "Gruvbox" in log
+    assert re.search(r"Zed +installed; Crate not selected", run("status"))
+
+
+def test_zed_never_started_gets_a_settings_file_and_loses_it_again(home):
+    h, run = home
+    stub(run, "zed")
+    run("install")
+    assert '"dark": "Crate"' in (h / ".config/zed/settings.json").read_text()
+    run("uninstall")
+    assert not (h / ".config/zed/settings.json").exists()
+
+
+def test_zed_uninstall_keeps_an_edited_theme_file(home):
+    h, run = home
+    stub(run, "zed")
+    run("install")
+    t = h / ".config/zed/themes/crate.json"
+    t.write_text(t.read_text() + "\n")
+    run("uninstall")
+    assert t.exists()
+
+
+def test_no_zed_leaves_zed_alone(home):
+    h, run = home
+    stub(run, "zed")
+    run("install", "--no-zed")
+    assert not (h / ".config/zed").exists()
+
+
+def test_zed_not_installed_is_reported(home):
+    h, run = home
+    assert re.search(r"Zed +not installed", run("status"))
+
+
 def test_install_sh_passes_the_app_options_through():
     text = open(os.path.join(ROOT, "package/install.sh")).read()
     assert '--no-obsidian|--no-firefox|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
