@@ -166,6 +166,11 @@ def test_lazygit_theme_is_marked_and_crate(out):
     assert found and found <= allowed
 
 
+def test_lazygit_hides_the_amber_random_tip(out):
+    # the tip draws in ANSI yellow: amber that is no status (Diego, 2026-11-17)
+    assert "\n  showRandomTip: false\n" in (out / "lazygit/config.yml").read_text()
+
+
 def test_firefox_theme_matches_the_tokens(out):
     m = json.load(open(os.path.join(APPS, "firefox/theme/manifest.json")))
     c = m["theme"]["colors"]

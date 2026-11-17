@@ -2,6 +2,7 @@
 # Crate's look for lazygit, laid down by `crate-for-ryoku install` and removed by
 # `crate-for-ryoku uninstall`. Delete the first line to keep this file as your own.
 gui:
+  showRandomTip: false
   theme:
     activeBorderColor:
       - "#06b6d4"
