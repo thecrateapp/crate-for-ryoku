@@ -197,7 +197,6 @@ def test_gtk_css_is_crate(out):
                  "--headerbar-border-color: rgba(241, 245, 249, 0.1);", "--window-radius: 6px;"):
         assert decl in css, decl
     assert "border-radius: 6px;" in css
-    assert re.search(r"imageview[^{]*\{[^}]*background-color: #0a0a0f;", css)
 
 
 def test_gtk3_css_has_no_libadwaita_variables(out):

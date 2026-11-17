@@ -55,7 +55,7 @@ Token values only (`apps/tokens.json`); rules libadwaita and adw-gtk3 honour fro
   `@define-color` twins for GTK 3 / non-libadwaita.
 - 6 px corners: popover contents, menus, buttons, entries, cards, dialogs and OSD button groups.
 - Hairline separators and card outlines.
-- Loupe's image background on canvas `#0a0a0f`.
+- Loupe's letterbox stays libadwaita's `#222226`: Loupe paints it from code, not CSS (found live).
 
 ### `apps/gtksourceview/crate.xml`
 

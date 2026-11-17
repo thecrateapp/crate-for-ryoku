@@ -51,9 +51,3 @@ list.boxed-list,
 headerbar {
   box-shadow: inset 0 -1px rgba(241, 245, 249, 0.1);
 }
-
-/* Loupe: the margin around the picture on the canvas, not a lighter grey */
-imageview,
-.image-view {
-  background-color: #0a0a0f;
-}
