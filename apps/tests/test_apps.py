@@ -138,6 +138,22 @@ def test_zed_terminal_matches_kitty(out):
     assert s["terminal.background"].lower() == t["background"]
 
 
+def over_canvas(token):
+    r, g, b, a = (float(x) for x in TOKENS[token][5:-1].split(","))
+    c = rgb(TOKENS["canvas"])
+    return "#%02x%02x%02x" % tuple(round(a * v + (1 - a) * w) for v, w in zip((r, g, b), c))
+
+
+def test_lazygit_theme_is_marked_and_crate(out):
+    text = (out / "lazygit/config.yml").read_text()
+    assert text.splitlines()[0] == "# crate-for-ryoku: lazygit"
+    assert "activeBorderColor:" in text and TOKENS["accent"] in text
+    assert over_canvas("hairline") in text  # inactive border, solid
+    found = {c.lower() for c in re.findall(r"#[0-9a-fA-F]{6}\b", text)}
+    allowed = crate_bases() | {over_canvas(t) for t in ("hairline", "text_secondary", "text_faint")}
+    assert found and found <= allowed
+
+
 def test_firefox_theme_matches_the_tokens(out):
     m = json.load(open(os.path.join(APPS, "firefox/theme/manifest.json")))
     c = m["theme"]["colors"]

@@ -1,0 +1,31 @@
+# crate-for-ryoku: lazygit
+# Crate's look for lazygit, laid down by `crate-for-ryoku install` and removed by
+# `crate-for-ryoku uninstall`. Delete the first line to keep this file as your own.
+gui:
+  theme:
+    activeBorderColor:
+      - "#06b6d4"
+      - bold
+    inactiveBorderColor:
+      - "#212226"
+    searchingActiveBorderColor:
+      - "#fbbf24"
+      - bold
+    optionsTextColor:
+      - "#06b6d4"
+    selectedLineBgColor:
+      - "#0f1016"
+    inactiveViewSelectedLineBgColor:
+      - "#15161d"
+    cherryPickedCommitFgColor:
+      - "#06b6d4"
+    cherryPickedCommitBgColor:
+      - "#15161d"
+    markedBaseCommitFgColor:
+      - "#67e8f9"
+    markedBaseCommitBgColor:
+      - "#15161d"
+    unstagedChangesColor:
+      - "#ef4444"
+    defaultFgColor:
+      - "#f1f5f9"

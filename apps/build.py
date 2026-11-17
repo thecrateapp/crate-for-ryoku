@@ -122,6 +122,13 @@ def build_zed(out):
     return dest
 
 
+def build_lazygit(out):
+    dest = os.path.join(out, "lazygit", "config.yml")
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    shutil.copyfile(os.path.join(APPS, "lazygit/config.yml"), dest)
+    return dest
+
+
 def build_chrome(out):
     src = os.path.join(APPS, "chrome/theme")
     manifest = json.loads(read(os.path.join(src, "manifest.json")))
@@ -327,6 +334,7 @@ def main(argv):
     print("firefox ", xpi)
     print("firefox ", chrome)
     print("zed     ", build_zed(out))
+    print("lazygit ", build_lazygit(out))
     unpacked, webstore = build_chrome(out)
     key = json.loads(read(os.path.join(unpacked, "manifest.json")))["key"]
     print("chrome  ", unpacked, f"(id {chrome_id(key)})")
