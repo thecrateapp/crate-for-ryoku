@@ -83,6 +83,193 @@ def test_obsidian_shape_and_type_apply_in_both_modes():
     assert "--crate-label-tracking: 0.12em" in body
 
 
+SCHEME = json.load(open(os.path.join(ROOT, "theme/crate/scheme.json")))["dark"]
+
+
+def crate_bases():
+    """Every #rrggbb a Crate app theme may use."""
+    bases = {v.lower() for v in TOKENS.values() if isinstance(v, str) and v.startswith("#")}
+    for v in TOKENS.values():
+        if isinstance(v, str) and v.startswith("rgba("):
+            r, g, b = (int(x) for x in v[5:-1].split(",")[:3])
+            bases.add("#%02x%02x%02x" % (r, g, b))
+    t = SCHEME["terminal"]
+    bases |= {v.lower() for v in t.values() if isinstance(v, str)}
+    bases |= {v.lower() for group in ("normal", "bright") for v in t[group].values()}
+    return bases
+
+
+def colours(node):
+    if isinstance(node, dict):
+        for v in node.values():
+            yield from colours(v)
+    elif isinstance(node, list):
+        for v in node:
+            yield from colours(v)
+    elif isinstance(node, str) and re.fullmatch(r"#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?", node):
+        yield node.lower()
+
+
+def test_zed_theme_is_one_dark_crate_theme(out):
+    doc = json.load(open(out / "zed/crate.json"))
+    assert doc["$schema"] == "https://zed.dev/schema/themes/v0.2.0.json"
+    assert doc["name"] == "Crate" and len(doc["themes"]) == 1
+    theme = doc["themes"][0]
+    assert theme["name"] == "Crate" and theme["appearance"] == "dark"
+    s = theme["style"]
+    assert s["editor.background"].lower() == TOKENS["canvas"]
+    assert s["border.focused"].lower() == TOKENS["accent"]
+    assert s["border"].lower() == "#f1f5f91a"  # hairline: text at 0.1
+
+
+def test_zed_theme_uses_only_crate_colours(out):
+    doc = json.load(open(out / "zed/crate.json"))
+    bad = sorted({c for c in colours(doc) if c[:7] not in crate_bases()})
+    assert bad == []
+
+
+def test_zed_terminal_matches_kitty(out):
+    s = json.load(open(out / "zed/crate.json"))["themes"][0]["style"]
+    t = SCHEME["terminal"]
+    for name, hexv in t["normal"].items():
+        assert s[f"terminal.ansi.{name}"].lower() == hexv
+    for name, hexv in t["bright"].items():
+        assert s[f"terminal.ansi.bright_{name}"].lower() == hexv
+    assert s["terminal.background"].lower() == t["background"]
+
+
+def test_crate_terminal_palette_is_cyan_white_and_amber():
+    # a near-monochrome console (Diego, 2026-11-17): cyan in six intensities,
+    # four greys, amber for warnings and bright (bold) errors, Crate red for
+    # deletions and plain errors
+    cyan, amber = TOKENS["cyan_scale"], TOKENS["amber_scale"]
+    t = SCHEME["terminal"]
+    want = {
+        "normal": {"black": "#16171d", "red": TOKENS["danger"], "green": cyan["400"],
+                   "yellow": amber["500"], "blue": cyan["600"], "magenta": cyan["200"],
+                   "cyan": cyan["500"], "white": "#cbd5e1"},
+        "bright": {"black": "#4a4c52", "red": amber["400"], "green": cyan["300"],
+                   "yellow": amber["400"], "blue": cyan["400"], "magenta": cyan["100"],
+                   "cyan": cyan["300"], "white": TOKENS["text"]},
+    }
+    assert {g: t[g] for g in want} == want
+    assert cyan["500"] == TOKENS["accent"] and cyan["300"] == TOKENS["accent_hi"]
+    assert amber["400"] == TOKENS["warning"]
+
+
+def over_canvas(token):
+    r, g, b, a = (float(x) for x in TOKENS[token][5:-1].split(","))
+    c = rgb(TOKENS["canvas"])
+    return "#%02x%02x%02x" % tuple(round(a * v + (1 - a) * w) for v, w in zip((r, g, b), c))
+
+
+def test_lazygit_theme_is_marked_and_crate(out):
+    text = (out / "lazygit/config.yml").read_text()
+    assert text.splitlines()[0] == "# crate-for-ryoku: lazygit"
+    assert "activeBorderColor:" in text and TOKENS["accent"] in text
+    assert over_canvas("hairline") in text  # inactive border, solid
+    found = {c.lower() for c in re.findall(r"#[0-9a-fA-F]{6}\b", text)}
+    allowed = crate_bases() | {over_canvas(t) for t in ("hairline", "text_secondary", "text_faint")}
+    assert found and found <= allowed
+
+
+def test_nvim_syntax_is_crate_and_marked(out):
+    text = (out / "nvim/crate.lua").read_text()
+    assert text.splitlines()[0] == "-- crate-for-ryoku: neovim"
+    assert '"folke/tokyonight.nvim"' in text and "on_highlights" in text
+    found = {c.lower() for c in re.findall(r"#[0-9a-fA-F]{6}\b", text)}
+    allowed = crate_bases() | {over_canvas(t) for t in ("hairline", "text_secondary", "text_faint")}
+    assert found and found <= allowed
+    # the sober syntax: amber only for numbers, constants and escapes
+    for group, token in (("Keyword", "accent"), ("Function", "accent"), ("String", "accent_hi"),
+                         ("Number", "warning")):
+        assert re.search(r'%s = \{ fg = "%s"' % (re.escape(group), TOKENS[token]), text), group
+    assert re.search(r'Comment = \{ fg = "%s", italic = true' % over_canvas("text_faint"), text)
+
+
+def test_gtk_css_is_crate(out):
+    css = (out / "gtk/crate.css").read_text()
+    allowed = {v.lower() for v in TOKENS.values() if isinstance(v, str) and v.startswith("#")}
+    assert {c.lower() for c in re.findall(r"#[0-9a-fA-F]{6}\b", css)} <= allowed
+    rgba = {v.replace(" ", "") for v in TOKENS.values() if isinstance(v, str) and v.startswith("rgba(")}
+    assert {c.replace(" ", "") for c in re.findall(r"rgba\([^)]*\)", css)} <= rgba
+    for decl in ("--dialog-bg-color: #111218;", "--thumbnail-bg-color: #111218;",
+                 "--headerbar-border-color: rgba(241, 245, 249, 0.1);", "--window-radius: 6px;"):
+        assert decl in css, decl
+    assert "border-radius: 6px;" in css
+
+
+def test_gtk3_css_has_no_libadwaita_variables(out):
+    # GTK 3 rejects :root and custom properties and drops the whole sheet
+    css = (out / "gtk/crate-gtk3.css").read_text()
+    assert ":root" not in css and not re.search(r"--[a-z-]+\s*:", css)
+    assert "@define-color dialog_bg_color #111218;" in css and "border-radius: 6px;" in css
+    allowed = {v.lower() for v in TOKENS.values() if isinstance(v, str) and v.startswith("#")}
+    assert {c.lower() for c in re.findall(r"#[0-9a-fA-F]{6}\b", css)} <= allowed
+
+
+def test_gtksourceview_scheme_is_crate(out):
+    import xml.etree.ElementTree as ET
+    root = ET.parse(out / "gtksourceview/crate.xml").getroot()
+    assert root.tag == "style-scheme" and root.get("id") == "crate" and root.get("name") == "Crate"
+    props = {p.get("name"): p.text for p in root.iter("property")}
+    assert props.get("variant") == "dark"
+    styles = {st.get("name"): st for st in root.iter("style")}
+    assert styles["def:keyword"].get("foreground") == TOKENS["accent"]
+    assert styles["def:string"].get("foreground") == TOKENS["accent_hi"]
+    assert styles["def:number"].get("foreground") == TOKENS["warning"]
+    comment = styles["def:comment"]
+    assert comment.get("foreground") == over_canvas("text_faint") and comment.get("italic") == "true"
+    allowed = crate_bases() | {over_canvas(t) for t in ("hairline", "text_secondary", "text_faint")}
+    used = set()
+    for st in root.iter("style"):
+        for attr in ("foreground", "background"):
+            v = st.get(attr)
+            if v:
+                used.add(v.lower()[:7])
+    assert used and used <= allowed
+
+
+def test_gtk_css_leaves_buttons_entries_and_osd_to_libadwaita(out):
+    # a user sheet outranks the theme: a corner rule on buttons or entries
+    # rounds the inner corners of linked groups and squares round titlebuttons
+    for name in ("gtk/crate.css", "gtk/crate-gtk3.css"):
+        css = (out / name).read_text()
+        for rule in re.findall(r"([^{}]+)\{([^}]*)\}", css):
+            if "border-radius" in rule[1]:
+                sel = rule[0]
+                assert not re.search(r"\b(button|entry|spinbutton)\b|\.osd", sel), (name, sel.strip())
+
+
+def test_thunderbird_chrome_is_crate(out):
+    css = (out / "thunderbird/chrome/userChrome.css").read_text()
+    allowed = {v.lower() for v in TOKENS.values() if isinstance(v, str) and v.startswith("#")}
+    assert {c.lower() for c in re.findall(r"#[0-9a-fA-F]{6}\b", css)} <= allowed
+    rgba = {v.replace(" ", "") for v in TOKENS.values() if isinstance(v, str) and v.startswith("rgba(")}
+    assert {c.replace(" ", "") for c in re.findall(r"rgba\([^)]*\)", css)} <= rgba
+    for decl in ("--layout-background-0: #0a0a0f !important;", "--layout-background-1: #0d0e14 !important;",
+                 "--selected-item-color: #06b6d4 !important;", "--color-primary-default: #06b6d4 !important;",
+                 "--layout-border-0: rgba(241, 245, 249, 0.1) !important;", "--button-border-radius: 6px !important;",
+                 "--viewDayBoxSelectedBackground: #15161d !important;",
+                 "--thread-pane-unread-fill: #67e8f9 !important;", "--folder-color-inbox: #06b6d4 !important;",
+                 "--folder-color-folder: rgba(241, 245, 249, 0.62) !important;"):
+        assert decl in css, decl
+
+
+def test_thunderbird_minimonth_variables_sit_on_the_minimonth(out):
+    # Thunderbird declares them on calendar-minimonth itself, which beats :root
+    css = (out / "thunderbird/chrome/userChrome.css").read_text()
+    block = re.search(r"calendar-minimonth\s*\{([^}]*)\}", css)
+    assert block and "--mmBoxBackground: #0f1016 !important;" in block.group(1)
+    root = re.search(r":root\s*\{([^}]*)\}", css).group(1)
+    assert "--mmBox" not in root and "--viewHeaderSelectedBackground" not in css
+
+
+def test_lazygit_hides_the_amber_random_tip(out):
+    # the tip draws in ANSI yellow: amber that is no status (Diego, 2026-11-17)
+    assert "\n  showRandomTip: false\n" in (out / "lazygit/config.yml").read_text()
+
+
 def test_firefox_theme_matches_the_tokens(out):
     m = json.load(open(os.path.join(APPS, "firefox/theme/manifest.json")))
     c = m["theme"]["colors"]
@@ -568,9 +755,503 @@ def test_chrome_package_without_a_browser(home):
     assert re.search(r"Chrome +not installed; Crate theme packaged", run("status"))
 
 
+# ---------- Zed ----------
+
+ZED_DEFAULT = ('// Zed\n{\n  "theme": {\n    "mode": "system",\n    "light": "One Light",\n'
+               '    "dark": "One Dark"\n  }\n}\n')
+
+
+def test_zed_install_selects_crate_and_uninstall_puts_one_dark_back(home, out):
+    h, run = home
+    stub(run, "zed")
+    s = h / ".config/zed/settings.json"
+    s.parent.mkdir(parents=True)
+    s.write_text(ZED_DEFAULT)
+    run("install")
+    assert (h / ".config/zed/themes/crate.json").read_bytes() == (out / "zed/crate.json").read_bytes()
+    assert '"dark": "Crate"' in s.read_text()
+    assert re.search(r"Zed +installed; Crate selected", run("status"))
+    run("uninstall")
+    assert s.read_text() == ZED_DEFAULT
+    assert not (h / ".config/zed/themes/crate.json").exists()
+
+
+def test_zed_second_install_keeps_a_theme_picked_since(home):
+    h, run = home
+    stub(run, "zed")
+    s = h / ".config/zed/settings.json"
+    s.parent.mkdir(parents=True)
+    s.write_text(ZED_DEFAULT)
+    run("install")
+    s.write_text(s.read_text().replace('"Crate"', '"Gruvbox"'))
+    log = run("install")
+    assert '"Gruvbox"' in s.read_text() and "Gruvbox" in log
+    assert re.search(r"Zed +installed; Crate not selected", run("status"))
+
+
+def test_zed_never_started_gets_a_settings_file_and_loses_it_again(home):
+    h, run = home
+    stub(run, "zed")
+    run("install")
+    assert '"dark": "Crate"' in (h / ".config/zed/settings.json").read_text()
+    run("uninstall")
+    assert not (h / ".config/zed/settings.json").exists()
+
+
+def test_zed_uninstall_keeps_an_edited_theme_file(home):
+    h, run = home
+    stub(run, "zed")
+    run("install")
+    t = h / ".config/zed/themes/crate.json"
+    t.write_text(t.read_text() + "\n")
+    run("uninstall")
+    assert t.exists()
+
+
+def test_zed_keeps_the_theme_file_while_settings_still_select_it(home):
+    h, run = home
+    stub(run, "zed")
+    s = h / ".config/zed/settings.json"
+    s.parent.mkdir(parents=True)
+    s.write_text(ZED_DEFAULT)
+    run("install")
+    s.write_text('{ "theme": "Crate" }')  # Crate picked again, another way
+    run("uninstall")
+    assert (h / ".config/zed/themes/crate.json").exists()
+
+
+def test_no_zed_leaves_zed_alone(home):
+    h, run = home
+    stub(run, "zed")
+    run("install", "--no-zed")
+    assert not (h / ".config/zed").exists()
+
+
+def test_zed_not_installed_is_reported(home):
+    h, run = home
+    assert re.search(r"Zed +not installed", run("status"))
+
+
+# ---------- lazygit ----------
+
+def test_lazygit_empty_config_gets_crate_and_goes_back_to_empty(home, out):
+    h, run = home
+    stub(run, "lazygit")
+    c = h / ".config/lazygit/config.yml"
+    c.parent.mkdir(parents=True)
+    c.write_text("")
+    run("install")
+    assert c.read_bytes() == (out / "lazygit/config.yml").read_bytes()
+    assert re.search(r"lazygit +Crate theme", run("status"))
+    run("uninstall")
+    assert c.exists() and c.read_text() == ""
+
+
+def test_lazygit_without_config_gets_one_and_loses_it(home):
+    h, run = home
+    stub(run, "lazygit")
+    run("install")
+    assert (h / ".config/lazygit/config.yml").exists()
+    run("uninstall")
+    assert not (h / ".config/lazygit/config.yml").exists()
+
+
+def test_lazygit_own_config_is_left_alone(home):
+    h, run = home
+    stub(run, "lazygit")
+    c = h / ".config/lazygit/config.yml"
+    c.parent.mkdir(parents=True)
+    c.write_text("gui:\n  nerdFontsVersion: 3\n")
+    log = run("install")
+    assert c.read_text() == "gui:\n  nerdFontsVersion: 3\n" and "your own config.yml" in log
+    assert re.search(r"lazygit +your own config.yml", run("status"))
+
+
+def test_lazygit_config_edited_without_the_marker_survives_uninstall(home):
+    h, run = home
+    stub(run, "lazygit")
+    run("install")
+    c = h / ".config/lazygit/config.yml"
+    c.write_text(c.read_text().split("\n", 1)[1])
+    run("uninstall")
+    assert c.exists()
+
+
+def test_no_lazygit_leaves_it_alone(home):
+    h, run = home
+    stub(run, "lazygit")
+    run("install", "--no-lazygit")
+    assert not (h / ".config/lazygit").exists()
+
+
+def test_lazygit_not_installed_is_reported(home):
+    h, run = home
+    assert re.search(r"lazygit +not installed", run("status"))
+
+
+# ---------- neovim ----------
+
+def make_lazyvim(h):
+    d = h / ".config/nvim/lua/plugins"
+    d.mkdir(parents=True)
+    (d / "ryoku.lua").write_text("return {}\n")
+    return d
+
+
+def test_nvim_gets_crate_syntax_and_loses_it(home, out):
+    h, run = home
+    stub(run, "nvim")
+    d = make_lazyvim(h)
+    run("install")
+    assert (d / "crate.lua").read_bytes() == (out / "nvim/crate.lua").read_bytes()
+    assert re.search(r"Neovim +Crate syntax", run("status"))
+    run("uninstall")
+    assert not (d / "crate.lua").exists() and (d / "ryoku.lua").exists()
+
+
+def test_nvim_own_crate_lua_is_left_alone(home):
+    h, run = home
+    stub(run, "nvim")
+    d = make_lazyvim(h)
+    (d / "crate.lua").write_text("return { 'mine' }\n")
+    log = run("install")
+    assert (d / "crate.lua").read_text() == "return { 'mine' }\n" and "your own" in log
+    run("uninstall")
+    assert (d / "crate.lua").exists()
+
+
+def test_nvim_without_a_lazy_config_is_skipped(home):
+    h, run = home
+    stub(run, "nvim")
+    run("install")
+    assert not (h / ".config/nvim").exists()
+    assert re.search(r"Neovim +installed; no lazy.nvim plugins folder", run("status"))
+
+
+def test_no_nvim_leaves_it_alone(home):
+    h, run = home
+    stub(run, "nvim")
+    d = make_lazyvim(h)
+    run("install", "--no-nvim")
+    assert not (d / "crate.lua").exists()
+
+
+# ---------- GTK ----------
+
+GTK_LINE = '@import url("crate.css"); /* crate-for-ryoku */'
+
+
+def gtk_with_hook(h, ver="4.0"):
+    d = h / f".config/gtk-{ver}"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "gtk.css").write_text(':root { --accent-color: #06b6d4; }\n@import url("user.css");\n')
+    return d
+
+
+def test_gtk_install_adds_crate_css_and_takes_it_back(home, out):
+    h, run = home
+    d4, d3 = gtk_with_hook(h, "4.0"), gtk_with_hook(h, "3.0")
+    run("install")
+    assert (d4 / "crate.css").read_bytes() == (out / "gtk/crate.css").read_bytes()
+    assert (d3 / "crate.css").read_bytes() == (out / "gtk/crate-gtk3.css").read_bytes()
+    assert (d4 / "user.css").read_text().splitlines() == [GTK_LINE]
+    assert re.search(r"GTK +Crate CSS$", run("status"), re.M)
+    run("uninstall")
+    for d in (d4, d3):
+        assert not (d / "crate.css").exists() and not (d / "user.css").exists()
+
+
+def test_gtk_keeps_your_own_user_css(home):
+    h, run = home
+    d4 = gtk_with_hook(h)
+    mine = "window { padding: 2px; }\n"
+    (d4 / "user.css").write_text(mine)
+    run("install")
+    run("install")
+    assert (d4 / "user.css").read_text() == mine + GTK_LINE + "\n"
+    run("uninstall")
+    assert (d4 / "user.css").read_text() == mine
+
+
+def test_gtk_status_says_when_ryoku_does_not_load_user_css(home):
+    h, run = home
+    d4 = h / ".config/gtk-4.0"
+    d4.mkdir(parents=True)
+    (d4 / "gtk.css").write_text(":root { --accent-color: #06b6d4; }\n")
+    run("install")
+    assert "does not load user.css" in run("status")
+
+
+def test_gtk_uninstall_keeps_an_edited_crate_css(home):
+    h, run = home
+    d4 = gtk_with_hook(h)
+    run("install")
+    (d4 / "crate.css").write_text("/* mine now */\n")
+    run("uninstall")
+    assert (d4 / "crate.css").read_text() == "/* mine now */\n"
+
+
+def test_gtk_symlinked_user_css_stays_a_symlink(home):
+    h, run = home
+    d4 = gtk_with_hook(h)
+    real = h / "dotfiles/user.css"
+    real.parent.mkdir()
+    real.write_text("window { padding: 2px; }\n")
+    (d4 / "user.css").symlink_to(real)
+    run("install")
+    run("uninstall")
+    assert (d4 / "user.css").is_symlink() and real.read_text() == "window { padding: 2px; }\n"
+
+
+def test_text_editor_selects_crate_after_a_failed_gsettings_run(home):
+    h, run = home
+    stub(run, "gnome-text-editor")
+    broken = run.bindir / "gsettings"
+    broken.write_text("#!/bin/sh\nexit 1\n")
+    broken.chmod(0o755)
+    run("install")
+    state = gsettings_stub(run, h)
+    run("install")
+    assert state.read_text() == "'crate'"
+
+
+def test_no_gtk_leaves_it_alone(home):
+    h, run = home
+    d4 = gtk_with_hook(h)
+    run("install", "--no-gtk")
+    assert not (d4 / "crate.css").exists() and not (d4 / "user.css").exists()
+
+
+# ---------- Text Editor (GtkSourceView) ----------
+
+def gsettings_stub(run, h, value="'Adwaita'"):
+    state = h / ".gsettings-style-scheme"
+    state.write_text(value)
+    path = run.bindir / "gsettings"
+    path.write_text(f"""#!/bin/sh
+case "$1" in
+  get) cat "{state}"; echo ;;
+  set) printf "'%s'" "$4" > "{state}" ;;
+esac
+""")
+    path.chmod(0o755)
+    return state
+
+
+def test_text_editor_gets_the_crate_scheme_and_its_old_one_back(home, out):
+    h, run = home
+    stub(run, "gnome-text-editor")
+    state = gsettings_stub(run, h)
+    run("install")
+    xml = h / ".local/share/gtksourceview-5/styles/crate.xml"
+    assert xml.read_bytes() == (out / "gtksourceview/crate.xml").read_bytes()
+    assert state.read_text() == "'crate'"
+    assert re.search(r"Text Editor +Crate scheme selected", run("status"))
+    run("uninstall")
+    assert state.read_text() == "'Adwaita'" and not xml.exists()
+
+
+def test_text_editor_scheme_picked_since_stays(home):
+    h, run = home
+    stub(run, "gnome-text-editor")
+    state = gsettings_stub(run, h)
+    run("install")
+    state.write_text("'kate-dark'")
+    log = run("install")
+    assert state.read_text() == "'kate-dark'" and "kate-dark" in log
+    run("uninstall")
+    assert state.read_text() == "'kate-dark'"
+
+
+def test_gtksourceview_scheme_without_text_editor_selects_nothing(home):
+    h, run = home
+    state = gsettings_stub(run, h)
+    run("install")
+    assert (h / ".local/share/gtksourceview-5/styles/crate.xml").exists()
+    assert state.read_text() == "'Adwaita'"
+
+
+def test_edited_scheme_survives_uninstall(home):
+    h, run = home
+    stub(run, "gnome-text-editor")
+    gsettings_stub(run, h)
+    run("install")
+    xml = h / ".local/share/gtksourceview-5/styles/crate.xml"
+    xml.write_text(xml.read_text().replace("Crate's sober", "my"))
+    run("uninstall")
+    assert xml.exists()
+
+
+def test_no_gtksourceview_leaves_it_alone(home):
+    h, run = home
+    stub(run, "gnome-text-editor")
+    state = gsettings_stub(run, h)
+    run("install", "--no-gtksourceview")
+    assert not (h / ".local/share/gtksourceview-5").exists() and state.read_text() == "'Adwaita'"
+
+
+# ---------- Thunderbird ----------
+
+def make_thunderbird(h, chrome=None):
+    base = h / ".thunderbird"
+    prof = base / "b2ql07ry.default-release"
+    prof.mkdir(parents=True)
+    (base / "profiles.ini").write_text(
+        "[Install4F96D1932A9F858E]\nDefault=b2ql07ry.default-release\nLocked=1\n\n"
+        "[Profile0]\nName=default-release\nIsRelative=1\nPath=b2ql07ry.default-release\nDefault=1\n\n"
+        "[General]\nStartWithLastProfile=1\nVersion=2\n")
+    if chrome == "symlink":
+        mine = base / "my-chrome"
+        mine.mkdir()
+        (mine / "userChrome.css").write_text("/* mine */\n")
+        (prof / "chrome").symlink_to(mine)
+    return prof
+
+
+def test_thunderbird_gets_crate_chrome_and_the_pref_and_loses_both(home, out):
+    h, run = home
+    stub(run, "thunderbird")
+    prof = make_thunderbird(h)
+    run("install")
+    assert (prof / "chrome/userChrome.css").read_bytes() == (out / "thunderbird/chrome/userChrome.css").read_bytes()
+    assert '"toolkit.legacyUserProfileCustomizations.stylesheets", true' in (prof / "user.js").read_text()
+    assert re.search(r"Thunderbird +installed; Crate userChrome in 1 of 1 profile", run("status"))
+    run("uninstall")
+    assert not (prof / "chrome").exists()
+    assert "legacyUserProfileCustomizations" not in (prof / "user.js").read_text()
+
+
+def test_thunderbird_own_chrome_symlink_comes_back(home):
+    h, run = home
+    stub(run, "thunderbird")
+    prof = make_thunderbird(h, chrome="symlink")
+    run("install")
+    assert (prof / "chrome.before-crate").is_symlink()
+    run("uninstall")
+    assert (prof / "chrome").is_symlink() and (prof / "chrome/userChrome.css").read_text() == "/* mine */\n"
+
+
+def test_thunderbird_edited_chrome_is_kept_aside(home):
+    h, run = home
+    stub(run, "thunderbird")
+    prof = make_thunderbird(h)
+    run("install")
+    (prof / "chrome/userChrome.css").write_text("/* edited */\n")
+    run("uninstall")
+    assert [p.name for p in prof.iterdir() if p.name.startswith("chrome.crate-edited-")]
+
+
+def test_thunderbird_without_a_profile_is_one_line(home):
+    h, run = home
+    stub(run, "thunderbird")
+    log = run("install")
+    assert "Thunderbird: no profile yet" in log
+    assert re.search(r"Thunderbird +installed; no profile", run("status"))
+
+
+def test_no_thunderbird_leaves_it_alone(home):
+    h, run = home
+    stub(run, "thunderbird")
+    prof = make_thunderbird(h)
+    run("install", "--no-thunderbird")
+    assert not (prof / "chrome").exists()
+
+
+# ---------- cursor ----------
+
+HUB_DOC = {"desktop": {"cursor": {"hideOnKeyPress": False, "inactiveTimeout": 0, "size": 24,
+                                  "theme": "Bibata-Modern-Ice"},
+                       "keybinds": {"custom": [{"keys": "Super+Alt+C", "do": "thing"}]},
+                       "future": {"unknown": [1, 2, 3]}},
+           "wm": {"decoration": {"rounding": 6}, "general": {"gaps_in": 10}}}
+
+
+def hub_stub(run, h, doc=HUB_DOC, broken=False):
+    state = h / ".hub-desktop.json"
+    state.write_text(json.dumps(doc))
+    log = h / ".recolor.log"
+    hub = run.bindir / "ryoku-hub"
+    get = "echo '{not json'" if broken else f'cat "{state}"'
+    hub.write_text(f"""#!/bin/sh
+[ "$1" = desktop ] || exit 2
+case "$2" in
+  get) {get} ;;
+  save) printf '%s' "$3" > "{state}" ;;
+  *) exit 2 ;;
+esac
+""")
+    hub.chmod(0o755)
+    rec = run.bindir / "ryoku-cursor-material-recolor"
+    rec.write_text(f'#!/bin/sh\necho "$@" >> "{log}"\n')
+    rec.chmod(0o755)
+    return state, log
+
+
+def test_cursor_goes_crate_cyan_keeping_every_other_key(home):
+    h, run = home
+    state, log = hub_stub(run, h)
+    run("install")
+    doc = json.loads(state.read_text())
+    want = json.loads(json.dumps(HUB_DOC))
+    want["desktop"]["cursor"]["theme"] = "DYNAMIC"
+    assert doc == want
+    assert log.read_text().split() == ["--force", "--full"]
+    assert re.search(r"Cursor +Crate cyan", run("status"))
+    run("uninstall")
+    assert json.loads(state.read_text()) == HUB_DOC
+
+
+def test_cursor_picked_since_survives(home):
+    h, run = home
+    state, _ = hub_stub(run, h)
+    run("install")
+    doc = json.loads(state.read_text())
+    doc["desktop"]["cursor"]["theme"] = "Adwaita"
+    state.write_text(json.dumps(doc))
+    log = run("install")
+    assert json.loads(state.read_text())["desktop"]["cursor"]["theme"] == "Adwaita" and "Adwaita" in log
+    run("uninstall")
+    assert json.loads(state.read_text())["desktop"]["cursor"]["theme"] == "Adwaita"
+
+
+def test_cursor_with_an_unreadable_hub_saves_nothing(home):
+    h, run = home
+    state, log = hub_stub(run, h, broken=True)
+    before = state.read_text()
+    run("install")
+    assert state.read_text() == before and not log.exists()
+
+
+def test_cursor_without_a_hub_is_skipped(home):
+    h, run = home
+    log = run("install")
+    assert "Cursor" not in log
+    assert re.search(r"Cursor +no Ryoku Hub", run("status"))
+
+
+def test_cursor_record_survives_an_unreadable_hub_at_uninstall(home):
+    h, run = home
+    state, _ = hub_stub(run, h)
+    run("install")
+    saved = state.read_text()
+    hub_stub(run, h, doc=json.loads(saved), broken=True)
+    run("uninstall")
+    assert (h / ".local/state/crate-for-ryoku/apps/cursor.theme").read_text().strip() == "Bibata-Modern-Ice"
+    hub_stub(run, h, doc=json.loads(saved))
+    run("uninstall")
+    assert json.loads(state.read_text())["desktop"]["cursor"]["theme"] == "Bibata-Modern-Ice"
+
+
+def test_no_cursor_leaves_it_alone(home):
+    h, run = home
+    state, _ = hub_stub(run, h)
+    run("install", "--no-cursor")
+    assert json.loads(state.read_text()) == HUB_DOC
+
+
 def test_install_sh_passes_the_app_options_through():
     text = open(os.path.join(ROOT, "package/install.sh")).read()
-    assert '--no-obsidian|--no-firefox|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
+    assert '--no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--no-gtk|--no-gtksourceview|--no-thunderbird|--no-cursor|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
     assert 'bash "$HERE/apps.sh" install' in text
     uninstall = open(os.path.join(ROOT, "package/uninstall.sh")).read()
     assert 'bash "$HERE/apps.sh" uninstall ||' in uninstall

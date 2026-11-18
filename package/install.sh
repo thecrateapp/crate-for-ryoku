@@ -38,6 +38,21 @@ usage: install.sh [options]
                    the Firefox profile to theme (default: the one Firefox
                    starts with)
   --firefox-theme  open the Crate theme add-on in Firefox to install it
+  --no-zed         leave Zed alone (by default it gets the Crate theme as its
+                   dark theme; uninstall gives back the one you had)
+  --no-lazygit     leave lazygit alone (by default it gets Crate's config.yml
+                   where you have none or an empty one)
+  --no-nvim        leave Neovim alone (by default a lazy.nvim config gets
+                   Crate's syntax as lua/plugins/crate.lua)
+  --no-gtk         leave GTK alone (by default Crate's corners and hairlines
+                   load from ~/.config/gtk-{4,3}.0/user.css)
+  --no-gtksourceview
+                   leave GtkSourceView alone (by default the Crate scheme is
+                   installed and selected in GNOME Text Editor)
+  --no-thunderbird leave Thunderbird alone (by default its profile gets
+                   Crate's userChrome.css, like Firefox)
+  --no-cursor      keep your cursor theme (by default the cursor becomes Ryoku's
+                   Material Bibata in Crate's cyan)
   -h, --help       this help
 EOF
 }
@@ -52,7 +67,7 @@ for a in "$@"; do
     --no-lockscreen) LOCK=0 ;;
     --reapply) REAPPLY=1 ;;
     # --firefox-chrome: the default since 0.7, still accepted
-    --no-obsidian|--no-firefox|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
+    --no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--no-gtk|--no-gtksourceview|--no-thunderbird|--no-cursor|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $a" >&2; usage >&2; exit 2 ;;
   esac

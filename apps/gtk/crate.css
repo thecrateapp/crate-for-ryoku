@@ -1,0 +1,55 @@
+/* Crate for Ryoku: Crate's shape for GTK 3 and GTK 4 / libadwaita apps.
+   Loaded from user.css, after Ryoku's palette in gtk.css, so it wins: the
+   colours stay Ryoku's (they already are Crate's), this file only fixes the
+   surfaces lighter than Crate's ladder, the solid borders and the corners.
+   Laid down by `crate-for-ryoku install`, removed by uninstall. */
+
+:root {
+  --window-radius: 6px;
+  --border-color: rgba(241, 245, 249, 0.1);
+  --dialog-bg-color: #111218;
+  --thumbnail-bg-color: #111218;
+  --headerbar-border-color: rgba(241, 245, 249, 0.1);
+  --scrollbar-outline-color: rgba(241, 245, 249, 0.1);
+}
+
+/* GTK 3 and GTK 4 apps that are not libadwaita read named colours */
+@define-color dialog_bg_color #111218;
+@define-color thumbnail_bg_color #111218;
+@define-color headerbar_border_color rgba(241, 245, 249, 0.1);
+@define-color borders rgba(241, 245, 249, 0.1);
+@define-color unfocused_borders rgba(241, 245, 249, 0.1);
+
+/* 6 px corners on every floating and framed surface; buttons and entries keep
+   libadwaita's own 6 px, whose linked groups square their inner corners */
+popover > contents,
+popover.menu > contents,
+menu,
+.menu,
+.card,
+list.boxed-list,
+.boxed-list,
+window.dialog,
+dialog sheet,
+messagedialog,
+toast,
+tooltip,
+tooltip > box {
+  border-radius: 6px;
+}
+
+
+/* hairlines instead of solid grey rules */
+separator {
+  background-color: rgba(241, 245, 249, 0.1);
+}
+
+.card,
+list.boxed-list,
+.boxed-list {
+  box-shadow: 0 0 0 1px rgba(241, 245, 249, 0.1);
+}
+
+headerbar {
+  box-shadow: inset 0 -1px rgba(241, 245, 249, 0.1);
+}

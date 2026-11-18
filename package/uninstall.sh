@@ -121,3 +121,6 @@ fi
 ryoku-shell reload >/dev/null || true
 if [ "$KEEP" = 0 ] && [ -f "$STATE/previous.env" ]; then mv "$STATE/previous.env" "$STATE/previous.env.done"; fi
 say "done"
+if [ -f /var/lib/crate-for-ryoku/boot.env ]; then
+  echo ":: the boot still uses Crate's rEFInd screen and splash: sudo crate-for-ryoku boot revert puts yours back"
+fi

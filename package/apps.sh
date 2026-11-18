@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Crate's look for third-party apps: Obsidian, Firefox and Chrome. Each app is
+# Crate's look for third-party apps: Obsidian, Firefox, Chrome, Zed, lazygit, Neovim, GTK and Text Editor. Each app is
 # detected on its own and skipped quietly when it is not there.
 #
 #   apps.sh install [opts]          lay the app themes into your home and turn them on
@@ -50,11 +50,21 @@ warn() { printf '\033[33m!!\033[0m %s\n' "$*" >&2; }
 
 usage() {
   cat <<EOF
-usage: apps.sh install [--no-obsidian] [--no-firefox] [--firefox-theme]
+usage: apps.sh install [--no-obsidian] [--no-firefox] [--no-zed] [--no-lazygit] [--no-nvim]
+                       [--no-gtk] [--no-gtksourceview]
+                       [--no-thunderbird] [--no-cursor]
+                       [--firefox-theme]
                        [--firefox-profile DIR]...
        apps.sh uninstall [--look-only]
        apps.sh status
   --no-obsidian        leave your Obsidian vaults alone
+  --no-zed             leave Zed's theme and settings.json alone
+  --no-lazygit         leave lazygit's config.yml alone
+  --no-nvim            leave Neovim's plugins folder alone
+  --no-gtk             leave GTK's user.css alone
+  --no-gtksourceview   leave GtkSourceView and Text Editor's scheme alone
+  --no-thunderbird     leave Thunderbird's profiles alone
+  --no-cursor          keep the cursor theme you use
   --no-firefox         leave your Firefox profiles alone (by default each
                        profile's chrome/ folder gets Crate's userChrome.css;
                        the old one is kept and restored by uninstall)
@@ -241,15 +251,371 @@ obsidian_uninstall() {
   rm -f -- "$REC/obsidian.list"
 }
 
+# ---------- Zed ----------
+# Zed (zed on PATH, its user install in ~/.local/zed.app, or ~/.config/zed): the
+#   Crate theme goes to ~/.config/zed/themes/crate.json and settings.json gets
+#   "Crate" as its dark theme through zed_settings.py, which edits only that value
+#   and keeps your comments. Uninstall puts your previous theme back unless you
+#   have picked another since. Zed picks both up live.
+zed_present() { command -v zed >/dev/null || [ -d "$HOME/.local/zed.app" ] || [ -d "$CFG/zed" ]; }
+
+zed_install() {
+  local src=$APPS/zed/crate.json dest=$CFG/zed/themes/crate.json file=$CFG/zed/settings.json out cur
+  [ -f "$src" ] || { warn "no Zed theme in $src"; return 0; }
+  zed_present || return 0
+  mkdir -p "$REC"
+  if [ -f "$dest" ] && [ -f "$REC/zed-theme.sha" ] && [ "$(sha "$dest")" != "$(cat "$REC/zed-theme.sha")" ]; then
+    say "Zed: $dest changed since install; left as it is"
+  elif [ -f "$dest" ] && [ ! -f "$REC/zed-theme.sha" ] && ! cmp -s "$src" "$dest"; then
+    say "Zed: $dest is not ours; left as it is"
+  else
+    mkdir -p "$(dirname "$dest")"
+    cp "$src" "$dest"
+    sha "$dest" > "$REC/zed-theme.sha"
+  fi
+  if [ -s "$REC/zed-settings.list" ]; then
+    # selected by an earlier install: a theme you picked since stays
+    cur=$(python3 "$HERE/zed_settings.py" current "$file")
+    if [ "$cur" = Crate ]; then
+      say "Zed: Crate theme selected"
+    else
+      say "Zed: you use ${cur:-the default theme} since; left as it is"
+    fi
+    return 0
+  fi
+  if out=$(python3 "$HERE/zed_settings.py" select "$file" Crate); then
+    printf '%s\t%s\n' "$file" "$out" > "$REC/zed-settings.list"
+    say "Zed: Crate theme selected (Zed picks it up live)"
+  else
+    warn "Zed: $file is not valid JSON; Crate is there but not selected"
+  fi
+}
+
+# zed_unselect: the theme install replaced comes back, while Crate is still selected
+zed_unselect() {
+  [ -s "$REC/zed-settings.list" ] || return 0
+  local file mode prev r
+  IFS=$'\t' read -r file mode prev < "$REC/zed-settings.list"
+  r=$(python3 "$HERE/zed_settings.py" restore "$file" Crate "$mode" "$prev" 2>/dev/null || echo kept)
+  if [ "$r" = restored ]; then
+    say "Zed: your previous theme is back"
+  else
+    say "Zed: you use another theme since; left as it is"
+  fi
+  rm -f -- "$REC/zed-settings.list"
+}
+
+zed_uninstall() {
+  [ -f "$REC/zed-theme.sha" ] || return 0
+  local dest=$CFG/zed/themes/crate.json
+  if [ -f "$dest" ] && [ "$(python3 "$HERE/zed_settings.py" current "$CFG/zed/settings.json")" = Crate ]; then
+    # settings.json still names Crate: without the file Zed would report a missing theme
+    warn "Zed: settings.json still selects Crate; $dest left in place"
+  elif [ -f "$dest" ]; then
+    if [ "$(sha "$dest")" = "$(cat "$REC/zed-theme.sha")" ]; then
+      rm -f -- "$dest"
+      rmdir -- "$CFG/zed/themes" "$CFG/zed" 2>/dev/null || true
+      say "Zed: removed $dest"
+    else
+      warn "Zed: $dest changed since install; left in place"
+    fi
+  fi
+  rm -f -- "$REC/zed-theme.sha"
+}
+
+# ---------- lazygit ----------
+# lazygit: Crate's theme is a config.yml whose first line is LAZYGIT_MARK. It is
+#   written only where there is no config.yml, an empty one, or ours; a config of
+#   your own is left alone. Uninstall removes ours (or empties it again, if it
+#   was an empty file before) unless the marker line is gone.
+LAZYGIT_MARK='# crate-for-ryoku: lazygit'
+lazygit_present() { command -v lazygit >/dev/null; }
+lazygit_ours() { [ -f "$1" ] && [ "$(head -n 1 "$1")" = "$LAZYGIT_MARK" ]; }
+
+lazygit_install() {
+  local src=$APPS/lazygit/config.yml dest=$CFG/lazygit/config.yml
+  [ -f "$src" ] || { warn "no lazygit theme in $src"; return 0; }
+  lazygit_present || return 0
+  mkdir -p "$REC"
+  if [ ! -e "$dest" ] || [ ! -s "$dest" ]; then
+    # remember what was there the first time, so uninstall can put it back
+    [ -f "$REC/lazygit.state" ] || { [ -e "$dest" ] && echo empty || echo absent; } > "$REC/lazygit.state"
+  elif ! lazygit_ours "$dest"; then
+    say "lazygit: you have your own config.yml; left as it is"
+    return 0
+  fi
+  mkdir -p "$(dirname "$dest")"
+  cp "$src" "$dest"
+  say "lazygit: Crate theme ($dest)"
+}
+
+lazygit_uninstall() {
+  [ -f "$REC/lazygit.state" ] || return 0
+  local dest=$CFG/lazygit/config.yml
+  if lazygit_ours "$dest"; then
+    if [ "$(cat "$REC/lazygit.state")" = empty ]; then
+      : > "$dest"
+    else
+      rm -f -- "$dest"
+      rmdir -- "$CFG/lazygit" 2>/dev/null || true
+    fi
+    say "lazygit: Crate theme removed"
+  elif [ -f "$dest" ]; then
+    say "lazygit: $dest is yours now; left as it is"
+  fi
+  rm -f -- "$REC/lazygit.state"
+}
+
+# ---------- Neovim ----------
+# Neovim with a lazy.nvim config (LazyVim, as Ryoku ships): Crate's sober syntax
+#   goes to ~/.config/nvim/lua/plugins/crate.lua, first line NVIM_MARK, as an
+#   on_highlights over Ryoku's tokyonight. Written only where there is no
+#   crate.lua or ours; uninstall removes ours. Takes effect at nvim's next start.
+NVIM_MARK='-- crate-for-ryoku: neovim'
+nvim_present() { command -v nvim >/dev/null; }
+nvim_ours() { [ -f "$1" ] && [ "$(head -n 1 "$1")" = "$NVIM_MARK" ]; }
+
+nvim_install() {
+  local src=$APPS/nvim/crate.lua dir=$CFG/nvim/lua/plugins
+  [ -f "$src" ] || { warn "no Neovim syntax in $src"; return 0; }
+  nvim_present || return 0
+  if [ ! -d "$dir" ]; then
+    say "Neovim: no lazy.nvim plugins folder ($dir); skipped"
+    return 0
+  fi
+  if [ -e "$dir/crate.lua" ] && ! nvim_ours "$dir/crate.lua"; then
+    say "Neovim: you have your own $dir/crate.lua; left as it is"
+    return 0
+  fi
+  cp "$src" "$dir/crate.lua"
+  say "Neovim: Crate syntax ($dir/crate.lua, from nvim's next start)"
+}
+
+nvim_uninstall() {
+  local f=$CFG/nvim/lua/plugins/crate.lua
+  if nvim_ours "$f"; then
+    rm -f -- "$f"
+    say "Neovim: Crate syntax removed"
+  fi
+}
+
+# ---------- GTK ----------
+# GTK 4 / libadwaita and GTK 3 apps: Crate's corners, hairlines and surfaces go
+#   to ~/.config/gtk-{4,3}.0/crate.css, loaded by a marked line in user.css,
+#   which Ryoku's gtk.css imports last (the fork's user include). Your own lines
+#   in user.css stay; uninstall takes back the line, and crate.css while it is
+#   unchanged. GTK apps read it at start.
+GTK_LINE='@import url("crate.css"); /* crate-for-ryoku */'
+DATA=${XDG_DATA_HOME:-$HOME/.local/share}
+
+gtk_install() {
+  local ver src dir dest user n=0
+  for ver in 4.0 3.0; do
+    # only where Ryoku renders a gtk.css: that is what imports user.css
+    [ -f "$CFG/gtk-$ver/gtk.css" ] || continue
+    src=$APPS/gtk/crate.css
+    [ "$ver" = 3.0 ] && src=$APPS/gtk/crate-gtk3.css
+    [ -f "$src" ] || { warn "no GTK stylesheet in $src"; return 0; }
+    dir=$CFG/gtk-$ver dest=$dir/crate.css user=$dir/user.css
+    mkdir -p "$dir" "$REC"
+    if [ -f "$dest" ] && ! { [ -f "$REC/gtk-$ver.sha" ] && [ "$(sha "$dest")" = "$(cat "$REC/gtk-$ver.sha")" ]; } \
+       && ! cmp -s "$src" "$dest"; then
+      say "GTK $ver: $dest is not ours; left as it is"
+      continue
+    fi
+    cp "$src" "$dest"
+    sha "$dest" > "$REC/gtk-$ver.sha"
+    if [ ! -e "$user" ]; then
+      : > "$REC/gtk-$ver.created"
+      printf '%s\n' "$GTK_LINE" > "$user"
+    elif ! grep -qxF "$GTK_LINE" "$user"; then
+      if [ -s "$user" ] && [ -n "$(tail -c 1 "$user")" ]; then echo >> "$user"; fi
+      printf '%s\n' "$GTK_LINE" >> "$user"
+    fi
+    n=$((n + 1))
+  done
+  [ "$n" -gt 0 ] || return 0
+  say "GTK: Crate's corners and hairlines (apps show them once restarted)"
+  if ! grep -qF 'url("user.css")' "$CFG/gtk-4.0/gtk.css" 2>/dev/null; then
+    warn "GTK: this Ryoku's gtk.css does not load user.css yet; Crate's CSS waits for it"
+  fi
+}
+
+gtk_uninstall() {
+  local ver dir user
+  for ver in 4.0 3.0; do
+    dir=$CFG/gtk-$ver user=$dir/user.css
+    if [ -f "$user" ] && grep -qxF "$GTK_LINE" "$user"; then
+      grep -vxF "$GTK_LINE" "$user" > "$user.crate-tmp" || true
+      # written back through the file, so a symlinked user.css (dotfiles) stays a link
+      cat "$user.crate-tmp" > "$user"
+      rm -f -- "$user.crate-tmp"
+      if [ -f "$REC/gtk-$ver.created" ] && [ ! -s "$user" ]; then rm -f -- "$user"; fi
+    fi
+    if [ -f "$REC/gtk-$ver.sha" ] && [ -f "$dir/crate.css" ]; then
+      if [ "$(sha "$dir/crate.css")" = "$(cat "$REC/gtk-$ver.sha")" ]; then
+        rm -f -- "$dir/crate.css"
+      else
+        warn "GTK $ver: $dir/crate.css changed since install; left in place"
+      fi
+    fi
+    rm -f -- "$REC/gtk-$ver.sha" "$REC/gtk-$ver.created"
+  done
+}
+
+# ---------- Text Editor (GtkSourceView) ----------
+# The Crate GtkSourceView 5 scheme goes to ~/.local/share/gtksourceview-5/styles
+#   for every app built on it; GNOME Text Editor, when installed, gets it as its
+#   style-scheme once (the old one recorded and put back by uninstall while
+#   Crate is still selected). Text Editor follows the setting live.
+TE_SCHEMA=org.gnome.TextEditor
+texteditor_present() { command -v gnome-text-editor >/dev/null; }
+texteditor_scheme() {
+  local v
+  v=$(gsettings get "$TE_SCHEMA" style-scheme 2>/dev/null) || return 0
+  printf '%s\n' "$v" | sed "s/'//g"
+}
+
+gtksourceview_install() {
+  local src=$APPS/gtksourceview/crate.xml dest=$DATA/gtksourceview-5/styles/crate.xml cur
+  [ -f "$src" ] || { warn "no GtkSourceView scheme in $src"; return 0; }
+  mkdir -p "$REC"
+  if [ -f "$dest" ] && ! { [ -f "$REC/gtksourceview.sha" ] && [ "$(sha "$dest")" = "$(cat "$REC/gtksourceview.sha")" ]; } \
+     && ! cmp -s "$src" "$dest"; then
+    say "GtkSourceView: $dest is not ours; left as it is"
+  else
+    mkdir -p "$(dirname "$dest")"
+    cp "$src" "$dest"
+    sha "$dest" > "$REC/gtksourceview.sha"
+  fi
+  texteditor_present && command -v gsettings >/dev/null || return 0
+  if [ -f "$REC/texteditor.scheme" ]; then
+    cur=$(texteditor_scheme)
+    [ "$cur" = crate ] || say "Text Editor: you use ${cur:-another scheme} since; left as it is"
+    return 0
+  fi
+  local prev
+  # the record is written only once gsettings has answered and taken the change,
+  # so a run where it fails is simply tried again by the next install
+  if ! prev=$(gsettings get "$TE_SCHEMA" style-scheme 2>/dev/null) \
+     || ! gsettings set "$TE_SCHEMA" style-scheme crate 2>/dev/null; then
+    warn "Text Editor: gsettings did not answer; Crate scheme not selected"
+    return 0
+  fi
+  printf '%s\n' "$prev" | sed "s/'//g" > "$REC/texteditor.scheme"
+  say "Text Editor: Crate scheme selected"
+}
+
+gtksourceview_uninstall() {
+  local dest=$DATA/gtksourceview-5/styles/crate.xml prev
+  if [ -f "$REC/texteditor.scheme" ]; then
+    prev=$(cat "$REC/texteditor.scheme")
+    if command -v gsettings >/dev/null && [ "$(texteditor_scheme)" = crate ]; then
+      gsettings set "$TE_SCHEMA" style-scheme "${prev:-Adwaita}"
+      say "Text Editor: ${prev:-Adwaita} is back"
+    fi
+    rm -f -- "$REC/texteditor.scheme"
+  fi
+  if [ -f "$REC/gtksourceview.sha" ] && [ -f "$dest" ]; then
+    if [ "$(sha "$dest")" = "$(cat "$REC/gtksourceview.sha")" ]; then
+      rm -f -- "$dest"
+      rmdir -- "$(dirname "$dest")" "$DATA/gtksourceview-5" 2>/dev/null || true
+    else
+      warn "GtkSourceView: $dest changed since install; left in place"
+    fi
+  fi
+  rm -f -- "$REC/gtksourceview.sha"
+}
+
+# ---------- cursor ----------
+# The Crate cursor is Ryoku's own Material Bibata recoloured to the palette's
+#   primary, Crate's cyan: the cursor store value DYNAMIC ("Follow the wallpaper"
+#   in the Hub). `ryoku-hub desktop save` replaces the whole store, so the full
+#   `get` document goes back with only desktop.cursor.theme changed; the theme
+#   you had is recorded and put back by uninstall while DYNAMIC is still picked.
+CURSOR_DYNAMIC=DYNAMIC
+
+# cursor_doc_theme: the cursor theme in the document on stdin (fails on bad JSON)
+cursor_doc_theme() {
+  python3 -c 'import json, sys
+d = json.load(sys.stdin)
+print(d["desktop"].get("cursor", {}).get("theme", ""))'
+}
+
+# cursor_save THEME DOC: save DOC with only desktop.cursor.theme set to THEME,
+# then check the store holds exactly that
+cursor_save() {
+  local theme=$1 doc=$2 new after
+  new=$(printf '%s' "$doc" | python3 -c 'import json, sys
+d = json.load(sys.stdin)
+d["desktop"].setdefault("cursor", {})["theme"] = sys.argv[1]
+print(json.dumps(d))' "$theme") || return 1
+  ryoku-hub desktop save "$new" >/dev/null || return 1
+  after=$(ryoku-hub desktop get 2>/dev/null) || return 0
+  if ! python3 -c 'import json, sys
+sys.exit(0 if json.loads(sys.argv[1]) == json.loads(sys.argv[2]) else 1)' "$new" "$after" 2>/dev/null; then
+    warn "Cursor: the Ryoku Hub store differs from what was saved; check Ryoku Settings > Input"
+  fi
+}
+
+cursor_install() {
+  command -v ryoku-hub >/dev/null || return 0
+  local doc cur
+  if ! doc=$(ryoku-hub desktop get 2>/dev/null) || ! cur=$(printf '%s' "$doc" | cursor_doc_theme 2>/dev/null); then
+    warn "Cursor: the Ryoku Hub's settings could not be read; cursor left as it is"
+    return 0
+  fi
+  mkdir -p "$REC"
+  if [ -f "$REC/cursor.theme" ]; then
+    # chosen by an earlier install: a cursor you picked since stays
+    if [ "$cur" = "$CURSOR_DYNAMIC" ]; then say "Cursor: Crate cyan"; else say "Cursor: you use $cur since; left as it is"; fi
+    return 0
+  fi
+  if [ "$cur" != "$CURSOR_DYNAMIC" ] && ! cursor_save "$CURSOR_DYNAMIC" "$doc"; then
+    warn "Cursor: the Ryoku Hub did not take the change; cursor left as it is"
+    return 0
+  fi
+  printf '%s\n' "$cur" > "$REC/cursor.theme"
+  # the Hub's own save recolours in the background of a process that has exited
+  if command -v ryoku-cursor-material-recolor >/dev/null; then
+    ryoku-cursor-material-recolor --force --full >/dev/null 2>&1 || warn "Cursor: the recolour did not finish; it runs again at the next palette change"
+  fi
+  say "Cursor: Crate cyan (Ryoku's Material Bibata in the palette's accent)"
+}
+
+cursor_uninstall() {
+  [ -f "$REC/cursor.theme" ] || return 0
+  local prev doc cur
+  prev=$(cat "$REC/cursor.theme")
+  command -v ryoku-hub >/dev/null || { rm -f -- "$REC/cursor.theme"; return 0; }
+  if ! doc=$(ryoku-hub desktop get 2>/dev/null) || ! cur=$(printf '%s' "$doc" | cursor_doc_theme 2>/dev/null); then
+    # keep the record: it is the only copy of the theme you had
+    warn "Cursor: the Ryoku Hub's settings could not be read; $prev not restored (run uninstall again later)"
+    return 0
+  fi
+  if [ "$cur" = "$CURSOR_DYNAMIC" ] && [ -n "$prev" ] && [ "$prev" != "$CURSOR_DYNAMIC" ]; then
+    if ! cursor_save "$prev" "$doc"; then
+      warn "Cursor: could not put $prev back (run uninstall again later)"
+      return 0
+    fi
+    say "Cursor: $prev is back"
+  fi
+  rm -f -- "$REC/cursor.theme"
+}
+
 # ---------- Firefox ----------
 
 firefox_present() { command -v firefox >/dev/null || [ -f "$CFG/mozilla/firefox/profiles.ini" ] || [ -f "$HOME/.mozilla/firefox/profiles.ini" ]; }
 
 # firefox_profiles: the profile each Firefox install starts with ([Install*]
 # Default=), else the default profile, else every profile
-firefox_profiles() {
+firefox_profiles() { mozilla_profiles "$CFG/mozilla/firefox/profiles.ini" "$HOME/.mozilla/firefox/profiles.ini"; }
+
+# mozilla_profiles INI...: the profile each install of a Mozilla app starts with
+# (else the default profile, else every profile), one folder per line
+mozilla_profiles() {
   local ini
-  for ini in "$CFG/mozilla/firefox/profiles.ini" "$HOME/.mozilla/firefox/profiles.ini"; do
+  for ini in "$@"; do
     [ -f "$ini" ] || continue
     python3 - "$ini" <<'PY'
 import configparser, os, sys
@@ -291,17 +657,16 @@ chrome_is_ours_unchanged() {
   [ "$now" = "$(cat "$1/chrome/.crate-for-ryoku")" ]
 }
 
-firefox_chrome_install() {
-  local src=$APPS/firefox/chrome prof added n=0
-  [ -f "$src/userChrome.css" ] || { warn "no Firefox userChrome.css in $src"; return 0; }
+# mozilla_chrome_install LABEL SRC RECORD PROFILE...: Crate's chrome/ into each
+# profile of a Mozilla app (Firefox, Thunderbird); the old chrome/ moves aside to
+# chrome.before-crate, the stylesheets pref goes into user.js, marked
+mozilla_chrome_install() {
+  local label=$1 src=$2 record=$3 prof added n=0
+  shift 3
+  [ -f "$src/userChrome.css" ] || { warn "no $label userChrome.css in $src"; return 0; }
   local profiles=("$@")
-  if [ ${#profiles[@]} -eq 0 ]; then mapfile -t profiles < <(firefox_profiles); fi
-  if [ ${#profiles[@]} -eq 0 ]; then
-    firefox_present && say "Firefox: no profile yet (start Firefox once, then install again); skipped"
-    return 0
-  fi
   mkdir -p "$REC"
-  touch "$REC/firefox-chrome.list"
+  touch "$REC/$record"
   for prof in "${profiles[@]}"; do
     prof=$(cd "$prof" && pwd) || continue
     if [ -f "$prof/chrome/.crate-for-ryoku" ]; then
@@ -309,21 +674,21 @@ firefox_chrome_install() {
       if chrome_is_ours_unchanged "$prof"; then
         cp -a "$src/." "$prof/chrome/"
         write_chrome_marker "$prof"
-        say "Firefox: Crate userChrome.css refreshed in $prof"
+        say "$label: Crate userChrome.css refreshed in $prof"
         n=$((n + 1))
       else
-        warn "Firefox: $prof/chrome has your edits; left as it is"
+        warn "$label: $prof/chrome has your edits; left as it is"
       fi
       continue
     fi
     if [ -e "$prof/chrome.before-crate" ] || [ -L "$prof/chrome.before-crate" ]; then
-      warn "Firefox: $prof/chrome.before-crate already exists; skipping this profile"
+      warn "$label: $prof/chrome.before-crate already exists; skipping this profile"
       continue
     fi
     if [ -e "$prof/chrome" ] || [ -L "$prof/chrome" ]; then
       # a symlink moves as a link: the folder it points to is never touched
       mv -- "$prof/chrome" "$prof/chrome.before-crate"
-      say "Firefox: your chrome/ is kept as $prof/chrome.before-crate"
+      say "$label: your chrome/ is kept as $prof/chrome.before-crate"
     fi
     mkdir -p "$prof/chrome"
     cp -a "$src/." "$prof/chrome/"
@@ -333,18 +698,18 @@ firefox_chrome_install() {
       printf '%s\nuser_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);\n' "$MARK" >> "$prof/user.js"
       added=1
     fi
-    grep -v -F "$prof	" "$REC/firefox-chrome.list" > "$REC/firefox-chrome.list.tmp" || true
-    printf '%s\t%s\n' "$prof" "$added" >> "$REC/firefox-chrome.list.tmp"
-    mv "$REC/firefox-chrome.list.tmp" "$REC/firefox-chrome.list"
-    say "Firefox: Crate userChrome.css in $prof"
+    grep -v -F "$prof	" "$REC/$record" > "$REC/$record.tmp" || true
+    printf '%s\t%s\n' "$prof" "$added" >> "$REC/$record.tmp"
+    mv "$REC/$record.tmp" "$REC/$record"
+    say "$label: Crate userChrome.css in $prof"
     n=$((n + 1))
   done
-  if [ "$n" -gt 0 ]; then say "Firefox: restart Firefox to see Crate's look"; fi
+  if [ "$n" -gt 0 ]; then say "$label: restart $label to see Crate's look"; fi
 }
 
-firefox_chrome_uninstall() {
-  [ -f "$REC/firefox-chrome.list" ] || return 0
-  local prof added
+mozilla_chrome_uninstall() {
+  local label=$1 record=$2 prof added
+  [ -f "$REC/$record" ] || return 0
   while IFS=$'\t' read -r prof added; do
     [ -n "$prof" ] && [ -d "$prof" ] || continue
     if [ -f "$prof/chrome/.crate-for-ryoku" ]; then
@@ -354,15 +719,15 @@ firefox_chrome_uninstall() {
         local aside
         aside=$prof/chrome.crate-edited-$(date +%Y%m%d-%H%M%S)
         mv -- "$prof/chrome" "$aside"
-        warn "Firefox: Crate's chrome/ had edits; kept as $aside"
+        warn "$label: Crate's chrome/ had edits; kept as $aside"
       fi
     fi
     if [ -e "$prof/chrome.before-crate" ] || [ -L "$prof/chrome.before-crate" ]; then
       if [ -e "$prof/chrome" ] || [ -L "$prof/chrome" ]; then
-        warn "Firefox: $prof/chrome exists; your old one stays at chrome.before-crate"
+        warn "$label: $prof/chrome exists; your old one stays at chrome.before-crate"
       else
         mv -- "$prof/chrome.before-crate" "$prof/chrome"
-        say "Firefox: restored your chrome/ in $prof"
+        say "$label: restored your chrome/ in $prof"
       fi
     fi
     if [ "$added" = 1 ] && [ -f "$prof/user.js" ]; then
@@ -383,9 +748,43 @@ for line in lines:
 open(path, "w").write("\n".join(out))
 PY
     fi
-  done < "$REC/firefox-chrome.list"
-  rm -f -- "$REC/firefox-chrome.list"
+  done < "$REC/$record"
+  rm -f -- "$REC/$record"
 }
+
+firefox_chrome_install() {
+  local profiles=("$@")
+  [ -f "$APPS/firefox/chrome/userChrome.css" ] || { warn "no Firefox userChrome.css in $APPS/firefox/chrome"; return 0; }
+  if [ ${#profiles[@]} -eq 0 ]; then mapfile -t profiles < <(firefox_profiles); fi
+  if [ ${#profiles[@]} -eq 0 ]; then
+    firefox_present && say "Firefox: no profile yet (start Firefox once, then install again); skipped"
+    return 0
+  fi
+  mozilla_chrome_install Firefox "$APPS/firefox/chrome" firefox-chrome.list "${profiles[@]}"
+}
+
+firefox_chrome_uninstall() { mozilla_chrome_uninstall Firefox firefox-chrome.list; }
+
+# ---------- Thunderbird ----------
+# Thunderbird (~/.thunderbird/profiles.ini): Crate's userChrome.css through the
+#   same chrome/ handling as Firefox (yours moved aside to chrome.before-crate and
+#   back, the stylesheets pref in user.js, marked). Restart Thunderbird to see it.
+thunderbird_present() { command -v thunderbird >/dev/null || [ -f "$HOME/.thunderbird/profiles.ini" ]; }
+thunderbird_profiles() { mozilla_profiles "$HOME/.thunderbird/profiles.ini"; }
+
+thunderbird_chrome_install() {
+  local profiles=()
+  [ -f "$APPS/thunderbird/chrome/userChrome.css" ] || { warn "no Thunderbird userChrome.css in $APPS/thunderbird/chrome"; return 0; }
+  thunderbird_present || return 0
+  mapfile -t profiles < <(thunderbird_profiles)
+  if [ ${#profiles[@]} -eq 0 ]; then
+    say "Thunderbird: no profile yet (start Thunderbird once, then install again); skipped"
+    return 0
+  fi
+  mozilla_chrome_install Thunderbird "$APPS/thunderbird/chrome" thunderbird-chrome.list "${profiles[@]}"
+}
+
+thunderbird_chrome_uninstall() { mozilla_chrome_uninstall Thunderbird thunderbird-chrome.list; }
 
 firefox_theme_install() {
   local xpi
@@ -473,6 +872,75 @@ status() {
   fi
   printf '  %-22s %s\n' "Obsidian" "$line"
 
+  if zed_present; then
+    if [ -f "$CFG/zed/themes/crate.json" ] && [ "$(python3 "$HERE/zed_settings.py" current "$CFG/zed/settings.json")" = Crate ]; then
+      line="installed; Crate selected"
+    else
+      line="installed; Crate not selected"
+    fi
+  else
+    line="not installed"
+  fi
+  printf '  %-22s %s\n' "Zed" "$line"
+
+  if lazygit_present; then
+    if lazygit_ours "$CFG/lazygit/config.yml"; then
+      line="Crate theme"
+    elif [ -s "$CFG/lazygit/config.yml" ]; then
+      line="your own config.yml"
+    else
+      line="installed; no theme"
+    fi
+  else
+    line="not installed"
+  fi
+  printf '  %-22s %s\n' "lazygit" "$line"
+
+  if nvim_present; then
+    if nvim_ours "$CFG/nvim/lua/plugins/crate.lua"; then
+      line="Crate syntax"
+    elif [ -e "$CFG/nvim/lua/plugins/crate.lua" ]; then
+      line="your own crate.lua"
+    elif [ -d "$CFG/nvim/lua/plugins" ]; then
+      line="installed; no Crate syntax"
+    else
+      line="installed; no lazy.nvim plugins folder"
+    fi
+  else
+    line="not installed"
+  fi
+  printf '  %-22s %s\n' "Neovim" "$line"
+
+  if grep -qxF "$GTK_LINE" "$CFG/gtk-4.0/user.css" 2>/dev/null && [ -f "$CFG/gtk-4.0/crate.css" ]; then
+    if grep -qF 'url("user.css")' "$CFG/gtk-4.0/gtk.css" 2>/dev/null; then
+      line="Crate CSS"
+    else
+      line="Crate CSS, but this Ryoku does not load user.css"
+    fi
+  else
+    line="no"
+  fi
+  printf '  %-22s %s\n' "GTK" "$line"
+
+  if texteditor_present; then
+    if [ -f "$DATA/gtksourceview-5/styles/crate.xml" ] && [ "$(texteditor_scheme)" = crate ]; then
+      line="Crate scheme selected"
+    else
+      line="installed; Crate not selected"
+    fi
+  else
+    line="not installed"
+  fi
+  printf '  %-22s %s\n' "Text Editor" "$line"
+
+  local ctheme
+  if command -v ryoku-hub >/dev/null && ctheme=$(ryoku-hub desktop get 2>/dev/null | cursor_doc_theme 2>/dev/null); then
+    if [ "$ctheme" = "$CURSOR_DYNAMIC" ]; then line="Crate cyan (follows the palette)"; else line="${ctheme:-default}"; fi
+  else
+    line="no Ryoku Hub"
+  fi
+  printf '  %-22s %s\n' "Cursor" "$line"
+
   local prof ff=0 fftotal=0
   if firefox_present; then
     while IFS= read -r prof; do
@@ -484,6 +952,22 @@ status() {
     line="not installed"
   fi
   printf '  %-22s %s\n' "Firefox" "$line"
+
+  local tb=0 tbtotal=0
+  if thunderbird_present; then
+    while IFS= read -r prof; do
+      tbtotal=$((tbtotal + 1))
+      [ -f "$prof/chrome/.crate-for-ryoku" ] && tb=$((tb + 1))
+    done < <(thunderbird_profiles)
+    if [ "$tbtotal" -gt 0 ]; then
+      line="installed; Crate userChrome in $tb of $tbtotal profile(s)"
+    else
+      line="installed; no profile"
+    fi
+  else
+    line="not installed"
+  fi
+  printf '  %-22s %s\n' "Thunderbird" "$line"
   if firefox_present; then
     line=$(firefox_has_addon "$FIREFOX_ID" && echo yes || echo no)
     # Ryoku's own browser extension recolours Firefox live over any static theme
@@ -512,11 +996,18 @@ status() {
 cmd=${1:-help}; shift || true
 case $cmd in
   install)
-    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 PROFILES=()
+    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 ZED=1 LAZYGIT=1 NVIM=1 GTK=1 SOURCE=1 TBIRD=1 CURSOR=1 PROFILES=()
     while [ $# -gt 0 ]; do
       case $1 in
         --no-obsidian) OBSIDIAN=0 ;;
         --no-firefox) FIREFOX=0 ;;
+        --no-zed) ZED=0 ;;
+        --no-lazygit) LAZYGIT=0 ;;
+        --no-nvim) NVIM=0 ;;
+        --no-gtk) GTK=0 ;;
+        --no-gtksourceview) SOURCE=0 ;;
+        --no-thunderbird) TBIRD=0 ;;
+        --no-cursor) CURSOR=0 ;;
         --firefox-chrome) ;;  # the default since 0.7; kept so older command lines still work
         --firefox-theme) FFTHEME=1 ;;
         --firefox-profile) shift; PROFILES+=("${1:?--firefox-profile needs a folder}") ;;
@@ -529,6 +1020,13 @@ case $cmd in
     [ "$OBSIDIAN" = 1 ] && obsidian_install
     [ "$FIREFOX" = 1 ] && firefox_chrome_install ${PROFILES[@]+"${PROFILES[@]}"}
     [ "$FFTHEME" = 1 ] && firefox_theme_install
+    [ "$ZED" = 1 ] && zed_install
+    [ "$LAZYGIT" = 1 ] && lazygit_install
+    [ "$NVIM" = 1 ] && nvim_install
+    [ "$GTK" = 1 ] && gtk_install
+    [ "$SOURCE" = 1 ] && gtksourceview_install
+    [ "$TBIRD" = 1 ] && thunderbird_chrome_install
+    [ "$CURSOR" = 1 ] && cursor_install
     exit 0 ;;
   uninstall)
     LOOK=0
@@ -542,6 +1040,14 @@ case $cmd in
     obsidian_unselect
     [ "$LOOK" = 1 ] || obsidian_uninstall
     firefox_chrome_uninstall
+    zed_unselect
+    [ "$LOOK" = 1 ] || zed_uninstall
+    lazygit_uninstall
+    nvim_uninstall
+    gtk_uninstall
+    gtksourceview_uninstall
+    thunderbird_chrome_uninstall
+    cursor_uninstall
     exit 0 ;;
   status) status ;;
   -h|--help|help) usage ;;

@@ -1,0 +1,45 @@
+/* Crate for Ryoku: Crate's shape for GTK 3 apps (adw-gtk3). GTK 3 has no CSS
+   custom properties, so this is crate.css without its variables block; the named
+   colours carry the surfaces. Loaded from gtk-3.0/user.css after Ryoku's
+   palette. Laid down by `crate-for-ryoku install`, removed by uninstall. */
+
+/* the surfaces and lines, as named colours */
+@define-color dialog_bg_color #111218;
+@define-color thumbnail_bg_color #111218;
+@define-color headerbar_border_color rgba(241, 245, 249, 0.1);
+@define-color borders rgba(241, 245, 249, 0.1);
+@define-color unfocused_borders rgba(241, 245, 249, 0.1);
+
+/* 6 px corners on every floating and framed surface; buttons and entries keep
+   libadwaita's own 6 px, whose linked groups square their inner corners */
+popover > contents,
+popover.menu > contents,
+menu,
+.menu,
+.card,
+list.boxed-list,
+.boxed-list,
+window.dialog,
+dialog sheet,
+messagedialog,
+toast,
+tooltip,
+tooltip > box {
+  border-radius: 6px;
+}
+
+
+/* hairlines instead of solid grey rules */
+separator {
+  background-color: rgba(241, 245, 249, 0.1);
+}
+
+.card,
+list.boxed-list,
+.boxed-list {
+  box-shadow: 0 0 0 1px rgba(241, 245, 249, 0.1);
+}
+
+headerbar {
+  box-shadow: inset 0 -1px rgba(241, 245, 249, 0.1);
+}

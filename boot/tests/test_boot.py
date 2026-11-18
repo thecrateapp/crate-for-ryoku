@@ -1,0 +1,391 @@
+"""run: python3 -m pytest boot/tests -q
+
+The Crate boot themes (Plymouth splash, rEFInd screen) as package/build-boot.sh
+renders them, and package/boot.sh, which turns them on, against a fake root.
+"""
+import os
+import re
+import subprocess
+
+import pytest
+
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BUILD = os.path.join(ROOT, "package", "build-boot.sh")
+
+
+def pixels(img):
+    import numpy as np
+    a = np.asarray(img)
+    return [tuple(p) for p in a.reshape(-1, a.shape[-1] if a.ndim == 3 else 1)]
+
+
+@pytest.fixture(scope="module")
+def out(tmp_path_factory):
+    d = tmp_path_factory.mktemp("boot")
+    r = subprocess.run(["bash", BUILD, str(d)], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    return d
+
+
+# ---------- Plymouth ----------
+
+def test_plymouth_theme_is_complete(out):
+    t = out / "boot/plymouth/crate"
+    for name in ("crate.plymouth", "crate.script", "mark.png", "beam-track.png", "beam-fill.png",
+                 "bullet.png", "entry.png"):
+        assert (t / name).is_file(), name
+    conf = (t / "crate.plymouth").read_text()
+    assert "ModuleName=script" in conf
+    assert "ImageDir=/usr/share/plymouth/themes/crate" in conf
+    assert "ScriptFile=/usr/share/plymouth/themes/crate/crate.script" in conf
+
+
+def test_plymouth_script_registers_its_callbacks_and_crate_colours(out):
+    s = (out / "boot/plymouth/crate/crate.script").read_text()
+    for fn in ("Plymouth.SetBootProgressFunction", "Plymouth.SetDisplayPasswordFunction",
+               "Plymouth.SetDisplayNormalFunction", "Plymouth.SetQuitFunction"):
+        assert fn in s, fn
+    # pure black: the framebuffer and the greeter are black, anything else leaves a seam
+    assert "Window.SetBackgroundTopColor(0.0, 0.0, 0.0);" in s
+    assert "Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);" in s
+
+
+# ---------- rEFInd ----------
+
+def test_refind_theme_is_complete(out):
+    t = out / "boot/refind/crate"
+    for name in ("theme.conf", "banner.png", "selection_big.png", "selection_small.png", "font.png"):
+        assert (t / name).is_file(), name
+    # rEFInd's default tools (any showtools line gets them appended): each has a Crate icon
+    for icon in ("os_cachyos", "os_win", "func_shutdown", "func_reset", "func_firmware", "func_about", "func_exit",
+                 "func_hidden", "func_bootorder", "func_install", "func_csr_rotate", "tool_shell", "tool_memtest",
+                 "tool_part", "tool_mok_tool", "tool_netboot", "tool_fwupdate", "tool_rescue", "tool_windows_rescue",
+                 "tool_apple_rescue"):
+        assert (t / f"icons/{icon}.png").is_file(), icon
+    conf = (t / "theme.conf").read_text()
+    for line in ("banner themes/crate/banner.png", "banner_scale fillscreen", "font themes/crate/font.png",
+                 "icons_dir themes/crate/icons", "hideui hints,arrows,badges,label"):
+        assert re.search(rf"^{re.escape(line)}$", conf, re.M), line
+    assert not re.search(r"^showtools", conf, re.M)
+
+
+def test_refind_banner_and_font_are_crate(out):
+    from PIL import Image
+    t = out / "boot/refind/crate"
+    banner = Image.open(t / "banner.png").convert("RGB")
+    assert banner.size == (3840, 2400)
+    assert banner.getpixel((10, 10)) == (10, 10, 15)          # the canvas
+    font = Image.open(t / "font.png").convert("RGBA")
+    assert font.width % 96 == 0                                # rEFInd: 96 equal cells, ASCII 32..127
+    ink = [px for px in pixels(font) if px[3] > 128]
+    assert ink and all(px[:3] == (0, 0, 0) for px in ink)      # black glyphs: rEFInd inverts them on dark
+    cell = font.width // 96
+    a_lower = font.crop((cell * (ord("a") - 32), 0, cell * (ord("a") - 31), font.height)).tobytes()
+    a_upper = font.crop((cell * (ord("A") - 32), 0, cell * (ord("A") - 31), font.height)).tobytes()
+    assert a_lower == a_upper                                  # caps everywhere
+
+
+# ---------- boot.sh apply / revert / status ----------
+
+BOOT_SH = os.path.join(ROOT, "package", "boot.sh")
+GRUB_DEFAULT = ("GRUB_DEFAULT=0\nGRUB_TIMEOUT='5'\n"
+                "GRUB_CMDLINE_LINUX_DEFAULT='splash loglevel=3'\nGRUB_TIMEOUT_STYLE=menu\n"
+                "GRUB_THEME='/usr/share/grub/themes/cachyos/theme.txt'\n")
+
+
+@pytest.fixture
+def sysroot(tmp_path, out):
+    root = tmp_path / "root"
+    (root / "etc/default").mkdir(parents=True)
+    (root / "etc/default/grub").write_text(GRUB_DEFAULT)
+    (root / "boot/grub").mkdir(parents=True)
+    (root / "boot/grub/grub.cfg").write_text("# old\n")
+    for loader in ("EFI/cachyos/grubx64.efi", "EFI/Microsoft/Boot/bootmgfw.efi"):
+        (root / "boot/efi" / loader).parent.mkdir(parents=True, exist_ok=True)
+        (root / "boot/efi" / loader).write_text("efi")
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    log, ply, order = tmp_path / "calls.log", tmp_path / "plymouth-theme", tmp_path / "bootorder"
+    ply.write_text("ryoku")
+    order.write_text("0007,0005,0000")
+    entries = tmp_path / "entries"
+    entries.write_text("Boot0007* cachyos\nBoot0009* rEFInd Boot Manager\n")
+    stubs = {
+        "grub-mkconfig": f'echo "grub-mkconfig $*" >> "{log}"',
+        "plymouth-set-default-theme": f'if [ "$1" = -R ]; then printf "%s" "$2" > "{ply}"; echo "plymouth -R $2" >> "{log}"; else cat "{ply}"; echo; fi',
+        "refind-install": (f'mkdir -p "{root}/boot/efi/EFI/refind" && echo efi > "{root}/boot/efi/EFI/refind/refind_x64.efi" '
+                           f'&& echo "# sample" > "{root}/boot/efi/EFI/refind/refind.conf" && printf "%s" "0009,$(cat "{order}")" > "{order}" '
+                           f'&& (grep -q rEFInd "{entries}" || echo "Boot0009* rEFInd Boot Manager" >> "{entries}") '
+                           f'&& echo "refind-install" >> "{log}"'),
+        "efibootmgr": (f'if [ "$1" = -o ]; then printf "%s" "$2" > "{order}"; echo "efibootmgr -o $2" >> "{log}"; '
+                       f'else echo "BootCurrent: 0007"; echo "BootOrder: $(cat "{order}")"; '
+                       f'cat "{entries}"; fi'),
+    }
+    for name, body in stubs.items():
+        (bindir / name).write_text("#!/bin/sh\n" + body + "\n")
+        (bindir / name).chmod(0o755)
+    env = dict(os.environ, CRATE_SYSTEM_ROOT=str(root), CRATE_BOOT_THEMES=str(out / "boot"),
+               PATH=f"{bindir}:{os.environ['PATH']}")
+
+    def run(*args, ok=True):
+        r = subprocess.run(["bash", BOOT_SH, *args], env=env, capture_output=True, text=True)
+        if ok:
+            assert r.returncode == 0, r.stderr
+        return r
+
+    run.root, run.log, run.ply, run.order, run.bindir, run.entries = root, log, ply, order, bindir, entries
+    return run
+
+
+def refind_conf(run):
+    return (run.root / "boot/efi/EFI/refind/refind.conf").read_text()
+
+
+def test_boot_apply_puts_crate_refind_first_and_revert_puts_everything_back(sysroot):
+    out = sysroot("apply").stdout
+    assert "running: refind-install" in out and "running: plymouth-set-default-theme -R crate" in out
+    conf = refind_conf(sysroot)
+    assert "include themes/crate/theme.conf" in conf and "scanfor manual" in conf
+    assert "loader \\EFI\\cachyos\\grubx64.efi" in conf and "loader \\EFI\\Microsoft\\Boot\\bootmgfw.efi" in conf
+    assert (sysroot.root / "boot/efi/EFI/refind/themes/crate/banner.png").is_file()
+    assert sysroot.order.read_text().startswith("0009,")
+    grub = (sysroot.root / "etc/default/grub").read_text()
+    assert "GRUB_TIMEOUT=1\n" in grub and "GRUB_TIMEOUT_STYLE=hidden\n" in grub   # Esc/Shift: one second
+    assert sysroot.ply.read_text() == "crate"
+    st = sysroot("status").stdout
+    assert re.search(r"rEFInd +first, Crate theme", st) and re.search(r"Plymouth +crate", st)
+    sysroot("revert")
+    assert (sysroot.root / "etc/default/grub").read_text() == GRUB_DEFAULT
+    assert sysroot.order.read_text() == "0007,0005,0000"
+    assert sysroot.ply.read_text() == "ryoku"
+    assert refind_conf(sysroot) == "# sample\n"
+
+
+def test_boot_apply_twice_keeps_the_first_record(sysroot):
+    sysroot("apply")
+    sysroot("apply")
+    sysroot("revert")
+    assert (sysroot.root / "etc/default/grub").read_text() == GRUB_DEFAULT
+    assert sysroot.order.read_text() == "0007,0005,0000"
+
+
+def test_boot_without_windows_writes_no_windows_stanza(sysroot):
+    (sysroot.root / "boot/efi/EFI/Microsoft/Boot/bootmgfw.efi").unlink()
+    sysroot("apply")
+    assert "bootmgfw" not in refind_conf(sysroot)
+
+
+def test_boot_without_refind_install_stops_before_any_change(sysroot):
+    import shutil
+    if shutil.which("refind-install", path="/usr/local/sbin:/usr/sbin:/sbin:/usr/bin:/bin"):
+        pytest.skip("this machine has refind-install installed")
+    (sysroot.bindir / "refind-install").unlink()
+    env_path = f"{sysroot.bindir}:/usr/local/sbin:/usr/sbin:/sbin"
+    r = subprocess.run(["bash", BOOT_SH, "apply"], capture_output=True, text=True,
+                       env=dict(os.environ, CRATE_SYSTEM_ROOT=str(sysroot.root), PATH=env_path + ":/usr/bin:/bin"))
+    assert "refind" in r.stderr and (sysroot.root / "etc/default/grub").read_text() == GRUB_DEFAULT
+
+
+def test_boot_failing_grub_mkconfig_stops_and_says_how_to_finish(sysroot):
+    (sysroot.bindir / "grub-mkconfig").write_text("#!/bin/sh\nexit 1\n")
+    r = sysroot("apply", ok=False)
+    assert r.returncode != 0 and "grub-mkconfig" in r.stderr and "boot revert" in r.stderr
+    assert sysroot.ply.read_text() == "ryoku"
+
+
+def test_boot_revert_with_nothing_applied_says_so(sysroot):
+    r = sysroot("revert", ok=False)
+    assert r.returncode != 0 and "nothing to revert" in r.stderr
+
+
+def test_boot_status_needs_no_writes(sysroot):
+    before = sorted(p.relative_to(sysroot.root) for p in sysroot.root.rglob("*"))
+    st = sysroot("status").stdout
+    assert re.search(r"Plymouth +ryoku", st) and re.search(r"rEFInd +not installed", st)
+    assert sorted(p.relative_to(sysroot.root) for p in sysroot.root.rglob("*")) == before
+
+
+def test_the_package_build_renders_the_boot_themes():
+    build = open(os.path.join(ROOT, "package", "build.sh")).read()
+    assert 'bash "$SRC/package/build-boot.sh" "$OUT"' in build
+
+
+def test_refind_logos_carry_the_cyan_accent(out):
+    from PIL import Image
+    icons = out / "boot/refind/crate/icons"
+    cyan = (6, 182, 212)
+
+    def near(px, c):
+        return px[3] > 200 and all(abs(a - b) < 40 for a, b in zip(px[:3], c))
+
+    cachy = Image.open(icons / "os_cachyos.png").convert("RGBA")
+    assert any(near(p, cyan) for p in pixels(cachy))                  # the bubbles
+    assert any(near(p, (153, 156, 160)) for p in pixels(cachy))       # the C stays grey
+    win = Image.open(icons / "os_win.png").convert("RGBA")
+    w, h = win.size
+    br = win.crop((w // 2, h // 2, w, h))
+    assert any(near(p, cyan) for p in pixels(br))                     # bottom-right outline
+    assert br.getpixel((br.width // 2 - 4, br.height // 2 - 4))[3] < 40   # hollow inside
+    tl = win.crop((0, 0, w // 2, h // 2))
+    assert not any(near(p, cyan) for p in pixels(tl))                 # the others grey
+
+
+# ---------- packaging for rEFInd ----------
+
+def test_the_pkgbuild_ships_refind_not_grub():
+    pkg = open(os.path.join(ROOT, "packaging/aur/crate-for-ryoku/PKGBUILD")).read()
+    srcinfo = open(os.path.join(ROOT, "packaging/aur/crate-for-ryoku/.SRCINFO")).read()
+    makedeps = re.search(r"^makedepends=\(([^)]*)\)", pkg, re.M).group(1)
+    assert "'grub'" not in makedeps and "makedepends = grub" not in srcinfo
+    assert re.search(r"'refind: [^']*crate-for-ryoku boot", pkg)
+    assert "optdepends = refind: " in srcinfo
+    assert "/usr/share/grub" not in pkg and "plymouth grub" not in pkg
+    # the splash belongs to boot apply (it copies and revert removes it), so a release-folder
+    # apply and a later package install never fight over /usr/share/plymouth/themes/crate
+    assert "/usr/share/plymouth" not in pkg
+
+
+def test_uninstall_reminds_of_the_boot_while_crate_owns_it():
+    un = open(os.path.join(ROOT, "package/uninstall.sh")).read()
+    assert "GRUB_THEME" not in un
+    assert "/var/lib/crate-for-ryoku/boot.env" in un
+    assert "sudo crate-for-ryoku boot revert" in un
+
+
+def test_docs_describe_the_refind_boot():
+    doc = open(os.path.join(ROOT, "docs/boot.md")).read()
+    readme = open(os.path.join(ROOT, "README.md")).read()
+    usage = open(os.path.join(ROOT, "bin/crate-for-ryoku")).read()
+    for text in (doc, readme, usage):
+        assert "rEFInd" in text
+    assert "GRUB_THEME" not in doc and "/usr/share/grub" not in doc
+    assert "sudo pacman -S refind" in doc and "Esc" in doc
+
+
+def test_refind_assets_are_drawn_for_hidpi_and_let_refind_scale(out):
+    # rEFInd doubles icons on screens wider than 1920 unless the theme fixes their size;
+    # the assets are drawn at that doubled size so a 4K panel gets them sharp
+    from PIL import Image
+    t = out / "boot/refind/crate"
+    conf = (t / "theme.conf").read_text()
+    assert not re.search(r"^(big|small)_icon_size", conf, re.M)
+    for name in ("os_cachyos", "os_win"):
+        assert Image.open(t / f"icons/{name}.png").size == (256, 256), name
+    for name in ("func_shutdown", "func_reset", "tool_shell", "func_firmware"):
+        assert Image.open(t / f"icons/{name}.png").size == (96, 96), name
+    assert Image.open(t / "selection_big.png").size == (288, 288)
+    assert Image.open(t / "selection_small.png").size == (128, 128)
+
+
+# ---------- boot.sh: firmware entries and failures (review fixes) ----------
+
+def with_refind_on_esp(run):
+    d = run.root / "boot/efi/EFI/refind"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "refind_x64.efi").write_text("efi")
+
+
+def test_boot_reinstalls_refind_when_its_firmware_entry_is_gone(sysroot):
+    with_refind_on_esp(sysroot)
+    sysroot.entries.write_text("Boot0007* cachyos\n")         # a firmware update dropped it
+    sysroot("apply")
+    assert "refind-install" in sysroot.log.read_text()
+    assert sysroot.order.read_text().startswith("0009,")
+
+
+def test_boot_finds_an_inactive_refind_entry(sysroot):
+    with_refind_on_esp(sysroot)
+    sysroot.entries.write_text("Boot0007* cachyos\nBoot0009  rEFInd Boot Manager\n")
+    sysroot("apply")
+    assert "efibootmgr -o 0009,0007,0005,0000" in sysroot.log.read_text()
+
+
+def test_boot_prefers_the_entry_that_starts_refind_x64(sysroot):
+    with_refind_on_esp(sysroot)
+    sysroot.entries.write_text("Boot0003* rEFInd old\tHD(1,GPT)/File(\\EFI\\old\\loader.efi)\n"
+                               "Boot0009* rEFInd Boot Manager\tHD(1,GPT)/File(\\EFI\\refind\\refind_x64.efi)\n")
+    sysroot("apply")
+    assert sysroot.order.read_text().startswith("0009,")
+
+
+def test_boot_with_rEFInd_alone_in_the_order_still_applies(sysroot):
+    with_refind_on_esp(sysroot)
+    sysroot.order.write_text("0009")
+    r = sysroot("apply")
+    assert "Crate's boot is on" in r.stdout
+
+
+def test_boot_without_a_boot_order_stops_before_any_change(sysroot):
+    sysroot.order.write_text("")
+    r = sysroot("apply", ok=False)
+    assert r.returncode != 0 and "BootOrder" in r.stderr
+    assert (sysroot.root / "etc/default/grub").read_text() == GRUB_DEFAULT
+    assert not (sysroot.root / "var/lib/crate-for-ryoku/boot.env").exists()
+
+
+def test_boot_failing_theme_copy_says_how_to_finish(sysroot):
+    with_refind_on_esp(sysroot)
+    (sysroot.root / "boot/efi/EFI/refind/themes").write_text("not a folder")
+    r = sysroot("apply", ok=False)
+    assert r.returncode != 0 and "theme" in r.stderr and "boot revert" in r.stderr
+    assert (sysroot.root / "etc/default/grub").read_text() == GRUB_DEFAULT
+
+
+def test_docs_warn_about_bitlocker_and_how_to_reach_grub():
+    doc = open(os.path.join(ROOT, "docs/boot.md")).read()
+    assert "BitLocker" in doc and "recovery key" in doc
+    assert "Shift" in doc
+    design = open(os.path.join(ROOT, "docs/plans/2026-11-18-wave9d-boot-design.md")).read()
+    assert "big_icon_size 128" not in design
+
+
+# ---------- the minors: splash ownership, pacman -R, the kanji font ----------
+
+def test_boot_apply_refreshes_the_splash_and_revert_takes_it_away(sysroot, out):
+    sysroot("apply")
+    theme = sysroot.root / "usr/share/plymouth/themes/crate/crate.plymouth"
+    built = (out / "boot/plymouth/crate/crate.plymouth").read_text()
+    assert theme.read_text() == built
+    theme.write_text("stale from an older version")
+    sysroot("apply")
+    assert theme.read_text() == built
+    sysroot("revert")
+    assert not theme.parent.exists()
+
+
+def test_boot_apply_leaves_a_revert_that_outlives_the_package(sysroot, tmp_path):
+    sysroot("apply")
+    kept = sysroot.root / "var/lib/crate-for-ryoku/boot.sh"
+    assert kept.is_file()
+    env = dict(os.environ, CRATE_SYSTEM_ROOT=str(sysroot.root), CRATE_BOOT_THEMES=str(tmp_path / "gone"),
+               PATH=f"{sysroot.bindir}:{os.environ['PATH']}")
+    r = subprocess.run(["bash", str(kept), "revert"], env=env, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    assert (sysroot.root / "etc/default/grub").read_text() == GRUB_DEFAULT
+    assert sysroot.order.read_text() == "0007,0005,0000"
+
+
+def test_pacman_remove_says_how_to_revert_the_boot():
+    d = os.path.join(ROOT, "packaging/aur/crate-for-ryoku")
+    pkg = open(os.path.join(d, "PKGBUILD")).read()
+    srcinfo = open(os.path.join(d, ".SRCINFO")).read()
+    assert re.search(r"^install=crate-for-ryoku\.install$", pkg, re.M)
+    assert "\tinstall = crate-for-ryoku.install" in srcinfo
+    inst = open(os.path.join(d, "crate-for-ryoku.install")).read()
+    assert "pre_remove()" in inst and "/var/lib/crate-for-ryoku/boot.env" in inst
+    assert "/var/lib/crate-for-ryoku/boot.sh revert" in inst
+    r = subprocess.run(["bash", "-n", os.path.join(d, "crate-for-ryoku.install")], capture_output=True)
+    assert r.returncode == 0
+
+
+def test_banner_skips_the_kanji_without_a_font_that_has_them(tmp_path):
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    for name in ("fc-list", "fc-match"):                 # a fontconfig with no CJK coverage
+        (bindir / name).write_text("#!/bin/sh\n[ \"$1\" = fc-match ] || true\n")
+        (bindir / name).chmod(0o755)
+    (bindir / "fc-match").write_text("#!/bin/sh\nprintf /usr/share/fonts/TTF/DejaVuSans.ttf\n")
+    env = dict(os.environ, PATH=f"{bindir}:{os.environ['PATH']}")
+    r = subprocess.run(["bash", BUILD, str(tmp_path / "o")], env=env, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    assert "起動" in r.stderr                              # says the gloss was left out
