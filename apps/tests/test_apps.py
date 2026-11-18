@@ -250,7 +250,9 @@ def test_thunderbird_chrome_is_crate(out):
     for decl in ("--layout-background-0: #0a0a0f !important;", "--layout-background-1: #0d0e14 !important;",
                  "--selected-item-color: #06b6d4 !important;", "--color-primary-default: #06b6d4 !important;",
                  "--layout-border-0: rgba(241, 245, 249, 0.1) !important;", "--button-border-radius: 6px !important;",
-                 "--mmBoxBackground: #0f1016 !important;", "--viewDayBoxSelectedBackground: #15161d !important;"):
+                 "--mmBoxBackground: #0f1016 !important;", "--viewDayBoxSelectedBackground: #15161d !important;",
+                 "--thread-pane-unread-fill: #67e8f9 !important;", "--folder-color-inbox: #06b6d4 !important;",
+                 "--folder-color-folder: rgba(241, 245, 249, 0.62) !important;"):
         assert decl in css, decl
 
 
