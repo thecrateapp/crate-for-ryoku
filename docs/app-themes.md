@@ -1,4 +1,4 @@
-# App themes: Obsidian, Firefox, Chrome, Zed, lazygit, Neovim, GTK and GtkSourceView
+# App themes: Obsidian, Firefox, Chrome, Zed, lazygit, Neovim, GTK, GtkSourceView, Thunderbird and the cursor
 
 Crate's look outside the desktop shell, from the same tokens (`apps/tokens.json`):
 the `#0a0a0f` canvas, `#f1f5f9` text at 62 % and 42 % for secondary and faint,
@@ -28,6 +28,8 @@ app that is not installed is skipped with one line at most, never an error.
 | Neovim | `nvim` on PATH and a lazy.nvim `~/.config/nvim/lua/plugins/` (LazyVim, as Ryoku ships) | `apps/nvim/crate.lua` (first line `-- crate-for-ryoku: neovim`): an `on_highlights` over Ryoku's tokyonight with Crate's sober syntax | copied to `lua/plugins/crate.lua` when there is none or it is ours; nvim reads it at its next start | `--no-nvim` |
 | GTK apps | the `gtk.css` Ryoku renders in `~/.config/gtk-4.0` and `gtk-3.0` | `apps/gtk/crate.css` (GTK 4 / libadwaita) and `crate-gtk3.css` (GTK 3: no custom properties) | copied as `crate.css` beside each `gtk.css`; one line `@import url("crate.css"); /* crate-for-ryoku */` added to `user.css`, which the fork's `gtk.css` imports last; stock Ryoku does not, and `status` says so | `--no-gtk` |
 | GtkSourceView, GNOME Text Editor | `gnome-text-editor` on PATH (the scheme itself is installed for every GtkSourceView 5 app) | `apps/gtksourceview/crate.xml` (`id="crate"`) | copied to `~/.local/share/gtksourceview-5/styles/`; Text Editor's `style-scheme` set to `crate` once, the old one recorded | `--no-gtksourceview` |
+| Thunderbird | `thunderbird` on PATH or `~/.thunderbird/profiles.ini` (each install's default profile) | `apps/thunderbird/chrome/userChrome.css`: Thunderbird's layout variables (backgrounds 0-4, colours 0-3, borders 0-2, the selected item) set to Crate's tokens | the profile's `chrome/` moved to `chrome.before-crate`, ours in its place, the stylesheets pref added to `user.js`, as for Firefox; restart Thunderbird | `--no-thunderbird` |
+| Cursor | `ryoku-hub` on PATH | Ryoku's own Material Bibata, recoloured to the palette's primary (Crate's cyan) | the full `ryoku-hub desktop get` document saved with only `desktop.cursor.theme` set to `DYNAMIC` ("Follow the wallpaper" in Ryoku Settings > Input), then `ryoku-cursor-material-recolor --force --full` | `--no-cursor` |
 
 Obsidian reads `appearance.json` when a vault opens: a vault that is open
 during the install shows Crate once it is reopened (or Obsidian restarted).
@@ -60,6 +62,8 @@ whether the package's files are there).
   empty, goes); each `crate.css` goes while it is exactly as installed.
 - Text Editor: the scheme you had comes back while `crate` is still selected; the
   scheme file goes while unchanged.
+- Thunderbird: as Firefox, the old `chrome/` and `user.js` come back.
+- Cursor: the theme you had comes back while `DYNAMIC` is still picked.
 - `--keep-files` puts both looks back (Obsidian's previous theme, Firefox's old
   `chrome/`) and keeps the Obsidian theme copies.
 
@@ -238,3 +242,19 @@ updates the theme from the store.
 
 The separate `crate-for-ryoku-chrome-theme` package this replaces was never
 published, so nothing provides or replaces it.
+
+## Slack (by hand)
+
+Slack keeps its sidebar theme inside the app, so `crate-for-ryoku` cannot set it.
+For Crate's look, open Preferences > Themes, start a custom theme, and use:
+
+| What | Colour |
+| --- | --- |
+| Sidebar / window background | `#0a0a0f` (canvas) |
+| Selected channel or DM | `#06b6d4` (accent), its text `#0a0a0f` |
+| Hover | `#15161d` (secondary) |
+| Text | `#f1f5f9` |
+| Presence (active) | `#67e8f9` (accent_hi) |
+| Mentions and badges | `#ef4444` (danger) |
+
+Pick the dark appearance, so Slack's message pane stays on a dark surface.

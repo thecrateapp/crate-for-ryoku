@@ -30,7 +30,10 @@ desktop. One install gives you:
   where you have no `config.yml` of your own; `--no-lazygit` skips it) and
   Crate's sober syntax for Neovim's tokyonight (`--no-nvim` skips it), Crate's
   corners and hairlines for GTK apps through `user.css` (`--no-gtk`), and a Crate
-  GtkSourceView scheme selected in GNOME Text Editor (`--no-gtksourceview`).
+  GtkSourceView scheme selected in GNOME Text Editor (`--no-gtksourceview`),
+  Crate's `userChrome.css` for Thunderbird (`--no-thunderbird`) and the cursor in
+  Crate's cyan, Ryoku's Material Bibata following the palette (`--no-cursor`).
+  Slack's sidebar colours are listed in the docs, to pick by hand.
   Uninstall puts back the theme each vault and Zed had. See [docs/app-themes.md](docs/app-themes.md).
 
 ## Install
@@ -98,7 +101,7 @@ plugin/crate-mark the bar plugin
 launcher/         Crate Palette, the Super+Space launcher (node --test launcher/crate-palette/tests/)
 shell/            the eza theme and the Pure prompt
 wallpaper/        the Groove and Sheen wallpaper generators (render.sh)
-apps/             app themes: ZapFast, Obsidian, Firefox, Chrome, Zed, lazygit, Neovim, GTK and GtkSourceView (build.py; python3 -m pytest apps/tests)
+apps/             app themes: ZapFast, Obsidian, Firefox, Chrome, Zed, lazygit, Neovim, GTK, GtkSourceView and Thunderbird (build.py; python3 -m pytest apps/tests)
 package/          build.sh, install.sh, uninstall.sh, the lock-skin helpers and the icon watcher units
 lockscreen/       the Crate lock skins crate/hero and crate/orbit for Ryoku's qylock (lockscreen/preview.sh, lockscreen/tests/run.sh)
 bin/              the crate-for-ryoku command

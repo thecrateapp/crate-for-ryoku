@@ -49,6 +49,10 @@ usage: install.sh [options]
   --no-gtksourceview
                    leave GtkSourceView alone (by default the Crate scheme is
                    installed and selected in GNOME Text Editor)
+  --no-thunderbird leave Thunderbird alone (by default its profile gets
+                   Crate's userChrome.css, like Firefox)
+  --no-cursor      keep your cursor theme (by default the cursor becomes Ryoku's
+                   Material Bibata in Crate's cyan)
   -h, --help       this help
 EOF
 }
@@ -63,7 +67,7 @@ for a in "$@"; do
     --no-lockscreen) LOCK=0 ;;
     --reapply) REAPPLY=1 ;;
     # --firefox-chrome: the default since 0.7, still accepted
-    --no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--no-gtk|--no-gtksourceview|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
+    --no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--no-gtk|--no-gtksourceview|--no-thunderbird|--no-cursor|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a") ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $a" >&2; usage >&2; exit 2 ;;
   esac
