@@ -163,3 +163,8 @@ def test_boot_status_needs_no_writes(sysroot):
     st = sysroot("status").stdout
     assert re.search(r"Plymouth +ryoku", st) and re.search(r"GRUB +/usr/share/grub/themes/cachyos", st)
     assert sorted(p.relative_to(sysroot.root) for p in sysroot.root.rglob("*")) == before
+
+
+def test_the_package_build_renders_the_boot_themes():
+    build = open(os.path.join(ROOT, "package", "build.sh")).read()
+    assert 'bash "$SRC/package/build-boot.sh" "$OUT"' in build
