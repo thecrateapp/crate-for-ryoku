@@ -254,3 +254,18 @@ def test_docs_describe_the_refind_boot():
         assert "rEFInd" in text
     assert "GRUB_THEME" not in doc and "/usr/share/grub" not in doc
     assert "sudo pacman -S refind" in doc and "Esc" in doc
+
+
+def test_refind_assets_are_drawn_for_hidpi_and_let_refind_scale(out):
+    # rEFInd doubles icons on screens wider than 1920 unless the theme fixes their size;
+    # the assets are drawn at that doubled size so a 4K panel gets them sharp
+    from PIL import Image
+    t = out / "boot/refind/crate"
+    conf = (t / "theme.conf").read_text()
+    assert not re.search(r"^(big|small)_icon_size", conf, re.M)
+    for name in ("os_cachyos", "os_win"):
+        assert Image.open(t / f"icons/{name}.png").size == (256, 256), name
+    for name in ("func_shutdown", "func_reset", "tool_shell", "func_firmware"):
+        assert Image.open(t / f"icons/{name}.png").size == (96, 96), name
+    assert Image.open(t / "selection_big.png").size == (288, 288)
+    assert Image.open(t / "selection_small.png").size == (128, 128)

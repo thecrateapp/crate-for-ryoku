@@ -81,7 +81,8 @@ bg.alpha_composite(glint.filter(ImageFilter.GaussianBlur(1.2)), (W // 2 - bw // 
 bg.convert("RGB").save(f"{out}/banner.png", optimize=True)
 
 # ---- the systems: their own marks in Crate's secondary tone ----
-logo = 112
+# drawn at 2x: rEFInd doubles icons on screens wider than 1920 and scales them down below
+logo = 224
 brand = json.load(open(f"{repo}/icons/brand-icons.json"))["icons"]["simple-icons/cachyos"]
 svg = brand if isinstance(brand, str) else (brand.get("svg") or brand.get("path"))
 if not svg.lstrip().startswith("<svg"):
@@ -89,7 +90,7 @@ if not svg.lstrip().startswith("<svg"):
 svg = re.sub(r'fill="(?!none)[^"]*"', 'fill="#999ca0"', svg)
 if 'fill="#999ca0"' not in svg:
     svg = svg.replace("<svg ", '<svg fill="#999ca0" ', 1)
-def padded(svg_text, path, box=128, inner=logo):
+def padded(svg_text, path, box=256, inner=logo):
     svg_png(svg_text, inner, inner, path)
     im = Image.open(path).convert("RGBA"); c = Image.new("RGBA", (box, box), (0, 0, 0, 0))
     c.alpha_composite(im, ((box - inner) // 2, (box - inner) // 2)); c.save(path)
@@ -121,7 +122,7 @@ win = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#999ca
        '<rect x="3" y="3" width="8.5" height="8.5" rx="0.8"/><rect x="12.5" y="3" width="8.5" height="8.5" rx="0.8"/>'
        '<rect x="3" y="12.5" width="8.5" height="8.5" rx="0.8"/>'
        '<rect x="13.1" y="13.1" width="7.3" height="7.3" rx="0.6" fill="none" stroke="#06b6d4" stroke-width="1.2"/></svg>')
-padded(win, f"{out}/icons/os_win.png", inner=96)
+padded(win, f"{out}/icons/os_win.png", inner=192)
 
 # ---- tools: Solar line duotone glyphs (and every default rEFInd may add) ----
 sol = json.load(open(f"{repo}/icons/solar-line-duotone-extra.json"))["icons"]
@@ -148,16 +149,17 @@ tools = {
     "tool_apple_rescue": sol["shield-keyhole"].replace("currentColor", "#999ca0"),
 }
 for name, s in tools.items():
-    svg_png(s, 48, 48, f"{out}/icons/{name}.png")
+    svg_png(s, 96, 96, f"{out}/icons/{name}.png")
 
 # ---- selection: raised, 6 px corners, hairline, a cyan pick-edge at the bottom ----
 def selection(size, path):
     im = Image.new("RGBA", (size, size), (0, 0, 0, 0)); dd = ImageDraw.Draw(im)
-    dd.rounded_rectangle((0, 0, size - 1, size - 1), radius=6, fill=(15, 16, 22, 255), outline=(241, 245, 249, 26))
-    dd.line((size * 0.3, size - 3, size * 0.7, size - 3), fill=CYAN, width=3)
+    dd.rounded_rectangle((0, 0, size - 1, size - 1), radius=12, fill=(15, 16, 22, 255), outline=(241, 245, 249, 26))
+    dd.line((size * 0.3, size - 5, size * 0.7, size - 5), fill=CYAN, width=6)
     im.save(path)
-selection(176, f"{out}/selection_big.png")
-selection(72, f"{out}/selection_small.png")
+# rEFInd draws them on its own 144 and 64 px tiles (doubled on wide screens)
+selection(288, f"{out}/selection_big.png")
+selection(128, f"{out}/selection_small.png")
 
 # ---- font: rEFInd's 96-cell strip (ASCII 32..127), black glyphs it inverts on a dark
 #      banner, caps drawn for lowercase and tracked cells ----
