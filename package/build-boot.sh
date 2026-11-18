@@ -108,6 +108,12 @@ tools = {
     "func_exit": line.format('<path opacity=".5" d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 8l-4 4 4 4M6 12h9"/>'),
     "func_firmware": sol["cpu"].replace("currentColor", "#999ca0"),
     "func_about": sol["info-circle"].replace("currentColor", "#999ca0"),
+    "func_hidden": sol["eye"].replace("currentColor", "#999ca0"),
+    "func_shell": sol["code-square"].replace("currentColor", "#999ca0"),
+    "func_memtest": sol["cpu-bolt"].replace("currentColor", "#999ca0"),
+    "func_gdisk": sol["database"].replace("currentColor", "#999ca0"),
+    "func_mok_tool": sol["key"].replace("currentColor", "#999ca0"),
+    "func_bootorder": sol["layers"].replace("currentColor", "#999ca0"),
 }
 for name, s in tools.items():
     svg_png(s, 48, 48, f"{out}/icons/{name}.png")

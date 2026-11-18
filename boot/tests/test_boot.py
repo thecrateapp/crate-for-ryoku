@@ -50,12 +50,15 @@ def test_refind_theme_is_complete(out):
     t = out / "boot/refind/crate"
     for name in ("theme.conf", "banner.png", "selection_big.png", "selection_small.png", "font.png"):
         assert (t / name).is_file(), name
-    for icon in ("os_cachyos", "os_win", "func_shutdown", "func_reset", "func_firmware", "func_about", "func_exit"):
+    # rEFInd's default tools (any showtools line gets them appended): each has a Crate icon
+    for icon in ("os_cachyos", "os_win", "func_shutdown", "func_reset", "func_firmware", "func_about", "func_exit",
+                 "func_hidden", "func_shell", "func_memtest", "func_gdisk", "func_mok_tool", "func_bootorder"):
         assert (t / f"icons/{icon}.png").is_file(), icon
     conf = (t / "theme.conf").read_text()
     for line in ("banner themes/crate/banner.png", "banner_scale fillscreen", "font themes/crate/font.png",
-                 "icons_dir themes/crate/icons", "hideui hints,arrows,badges"):
+                 "icons_dir themes/crate/icons", "hideui hints,arrows,badges,label"):
         assert re.search(rf"^{re.escape(line)}$", conf, re.M), line
+    assert not re.search(r"^showtools", conf, re.M)
 
 
 def test_refind_banner_and_font_are_crate(out):
