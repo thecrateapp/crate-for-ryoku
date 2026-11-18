@@ -1,6 +1,6 @@
 """run: python3 -m pytest boot/tests -q
 
-The Crate boot themes (Plymouth splash, GRUB menu) as package/build-boot.sh
+The Crate boot themes (Plymouth splash, rEFInd screen) as package/build-boot.sh
 renders them, and package/boot.sh, which turns them on, against a fake root.
 """
 import os
@@ -11,6 +11,12 @@ import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BUILD = os.path.join(ROOT, "package", "build-boot.sh")
+
+
+def pixels(img):
+    import numpy as np
+    a = np.asarray(img)
+    return [tuple(p) for p in a.reshape(-1, a.shape[-1] if a.ndim == 3 else 1)]
 
 
 @pytest.fixture(scope="module")
@@ -71,7 +77,7 @@ def test_refind_banner_and_font_are_crate(out):
     assert banner.getpixel((10, 10)) == (10, 10, 15)          # the canvas
     font = Image.open(t / "font.png").convert("RGBA")
     assert font.width % 96 == 0                                # rEFInd: 96 equal cells, ASCII 32..127
-    ink = [px for px in font.getdata() if px[3] > 128]
+    ink = [px for px in pixels(font) if px[3] > 128]
     assert ink and all(px[:3] == (0, 0, 0) for px in ink)      # black glyphs: rEFInd inverts them on dark
     cell = font.width // 96
     a_lower = font.crop((cell * (ord("a") - 32), 0, cell * (ord("a") - 31), font.height)).tobytes()
@@ -209,12 +215,42 @@ def test_refind_logos_carry_the_cyan_accent(out):
         return px[3] > 200 and all(abs(a - b) < 40 for a, b in zip(px[:3], c))
 
     cachy = Image.open(icons / "os_cachyos.png").convert("RGBA")
-    assert any(near(p, cyan) for p in cachy.getdata())                  # the bubbles
-    assert any(near(p, (153, 156, 160)) for p in cachy.getdata())       # the C stays grey
+    assert any(near(p, cyan) for p in pixels(cachy))                  # the bubbles
+    assert any(near(p, (153, 156, 160)) for p in pixels(cachy))       # the C stays grey
     win = Image.open(icons / "os_win.png").convert("RGBA")
     w, h = win.size
     br = win.crop((w // 2, h // 2, w, h))
-    assert any(near(p, cyan) for p in br.getdata())                     # bottom-right outline
+    assert any(near(p, cyan) for p in pixels(br))                     # bottom-right outline
     assert br.getpixel((br.width // 2 - 4, br.height // 2 - 4))[3] < 40   # hollow inside
     tl = win.crop((0, 0, w // 2, h // 2))
-    assert not any(near(p, cyan) for p in tl.getdata())                 # the others grey
+    assert not any(near(p, cyan) for p in pixels(tl))                 # the others grey
+
+
+# ---------- packaging for rEFInd ----------
+
+def test_the_pkgbuild_ships_refind_not_grub():
+    pkg = open(os.path.join(ROOT, "packaging/aur/crate-for-ryoku/PKGBUILD")).read()
+    srcinfo = open(os.path.join(ROOT, "packaging/aur/crate-for-ryoku/.SRCINFO")).read()
+    makedeps = re.search(r"^makedepends=\(([^)]*)\)", pkg, re.M).group(1)
+    assert "'grub'" not in makedeps and "makedepends = grub" not in srcinfo
+    assert re.search(r"'refind: [^']*crate-for-ryoku boot", pkg)
+    assert "optdepends = refind: " in srcinfo
+    assert "/usr/share/grub" not in pkg and "plymouth grub" not in pkg
+    assert '"$pkgdir/usr/share/plymouth/themes/crate"' in pkg
+
+
+def test_uninstall_reminds_of_the_boot_while_crate_owns_it():
+    un = open(os.path.join(ROOT, "package/uninstall.sh")).read()
+    assert "GRUB_THEME" not in un
+    assert "/var/lib/crate-for-ryoku/boot.env" in un
+    assert "sudo crate-for-ryoku boot revert" in un
+
+
+def test_docs_describe_the_refind_boot():
+    doc = open(os.path.join(ROOT, "docs/boot.md")).read()
+    readme = open(os.path.join(ROOT, "README.md")).read()
+    usage = open(os.path.join(ROOT, "bin/crate-for-ryoku")).read()
+    for text in (doc, readme, usage):
+        assert "rEFInd" in text
+    assert "GRUB_THEME" not in doc and "/usr/share/grub" not in doc
+    assert "sudo pacman -S refind" in doc and "Esc" in doc

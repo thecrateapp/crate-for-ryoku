@@ -19,7 +19,7 @@ desktop. One install gives you:
   that searches apps, files, recent files and the Crate library in one field,
   with `cr <query>` for Crate alone; pick it in Hub > App Launcher once it is
   installed from Ryostore (App launchers).
-- **The boot in Crate's look**: a GRUB menu and a Plymouth splash, turned on with
+- **The boot in Crate's look**: a rEFInd boot screen and a Plymouth splash, turned on with
   `sudo crate-for-ryoku boot apply` and off with `boot revert`. See [docs/boot.md](docs/boot.md).
 - **The Crate app integration**: the launcher's `cr <query>` search-and-play
   provider (with the Crate desktop app, `crate-desktop-bin`).

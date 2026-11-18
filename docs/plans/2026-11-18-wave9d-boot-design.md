@@ -46,12 +46,13 @@ order, GRUB's menu and the Ryoku splash back; nothing on the way can stop the ma
 
 - `theme.conf` (included by refind.conf): `banner themes/crate/banner.png`, `banner_scale fillscreen`,
   `selection_big`, `selection_small`, `font themes/crate/font.png`, `icons_dir themes/crate/icons`,
-  `big_icon_size`, `small_icon_size`, `hideui hints,arrows,badges`, `showtools` (decided after the
-  default-tools question is settled; every tool shown gets a Crate icon), `use_graphics_for windows,grub`.
+  `big_icon_size 128`, `small_icon_size 48`, `hideui hints,arrows,badges,label` (no label text and no
+  countdown line), no `showtools` (rEFInd appends its defaults to any list, so its default row stays and
+  every default tool, `func_*` and scanned `tool_*`, gets a Crate line icon), `use_graphics_for windows,grub`.
 - Rendered at build: `banner.png` at 3840x2400 (canvas, the cover mark with its glow in the upper third,
   `SELECT A SYSTEM` tracked caps in the secondary tone with `起動` in the faint tone, a static beam: hairline
   track and a cyan glint); `icons/os_cachyos.png`, `icons/os_win.png` (secondary tone, sized so the Crate
-  mark stays first); tool icons in Solar line style; `selection_big.png`/`selection_small.png` (raised
+  mark stays first; CachyOS's bubbles in cyan, Windows's bottom-right square a cyan outline); tool icons in Solar line style; `selection_big.png`/`selection_small.png` (raised
   `#0f1016`, 6 px corners, hairline, a cyan pick-edge at the bottom); `font.png` (JetBrains Mono, black
   glyphs, uppercase drawn for lowercase, tracked cells).
 
@@ -77,7 +78,8 @@ order, GRUB's menu and the Ryoku splash back; nothing on the way can stop the ma
 ### Packaging
 
 The PKGBUILD installs the themes under `/usr/share/crate-for-ryoku/boot` (the Plymouth theme also in
-`/usr/share/plymouth/themes/crate`); `refind` becomes an optdepend ("for crate-for-ryoku boot").
+`/usr/share/plymouth/themes/crate`); `refind` becomes an optdepend ("for crate-for-ryoku boot"); `grub`
+leaves makedepends. `crate-for-ryoku uninstall` reminds of `boot revert` while `boot.env` exists.
 
 ## If a boot goes wrong
 

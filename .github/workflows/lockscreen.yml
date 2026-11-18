@@ -55,7 +55,7 @@ jobs:
           pacman -Sy --noconfirm archlinux-keyring
           pacman -Su --noconfirm --needed \
             git quickshell qt6-declarative qt6-5compat qt6-imageformats mesa \
-            python python-fonttools python-brotli python-pillow python-cairo python-numpy python-pytest grub \
+            python python-fonttools python-brotli python-pillow python-cairo python-numpy python-pytest \
             librsvg fontconfig openssl diffutils
           mkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR"
 

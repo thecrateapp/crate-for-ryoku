@@ -10,6 +10,9 @@
 
 **Spec:** `docs/plans/2026-11-18-wave9d-boot-design.md`
 
+> Revised 2026-11-18: the GRUB theme (Task 2, the GRUB parts of Tasks 3-5) was replaced by a rEFInd
+> theme that chainloads a hidden GRUB, as the revised spec describes; the GRUB tasks below are history.
+
 ## Global Constraints
 
 - Colours: black `#000000` (Plymouth background only), and tokens: `#06b6d4`, `#999ca0`, `#212226`, `#f1f5f9`, hairline `rgba(241,245,249,0.1)`.

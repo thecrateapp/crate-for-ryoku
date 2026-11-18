@@ -14,7 +14,6 @@ pkgbase = crate-for-ryoku
 	makedepends = python-fonttools
 	makedepends = python-brotli
 	makedepends = openssl
-	makedepends = grub
 	depends = ryoku-desktop
 	depends = python
 	depends = python-numpy
@@ -27,6 +26,7 @@ pkgbase = crate-for-ryoku
 	optdepends = kitty: the Crate terminal palette
 	optdepends = ttf-jetbrains-mono-nerd: the rice font
 	optdepends = papirus-icon-theme: icons crate-icons does not draw
+	optdepends = refind: the Crate boot screen (sudo crate-for-ryoku boot apply)
 	source = crate-for-ryoku::git+https://github.com/thecrateapp/crate-for-ryoku.git#tag=v0.7.0
 	sha256sums = SKIP
 

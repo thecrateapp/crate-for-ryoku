@@ -36,7 +36,7 @@ usage: crate-for-ryoku <command> [options]
   icons             redraw the app icons (after installing apps by hand)
   version           the packaged and the installed versions
   boot apply|revert|status
-                    the Crate GRUB menu and Plymouth splash (apply and revert need sudo)
+                    the Crate rEFInd boot screen and Plymouth splash (apply and revert need sudo)
 
 GUI: Ryoku Settings > Appearance > Rices, QS Bar Settings > Community > Crate
 EOF
