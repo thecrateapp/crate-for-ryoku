@@ -55,7 +55,7 @@ jobs:
           pacman -Sy --noconfirm archlinux-keyring
           pacman -Su --noconfirm --needed \
             git quickshell qt6-declarative qt6-5compat qt6-imageformats mesa \
-            python python-fonttools python-brotli python-pillow python-cairo python-numpy python-pytest \
+            python python-fonttools python-brotli python-pillow python-cairo python-numpy python-pytest grub \
             librsvg fontconfig openssl diffutils
           mkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR"
 
@@ -71,4 +71,4 @@ jobs:
         run: bash apps/tests/package-apps.sh
 
       - name: Python tests
-        run: python3 -m pytest icons/tests wallpaper/tests tools/director/tests apps/tests -q
+        run: python3 -m pytest icons/tests wallpaper/tests tools/director/tests apps/tests boot/tests -q

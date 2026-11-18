@@ -17,7 +17,7 @@ arch=('any')
 url="https://github.com/thecrateapp/crate-for-ryoku"
 license=('MIT' 'CC-BY-4.0' 'OFL-1.1')
 depends=('ryoku-desktop' 'python' 'python-numpy' 'python-pillow' 'librsvg' 'fontconfig' 'qt6-imageformats')
-makedepends=('git' 'python-cairo' 'quickshell' 'qt6-imageformats' 'python-fonttools' 'python-brotli' 'openssl')
+makedepends=('git' 'python-cairo' 'quickshell' 'qt6-imageformats' 'python-fonttools' 'python-brotli' 'openssl' 'grub')
 optdepends=(
   'crate-desktop-bin: the Crate app (now playing, the launcher provider, the bar panel)'
   'eza: the Crate eza theme'
@@ -48,4 +48,12 @@ package() {
     install -Dm644 "dist/$pkgname-$pkgver/chrome/$_chrome_id.json" "$pkgdir/usr/share/google-chrome/extensions/$_chrome_id.json"
     install -Dm644 "dist/$pkgname-$pkgver/chrome/$_chrome_id.json" "$pkgdir/usr/share/chromium/extensions/$_chrome_id.json"
   fi
+  # the boot themes; nothing turns them on but `sudo crate-for-ryoku boot apply`
+  local kind
+  for kind in plymouth grub; do
+    if [ -d "dist/$pkgname-$pkgver/boot/$kind/crate" ]; then
+      install -d "$pkgdir/usr/share/$kind/themes"
+      cp -a "dist/$pkgname-$pkgver/boot/$kind/crate" "$pkgdir/usr/share/$kind/themes/crate"
+    fi
+  done
 }
