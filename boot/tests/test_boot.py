@@ -176,12 +176,13 @@ def test_boot_without_windows_writes_no_windows_stanza(sysroot):
 
 
 def test_boot_without_refind_install_stops_before_any_change(sysroot):
+    import shutil
+    if shutil.which("refind-install", path="/usr/local/sbin:/usr/sbin:/sbin:/usr/bin:/bin"):
+        pytest.skip("this machine has refind-install installed")
     (sysroot.bindir / "refind-install").unlink()
     env_path = f"{sysroot.bindir}:/usr/local/sbin:/usr/sbin:/sbin"
     r = subprocess.run(["bash", BOOT_SH, "apply"], capture_output=True, text=True,
                        env=dict(os.environ, CRATE_SYSTEM_ROOT=str(sysroot.root), PATH=env_path + ":/usr/bin:/bin"))
-    if r.returncode == 0:
-        pytest.skip("this machine has refind-install on PATH")
     assert "refind" in r.stderr and (sysroot.root / "etc/default/grub").read_text() == GRUB_DEFAULT
 
 
