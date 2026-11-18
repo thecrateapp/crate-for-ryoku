@@ -587,11 +587,18 @@ cursor_uninstall() {
   [ -f "$REC/cursor.theme" ] || return 0
   local prev doc cur
   prev=$(cat "$REC/cursor.theme")
-  if command -v ryoku-hub >/dev/null && doc=$(ryoku-hub desktop get 2>/dev/null) \
-     && cur=$(printf '%s' "$doc" | cursor_doc_theme 2>/dev/null); then
-    if [ "$cur" = "$CURSOR_DYNAMIC" ] && [ -n "$prev" ] && [ "$prev" != "$CURSOR_DYNAMIC" ]; then
-      if cursor_save "$prev" "$doc"; then say "Cursor: $prev is back"; else warn "Cursor: could not put $prev back"; fi
+  command -v ryoku-hub >/dev/null || { rm -f -- "$REC/cursor.theme"; return 0; }
+  if ! doc=$(ryoku-hub desktop get 2>/dev/null) || ! cur=$(printf '%s' "$doc" | cursor_doc_theme 2>/dev/null); then
+    # keep the record: it is the only copy of the theme you had
+    warn "Cursor: the Ryoku Hub's settings could not be read; $prev not restored (run uninstall again later)"
+    return 0
+  fi
+  if [ "$cur" = "$CURSOR_DYNAMIC" ] && [ -n "$prev" ] && [ "$prev" != "$CURSOR_DYNAMIC" ]; then
+    if ! cursor_save "$prev" "$doc"; then
+      warn "Cursor: could not put $prev back (run uninstall again later)"
+      return 0
     fi
+    say "Cursor: $prev is back"
   fi
   rm -f -- "$REC/cursor.theme"
 }

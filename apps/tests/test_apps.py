@@ -250,10 +250,19 @@ def test_thunderbird_chrome_is_crate(out):
     for decl in ("--layout-background-0: #0a0a0f !important;", "--layout-background-1: #0d0e14 !important;",
                  "--selected-item-color: #06b6d4 !important;", "--color-primary-default: #06b6d4 !important;",
                  "--layout-border-0: rgba(241, 245, 249, 0.1) !important;", "--button-border-radius: 6px !important;",
-                 "--mmBoxBackground: #0f1016 !important;", "--viewDayBoxSelectedBackground: #15161d !important;",
+                 "--viewDayBoxSelectedBackground: #15161d !important;",
                  "--thread-pane-unread-fill: #67e8f9 !important;", "--folder-color-inbox: #06b6d4 !important;",
                  "--folder-color-folder: rgba(241, 245, 249, 0.62) !important;"):
         assert decl in css, decl
+
+
+def test_thunderbird_minimonth_variables_sit_on_the_minimonth(out):
+    # Thunderbird declares them on calendar-minimonth itself, which beats :root
+    css = (out / "thunderbird/chrome/userChrome.css").read_text()
+    block = re.search(r"calendar-minimonth\s*\{([^}]*)\}", css)
+    assert block and "--mmBoxBackground: #0f1016 !important;" in block.group(1)
+    root = re.search(r":root\s*\{([^}]*)\}", css).group(1)
+    assert "--mmBox" not in root and "--viewHeaderSelectedBackground" not in css
 
 
 def test_lazygit_hides_the_amber_random_tip(out):
@@ -1218,6 +1227,19 @@ def test_cursor_without_a_hub_is_skipped(home):
     log = run("install")
     assert "Cursor" not in log
     assert re.search(r"Cursor +no Ryoku Hub", run("status"))
+
+
+def test_cursor_record_survives_an_unreadable_hub_at_uninstall(home):
+    h, run = home
+    state, _ = hub_stub(run, h)
+    run("install")
+    saved = state.read_text()
+    hub_stub(run, h, doc=json.loads(saved), broken=True)
+    run("uninstall")
+    assert (h / ".local/state/crate-for-ryoku/apps/cursor.theme").read_text().strip() == "Bibata-Modern-Ice"
+    hub_stub(run, h, doc=json.loads(saved))
+    run("uninstall")
+    assert json.loads(state.read_text())["desktop"]["cursor"]["theme"] == "Bibata-Modern-Ice"
 
 
 def test_no_cursor_leaves_it_alone(home):
