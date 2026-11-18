@@ -27,6 +27,8 @@ CRATE_LINE="GRUB_THEME='$CRATE_THEME_TXT'"
 say()  { printf '\033[36m::\033[0m %s\n' "$*"; }
 die()  { printf '\033[31m!!\033[0m %s\n' "$*" >&2; exit 1; }
 run()  { say "running: $*"; "$@"; }
+# run_quiet: say the command, keep its own chatter out of the way
+run_quiet() { say "running: $*"; "$@" >/dev/null; }
 
 need_root() {
   [ -n "$R" ] || [ "$(id -u)" = 0 ] || die "this changes the boot: run it with sudo (sudo crate-for-ryoku boot $1)"
@@ -84,12 +86,13 @@ apply() {
   mkdir -p "$STATE"
   if [ ! -f "$STATE/boot.env" ]; then
     cp -p "$GRUB_DEFAULT" "$STATE/grub.default.before-crate"
+    cp -p "$GRUB_CFG" "$STATE/grub.cfg.before-crate"
     { printf 'PREV_PLYMOUTH=%s\n' "$(current_plymouth)"; printf 'PREV_GRUB_THEME=%s\n' "$(current_grub_line)"; } > "$STATE/boot.env"
     say "recorded your boot in $STATE/boot.env"
   fi
   set_grub_line "$CRATE_LINE"
   say "GRUB_THEME set in /etc/default/grub"
-  run grub-mkconfig -o "$GRUB_CFG" >/dev/null \
+  run_quiet grub-mkconfig -o "$GRUB_CFG" \
     || die "grub-mkconfig failed: GRUB_THEME is already Crate's in /etc/default/grub; run grub-mkconfig -o /boot/grub/grub.cfg by hand, or sudo crate-for-ryoku boot revert"
   run plymouth-set-default-theme -R crate \
     || die "plymouth-set-default-theme failed (the GRUB menu is already Crate's); fix the initramfs build, or sudo crate-for-ryoku boot revert"
@@ -104,7 +107,7 @@ revert() {
   prev_line=$(sed -n 's/^PREV_GRUB_THEME=//p' "$STATE/boot.env")
   set_grub_line "$prev_line"
   say "GRUB_THEME put back in /etc/default/grub"
-  run grub-mkconfig -o "$GRUB_CFG" >/dev/null || die "grub-mkconfig failed; run grub-mkconfig -o /boot/grub/grub.cfg by hand"
+  run_quiet grub-mkconfig -o "$GRUB_CFG" || die "grub-mkconfig failed; run grub-mkconfig -o /boot/grub/grub.cfg by hand"
   if [ -n "$prev_ply" ]; then
     run plymouth-set-default-theme -R "$prev_ply" || die "plymouth-set-default-theme -R $prev_ply failed; run it by hand"
   fi

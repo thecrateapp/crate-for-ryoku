@@ -46,6 +46,19 @@ def test_plymouth_script_registers_its_callbacks_and_crate_colours(out):
 
 # ---------- GRUB ----------
 
+def pf2_name(path):
+    """The NAME section of a GRUB PF2 font: the exact name a theme asks for."""
+    import struct
+    data = path.read_bytes()
+    i = 0
+    while i + 8 <= len(data):
+        tag, size = data[i:i + 4], struct.unpack(">I", data[i + 4:i + 8])[0]
+        if tag == b"NAME":
+            return data[i + 8:i + 8 + size].rstrip(b"\0").decode()
+        i += 8 + size
+    return None
+
+
 def grub_theme(out):
     return (out / "boot/grub/crate/theme.txt").read_text()
 
@@ -62,7 +75,7 @@ def test_grub_theme_parses_and_its_files_exist(out):
         assert (t / f"select_{part}.png").is_file(), part
     # the font names the theme asks for are the ones grub-mkfont wrote
     for size in (16, 24):
-        assert f"JetBrains Mono Regular {size}".encode() in (t / f"jetbrains-mono-{size}.pf2").read_bytes()
+        assert pf2_name(t / f"jetbrains-mono-{size}.pf2") == f"JetBrains Mono Regular {size}"
         assert f'"JetBrains Mono Regular {size}"' in text
 
 
@@ -122,11 +135,17 @@ def test_boot_apply_sets_crate_and_revert_puts_everything_back(sysroot):
     assert (sysroot.root / "usr/share/plymouth/themes/crate/crate.script").is_file()
     assert "grub-mkconfig -o" in sysroot.log.read_text()
     assert (sysroot.root / "var/lib/crate-for-ryoku/grub.default.before-crate").read_text() == GRUB_DEFAULT
+    assert (sysroot.root / "var/lib/crate-for-ryoku/grub.cfg.before-crate").read_text() == "# old\n"
     st = sysroot("status").stdout
     assert re.search(r"Plymouth +crate", st) and re.search(r"GRUB +Crate", st)
     sysroot("revert")
     assert (sysroot.root / "etc/default/grub").read_text() == GRUB_DEFAULT
     assert sysroot.ply.read_text() == "ryoku"
+
+
+def test_boot_apply_prints_every_command(sysroot):
+    out = sysroot("apply").stdout
+    assert "running: grub-mkconfig -o" in out and "running: plymouth-set-default-theme -R crate" in out
 
 
 def test_boot_apply_twice_keeps_the_first_record(sysroot):

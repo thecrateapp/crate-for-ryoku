@@ -32,7 +32,8 @@ mkdir -p "$G"
 cp "$repo/boot/grub/crate/theme.txt" "$G/"
 font=$repo/apps/fonts/jetbrains-mono-latin-400-normal.woff2
 for size in 16 24; do
-  grub-mkfont -s "$size" -n "JetBrains Mono Regular $size" -o "$G/jetbrains-mono-$size.pf2" "$font"
+  # -n sets the family only; grub-mkfont adds "Regular <size>" itself
+  grub-mkfont -s "$size" -n "JetBrains Mono" -o "$G/jetbrains-mono-$size.pf2" "$font"
 done
 # the Groove wallpaper (render.sh writes it into build/); a canvas when it is not built
 wall=${CRATE_BOOT_WALLPAPER:-$repo/build/wallpapers/crate-groove-3840x2160.webp}
