@@ -1145,6 +1145,85 @@ def test_no_thunderbird_leaves_it_alone(home):
     assert not (prof / "chrome").exists()
 
 
+# ---------- cursor ----------
+
+HUB_DOC = {"desktop": {"cursor": {"hideOnKeyPress": False, "inactiveTimeout": 0, "size": 24,
+                                  "theme": "Bibata-Modern-Ice"},
+                       "keybinds": {"custom": [{"keys": "Super+Alt+C", "do": "thing"}]},
+                       "future": {"unknown": [1, 2, 3]}},
+           "wm": {"decoration": {"rounding": 6}, "general": {"gaps_in": 10}}}
+
+
+def hub_stub(run, h, doc=HUB_DOC, broken=False):
+    state = h / ".hub-desktop.json"
+    state.write_text(json.dumps(doc))
+    log = h / ".recolor.log"
+    hub = run.bindir / "ryoku-hub"
+    get = "echo '{not json'" if broken else f'cat "{state}"'
+    hub.write_text(f"""#!/bin/sh
+[ "$1" = desktop ] || exit 2
+case "$2" in
+  get) {get} ;;
+  save) printf '%s' "$3" > "{state}" ;;
+  *) exit 2 ;;
+esac
+""")
+    hub.chmod(0o755)
+    rec = run.bindir / "ryoku-cursor-material-recolor"
+    rec.write_text(f'#!/bin/sh\necho "$@" >> "{log}"\n')
+    rec.chmod(0o755)
+    return state, log
+
+
+def test_cursor_goes_crate_cyan_keeping_every_other_key(home):
+    h, run = home
+    state, log = hub_stub(run, h)
+    run("install")
+    doc = json.loads(state.read_text())
+    want = json.loads(json.dumps(HUB_DOC))
+    want["desktop"]["cursor"]["theme"] = "DYNAMIC"
+    assert doc == want
+    assert log.read_text().split() == ["--force", "--full"]
+    assert re.search(r"Cursor +Crate cyan", run("status"))
+    run("uninstall")
+    assert json.loads(state.read_text()) == HUB_DOC
+
+
+def test_cursor_picked_since_survives(home):
+    h, run = home
+    state, _ = hub_stub(run, h)
+    run("install")
+    doc = json.loads(state.read_text())
+    doc["desktop"]["cursor"]["theme"] = "Adwaita"
+    state.write_text(json.dumps(doc))
+    log = run("install")
+    assert json.loads(state.read_text())["desktop"]["cursor"]["theme"] == "Adwaita" and "Adwaita" in log
+    run("uninstall")
+    assert json.loads(state.read_text())["desktop"]["cursor"]["theme"] == "Adwaita"
+
+
+def test_cursor_with_an_unreadable_hub_saves_nothing(home):
+    h, run = home
+    state, log = hub_stub(run, h, broken=True)
+    before = state.read_text()
+    run("install")
+    assert state.read_text() == before and not log.exists()
+
+
+def test_cursor_without_a_hub_is_skipped(home):
+    h, run = home
+    log = run("install")
+    assert "Cursor" not in log
+    assert re.search(r"Cursor +no Ryoku Hub", run("status"))
+
+
+def test_no_cursor_leaves_it_alone(home):
+    h, run = home
+    state, _ = hub_stub(run, h)
+    run("install", "--no-cursor")
+    assert json.loads(state.read_text()) == HUB_DOC
+
+
 def test_install_sh_passes_the_app_options_through():
     text = open(os.path.join(ROOT, "package/install.sh")).read()
     assert '--no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--no-gtk|--no-gtksourceview|--no-thunderbird|--no-cursor|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text

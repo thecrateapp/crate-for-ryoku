@@ -527,6 +527,75 @@ gtksourceview_uninstall() {
   rm -f -- "$REC/gtksourceview.sha"
 }
 
+# ---------- cursor ----------
+# The Crate cursor is Ryoku's own Material Bibata recoloured to the palette's
+#   primary, Crate's cyan: the cursor store value DYNAMIC ("Follow the wallpaper"
+#   in the Hub). `ryoku-hub desktop save` replaces the whole store, so the full
+#   `get` document goes back with only desktop.cursor.theme changed; the theme
+#   you had is recorded and put back by uninstall while DYNAMIC is still picked.
+CURSOR_DYNAMIC=DYNAMIC
+
+# cursor_doc_theme: the cursor theme in the document on stdin (fails on bad JSON)
+cursor_doc_theme() {
+  python3 -c 'import json, sys
+d = json.load(sys.stdin)
+print(d["desktop"].get("cursor", {}).get("theme", ""))'
+}
+
+# cursor_save THEME DOC: save DOC with only desktop.cursor.theme set to THEME,
+# then check the store holds exactly that
+cursor_save() {
+  local theme=$1 doc=$2 new after
+  new=$(printf '%s' "$doc" | python3 -c 'import json, sys
+d = json.load(sys.stdin)
+d["desktop"].setdefault("cursor", {})["theme"] = sys.argv[1]
+print(json.dumps(d))' "$theme") || return 1
+  ryoku-hub desktop save "$new" >/dev/null || return 1
+  after=$(ryoku-hub desktop get 2>/dev/null) || return 0
+  if ! python3 -c 'import json, sys
+sys.exit(0 if json.loads(sys.argv[1]) == json.loads(sys.argv[2]) else 1)' "$new" "$after" 2>/dev/null; then
+    warn "Cursor: the Ryoku Hub store differs from what was saved; check Ryoku Settings > Input"
+  fi
+}
+
+cursor_install() {
+  command -v ryoku-hub >/dev/null || return 0
+  local doc cur
+  if ! doc=$(ryoku-hub desktop get 2>/dev/null) || ! cur=$(printf '%s' "$doc" | cursor_doc_theme 2>/dev/null); then
+    warn "Cursor: the Ryoku Hub's settings could not be read; cursor left as it is"
+    return 0
+  fi
+  mkdir -p "$REC"
+  if [ -f "$REC/cursor.theme" ]; then
+    # chosen by an earlier install: a cursor you picked since stays
+    if [ "$cur" = "$CURSOR_DYNAMIC" ]; then say "Cursor: Crate cyan"; else say "Cursor: you use $cur since; left as it is"; fi
+    return 0
+  fi
+  if [ "$cur" != "$CURSOR_DYNAMIC" ] && ! cursor_save "$CURSOR_DYNAMIC" "$doc"; then
+    warn "Cursor: the Ryoku Hub did not take the change; cursor left as it is"
+    return 0
+  fi
+  printf '%s\n' "$cur" > "$REC/cursor.theme"
+  # the Hub's own save recolours in the background of a process that has exited
+  if command -v ryoku-cursor-material-recolor >/dev/null; then
+    ryoku-cursor-material-recolor --force --full >/dev/null 2>&1 || warn "Cursor: the recolour did not finish; it runs again at the next palette change"
+  fi
+  say "Cursor: Crate cyan (Ryoku's Material Bibata in the palette's accent)"
+}
+
+cursor_uninstall() {
+  [ -f "$REC/cursor.theme" ] || return 0
+  local prev doc cur
+  prev=$(cat "$REC/cursor.theme")
+  if command -v ryoku-hub >/dev/null && doc=$(ryoku-hub desktop get 2>/dev/null) \
+     && cur=$(printf '%s' "$doc" | cursor_doc_theme 2>/dev/null); then
+    if [ "$cur" = "$CURSOR_DYNAMIC" ] && [ -n "$prev" ] && [ "$prev" != "$CURSOR_DYNAMIC" ]; then
+      if cursor_save "$prev" "$doc"; then say "Cursor: $prev is back"; else warn "Cursor: could not put $prev back"; fi
+    fi
+  fi
+  rm -f -- "$REC/cursor.theme"
+}
+
 # ---------- Firefox ----------
 
 firefox_present() { command -v firefox >/dev/null || [ -f "$CFG/mozilla/firefox/profiles.ini" ] || [ -f "$HOME/.mozilla/firefox/profiles.ini" ]; }
@@ -857,6 +926,14 @@ status() {
   fi
   printf '  %-22s %s\n' "Text Editor" "$line"
 
+  local ctheme
+  if command -v ryoku-hub >/dev/null && ctheme=$(ryoku-hub desktop get 2>/dev/null | cursor_doc_theme 2>/dev/null); then
+    if [ "$ctheme" = "$CURSOR_DYNAMIC" ]; then line="Crate cyan (follows the palette)"; else line="${ctheme:-default}"; fi
+  else
+    line="no Ryoku Hub"
+  fi
+  printf '  %-22s %s\n' "Cursor" "$line"
+
   local prof ff=0 fftotal=0
   if firefox_present; then
     while IFS= read -r prof; do
@@ -942,6 +1019,7 @@ case $cmd in
     [ "$GTK" = 1 ] && gtk_install
     [ "$SOURCE" = 1 ] && gtksourceview_install
     [ "$TBIRD" = 1 ] && thunderbird_chrome_install
+    [ "$CURSOR" = 1 ] && cursor_install
     exit 0 ;;
   uninstall)
     LOOK=0
@@ -962,6 +1040,7 @@ case $cmd in
     gtk_uninstall
     gtksourceview_uninstall
     thunderbird_chrome_uninstall
+    cursor_uninstall
     exit 0 ;;
   status) status ;;
   -h|--help|help) usage ;;
