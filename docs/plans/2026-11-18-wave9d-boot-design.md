@@ -78,8 +78,10 @@ order, GRUB's menu and the Ryoku splash back; nothing on the way can stop the ma
 
 ### Packaging
 
-The PKGBUILD installs the themes under `/usr/share/crate-for-ryoku/boot` (the Plymouth theme also in
-`/usr/share/plymouth/themes/crate`); `refind` becomes an optdepend ("for crate-for-ryoku boot"); `grub`
+The PKGBUILD installs the themes under `/usr/share/crate-for-ryoku/boot` only (`boot apply` copies the
+splash to `/usr/share/plymouth/themes/crate` and revert removes it; apply keeps its revert in
+`/var/lib/crate-for-ryoku/boot.sh` and a `.install` `pre_remove` prints it; `noto-fonts-cjk` builds the
+banner's gloss); `refind` becomes an optdepend ("for crate-for-ryoku boot"); `grub`
 leaves makedepends. `crate-for-ryoku uninstall` reminds of `boot revert` while `boot.env` exists.
 
 ## If a boot goes wrong

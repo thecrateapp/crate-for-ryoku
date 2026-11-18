@@ -239,7 +239,9 @@ def test_the_pkgbuild_ships_refind_not_grub():
     assert re.search(r"'refind: [^']*crate-for-ryoku boot", pkg)
     assert "optdepends = refind: " in srcinfo
     assert "/usr/share/grub" not in pkg and "plymouth grub" not in pkg
-    assert '"$pkgdir/usr/share/plymouth/themes/crate"' in pkg
+    # the splash belongs to boot apply (it copies and revert removes it), so a release-folder
+    # apply and a later package install never fight over /usr/share/plymouth/themes/crate
+    assert "/usr/share/plymouth" not in pkg
 
 
 def test_uninstall_reminds_of_the_boot_while_crate_owns_it():
@@ -334,3 +336,55 @@ def test_docs_warn_about_bitlocker_and_how_to_reach_grub():
     assert "Shift" in doc
     design = open(os.path.join(ROOT, "docs/plans/2026-11-18-wave9d-boot-design.md")).read()
     assert "big_icon_size 128" not in design
+
+
+# ---------- the minors: splash ownership, pacman -R, the kanji font ----------
+
+def test_boot_apply_refreshes_the_splash_and_revert_takes_it_away(sysroot, out):
+    sysroot("apply")
+    theme = sysroot.root / "usr/share/plymouth/themes/crate/crate.plymouth"
+    built = (out / "boot/plymouth/crate/crate.plymouth").read_text()
+    assert theme.read_text() == built
+    theme.write_text("stale from an older version")
+    sysroot("apply")
+    assert theme.read_text() == built
+    sysroot("revert")
+    assert not theme.parent.exists()
+
+
+def test_boot_apply_leaves_a_revert_that_outlives_the_package(sysroot, tmp_path):
+    sysroot("apply")
+    kept = sysroot.root / "var/lib/crate-for-ryoku/boot.sh"
+    assert kept.is_file()
+    env = dict(os.environ, CRATE_SYSTEM_ROOT=str(sysroot.root), CRATE_BOOT_THEMES=str(tmp_path / "gone"),
+               PATH=f"{sysroot.bindir}:{os.environ['PATH']}")
+    r = subprocess.run(["bash", str(kept), "revert"], env=env, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    assert (sysroot.root / "etc/default/grub").read_text() == GRUB_DEFAULT
+    assert sysroot.order.read_text() == "0007,0005,0000"
+
+
+def test_pacman_remove_says_how_to_revert_the_boot():
+    d = os.path.join(ROOT, "packaging/aur/crate-for-ryoku")
+    pkg = open(os.path.join(d, "PKGBUILD")).read()
+    srcinfo = open(os.path.join(d, ".SRCINFO")).read()
+    assert re.search(r"^install=crate-for-ryoku\.install$", pkg, re.M)
+    assert "\tinstall = crate-for-ryoku.install" in srcinfo
+    inst = open(os.path.join(d, "crate-for-ryoku.install")).read()
+    assert "pre_remove()" in inst and "/var/lib/crate-for-ryoku/boot.env" in inst
+    assert "/var/lib/crate-for-ryoku/boot.sh revert" in inst
+    r = subprocess.run(["bash", "-n", os.path.join(d, "crate-for-ryoku.install")], capture_output=True)
+    assert r.returncode == 0
+
+
+def test_banner_skips_the_kanji_without_a_font_that_has_them(tmp_path):
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    for name in ("fc-list", "fc-match"):                 # a fontconfig with no CJK coverage
+        (bindir / name).write_text("#!/bin/sh\n[ \"$1\" = fc-match ] || true\n")
+        (bindir / name).chmod(0o755)
+    (bindir / "fc-match").write_text("#!/bin/sh\nprintf /usr/share/fonts/TTF/DejaVuSans.ttf\n")
+    env = dict(os.environ, PATH=f"{bindir}:{os.environ['PATH']}")
+    r = subprocess.run(["bash", BUILD, str(tmp_path / "o")], env=env, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    assert "起動" in r.stderr                              # says the gloss was left out

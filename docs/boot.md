@@ -8,7 +8,8 @@
   in Crate's colours (CachyOS with cyan bubbles, Windows with one cyan outlined square), and under them
   rEFInd's tools (reboot, shut down, firmware settings and the rest) in Crate line icons. The selected
   tile is raised with a cyan edge. rEFInd cannot animate, so the beam stands still.
-- **Plymouth** (`/usr/share/plymouth/themes/crate`): pure black, like the framebuffer before it and the
+- **Plymouth** (`/usr/share/crate-for-ryoku/boot/plymouth/crate`, copied to
+  `/usr/share/plymouth/themes/crate` by `apply`): pure black, like the framebuffer before it and the
   greeter after it, the Crate mark, and a hairline beam whose cyan fill follows the boot. A bullet
   prompt is there for encrypted disks.
 
@@ -33,12 +34,17 @@ sudo crate-for-ryoku boot revert    # puts the recorded boot back
 2. copies the theme to `/boot/efi/EFI/refind/themes/crate` and writes `refind.conf` with a `CachyOS`
    entry (`\EFI\cachyos\grubx64.efi`) and, when Windows is installed, a `Windows` entry;
 3. sets `GRUB_TIMEOUT=1` and `GRUB_TIMEOUT_STYLE=hidden` and runs `grub-mkconfig -o /boot/grub/grub.cfg`;
-4. runs `plymouth-set-default-theme -R crate`, which rebuilds the initramfs.
+4. copies the splash to `/usr/share/plymouth/themes/crate` and runs `plymouth-set-default-theme -R crate`,
+   which rebuilds the initramfs.
 
 Each command is printed before it runs; if one fails, the command stops and says how to finish by hand
 or revert. It stops before changing anything when `efibootmgr` shows no boot order. `revert` restores the boot order, the previous `refind.conf`, the GRUB lines (and runs
-`grub-mkconfig`) and the splash; rEFInd's files stay on the ESP, no longer first.
-`crate-for-ryoku uninstall` reminds you to revert while the boot is still Crate's.
+`grub-mkconfig`) and the splash, and removes Crate's splash folder; rEFInd's files stay on the ESP, no
+longer first. `crate-for-ryoku uninstall` reminds you to revert while the boot is still Crate's.
+
+`apply` owns these boot pieces, not the package: removing `crate-for-ryoku` with pacman leaves the
+machine booting as it does, and the revert stays at `/var/lib/crate-for-ryoku/boot.sh`
+(`sudo bash /var/lib/crate-for-ryoku/boot.sh revert`); pacman prints that line when it removes the package.
 
 ## If a boot goes wrong
 

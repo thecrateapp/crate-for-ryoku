@@ -17,7 +17,7 @@ arch=('any')
 url="https://github.com/thecrateapp/crate-for-ryoku"
 license=('MIT' 'CC-BY-4.0' 'OFL-1.1')
 depends=('ryoku-desktop' 'python' 'python-numpy' 'python-pillow' 'librsvg' 'fontconfig' 'qt6-imageformats')
-makedepends=('git' 'python-cairo' 'quickshell' 'qt6-imageformats' 'python-fonttools' 'python-brotli' 'openssl')
+makedepends=('git' 'python-cairo' 'quickshell' 'qt6-imageformats' 'python-fonttools' 'python-brotli' 'openssl' 'noto-fonts-cjk')
 optdepends=(
   'crate-desktop-bin: the Crate app (now playing, the launcher provider, the bar panel)'
   'eza: the Crate eza theme'
@@ -26,6 +26,7 @@ optdepends=(
   'papirus-icon-theme: icons crate-icons does not draw'
   'refind: the Crate boot screen (sudo crate-for-ryoku boot apply)'
 )
+install=crate-for-ryoku.install
 source=("$pkgname::git+https://github.com/thecrateapp/crate-for-ryoku.git#tag=v$pkgver")
 sha256sums=('SKIP')
 _chrome_id=jddiejdibphncbpfehopofclalbeghbc  # fixed by the key in apps/chrome/theme/manifest.json
@@ -49,10 +50,6 @@ package() {
     install -Dm644 "dist/$pkgname-$pkgver/chrome/$_chrome_id.json" "$pkgdir/usr/share/google-chrome/extensions/$_chrome_id.json"
     install -Dm644 "dist/$pkgname-$pkgver/chrome/$_chrome_id.json" "$pkgdir/usr/share/chromium/extensions/$_chrome_id.json"
   fi
-  # the Plymouth splash where plymouth looks for it; the rEFInd theme stays in
-  # /usr/share/crate-for-ryoku/boot until `sudo crate-for-ryoku boot apply` copies it to the ESP
-  if [ -d "dist/$pkgname-$pkgver/boot/plymouth/crate" ]; then
-    install -d "$pkgdir/usr/share/plymouth/themes"
-    cp -a "dist/$pkgname-$pkgver/boot/plymouth/crate" "$pkgdir/usr/share/plymouth/themes/crate"
-  fi
+  # the boot themes stay in /usr/share/crate-for-ryoku/boot: `sudo crate-for-ryoku boot apply`
+  # copies the splash to plymouth's folder and the rEFInd theme to the ESP, and revert removes them
 }

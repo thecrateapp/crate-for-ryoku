@@ -1,0 +1,11 @@
+# crate-for-ryoku: what pacman -R leaves of the boot.
+#
+# `sudo crate-for-ryoku boot apply` owns the boot pieces (rEFInd's theme on the ESP, the splash
+# in /usr/share/plymouth/themes/crate), so removing the package keeps the machine booting as it
+# does now. It keeps its revert in /var/lib/crate-for-ryoku/boot.sh for after the package is gone.
+pre_remove() {
+  if [ -f /var/lib/crate-for-ryoku/boot.env ]; then
+    echo ":: crate-for-ryoku: the boot keeps Crate's rEFInd screen and splash after removal."
+    echo "   To put your previous boot back: sudo bash /var/lib/crate-for-ryoku/boot.sh revert"
+  fi
+}

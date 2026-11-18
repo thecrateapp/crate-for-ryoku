@@ -39,7 +39,16 @@ repo, out = sys.argv[1], sys.argv[2]
 W, H = 3840, 2400
 CANVAS, CYAN, HI, SEC, FAINT, HAIR = (10, 10, 15), (6, 182, 212), (103, 232, 249), (153, 156, 160), (107, 109, 113), (33, 34, 38)
 mono = f"{repo}/apps/fonts/jetbrains-mono-latin-400-normal.woff2"
-cjk = subprocess.run(["fc-match", "-f", "%{file}", "Noto Sans CJK JP"], capture_output=True, text=True).stdout.strip()
+# a font that really has the gloss (fc-match always answers, even with no CJK font
+# installed, and the kanji would come out as boxes); Noto Sans CJK JP first
+def cjk_font():
+    rows = subprocess.run(["fc-list", ":charset=8d77 52d5", "file", "family"],
+                          capture_output=True, text=True).stdout.splitlines()
+    rows = sorted((r for r in rows if ":" in r), key=lambda r: ("Noto Sans CJK JP" not in r, "CJK" not in r, r))
+    return rows[0].split(":")[0].strip() if rows else ""
+cjk = cjk_font()
+if not cjk:
+    print("build-boot: no installed font has 起動 (noto-fonts-cjk); the banner leaves the gloss out", file=sys.stderr)
 
 def svg_png(svg, w, h, path):
     subprocess.run(["rsvg-convert", "-w", str(w), "-h", str(h), "-o", path], input=svg.encode(), check=True)

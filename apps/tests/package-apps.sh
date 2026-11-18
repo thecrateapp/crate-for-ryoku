@@ -92,7 +92,8 @@ for f in usr/share/crate-for-ryoku/chrome/crate-theme.crx "usr/share/google-chro
          "usr/share/chromium/extensions/$real_id.json"; do
     [ -s "$tmp/pkg1/$f" ] || fail "package() did not install /$f"
 done
-for f in usr/share/plymouth/themes/crate/crate.plymouth usr/share/crate-for-ryoku/boot/refind/crate/theme.conf; do
+[ ! -e "$tmp/pkg1/usr/share/plymouth" ] || fail "package() installed into /usr/share/plymouth (boot apply owns the splash)"
+for f in usr/share/crate-for-ryoku/boot/plymouth/crate/crate.plymouth usr/share/crate-for-ryoku/boot/refind/crate/theme.conf; do
     [ -e "$tmp/pkg1/$f" ] || fail "package() did not install the boot theme /$f"
 done
 crx=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["external_crx"])' \

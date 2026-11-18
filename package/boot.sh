@@ -21,6 +21,7 @@ GRUB_CFG=$R/boot/grub/grub.cfg
 ESP=$R/boot/efi
 RF=$ESP/EFI/refind
 STATE=$R/var/lib/crate-for-ryoku
+SPLASH=$R/usr/share/plymouth/themes/crate
 MARK='# crate-for-ryoku: rEFInd'
 
 say() { printf '\033[36m::\033[0m %s\n' "$*"; }
@@ -90,6 +91,14 @@ write_refind_conf() {
   } > "$RF/refind.conf"
 }
 
+# install_splash: this version's splash where plymouth looks for it (boot apply owns
+# it, not the package, so a release-folder apply and a package install never collide)
+install_splash() {
+  mkdir -p "${SPLASH%/*}" || return 1
+  if [ -d "$SPLASH" ]; then rm -r -- "$SPLASH" || return 1; fi
+  cp -a "$THEMES/plymouth/crate" "$SPLASH"
+}
+
 # install_refind_theme: the new theme in place, or the previous one kept (returns 1)
 install_refind_theme() {
   local dest=$RF/themes/crate
@@ -125,6 +134,8 @@ apply() {
     } > "$STATE/boot.env"
     say "recorded your boot in $STATE/boot.env"
   fi
+  # a copy for revert that outlives the package (pacman -R removes /usr/share/crate-for-ryoku)
+  if ! [ "${BASH_SOURCE[0]}" -ef "$STATE/boot.sh" ]; then cp -p "${BASH_SOURCE[0]}" "$STATE/boot.sh"; fi
   local entry rest
   entry=$(refind_entry)
   if [ ! -f "$RF/refind_x64.efi" ] || [ -z "$entry" ]; then
@@ -147,10 +158,7 @@ apply() {
   say "GRUB's menu hidden (tap Esc or hold Shift right after choosing CachyOS to see it)"
   run_quiet grub-mkconfig -o "$GRUB_CFG" \
     || die "grub-mkconfig failed: /etc/default/grub already hides the menu; run grub-mkconfig -o /boot/grub/grub.cfg by hand, or sudo crate-for-ryoku boot revert"
-  if [ ! -d "$R/usr/share/plymouth/themes/crate" ]; then
-    mkdir -p "$R/usr/share/plymouth/themes"
-    cp -a "$THEMES/plymouth/crate" "$R/usr/share/plymouth/themes/crate"
-  fi
+  install_splash || die "could not copy the splash to $SPLASH (rEFInd and GRUB are already set); sudo crate-for-ryoku boot revert"
   run plymouth-set-default-theme -R crate \
     || die "plymouth-set-default-theme failed (rEFInd and GRUB are already set); fix the initramfs build, or sudo crate-for-ryoku boot revert"
   say "Crate's boot is on: reboot to see it. The firmware boot menu still lists GRUB if you ever need it."
@@ -180,7 +188,8 @@ revert() {
   if [ -n "$ply" ]; then
     run plymouth-set-default-theme -R "$ply" || die "plymouth-set-default-theme -R $ply failed; run it by hand"
   fi
-  rm -f -- "$STATE/boot.env" "$STATE/refind.conf.before-crate"
+  if [ "$(current_plymouth)" != crate ] && [ -d "$SPLASH" ]; then rm -r -- "$SPLASH"; fi
+  rm -f -- "$STATE/boot.env" "$STATE/refind.conf.before-crate" "$STATE/boot.sh"
   say "your boot is back (rEFInd's files stay on the ESP, no longer first)"
 }
 
