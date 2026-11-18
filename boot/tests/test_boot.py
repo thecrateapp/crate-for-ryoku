@@ -108,15 +108,18 @@ def sysroot(tmp_path, out):
     log, ply, order = tmp_path / "calls.log", tmp_path / "plymouth-theme", tmp_path / "bootorder"
     ply.write_text("ryoku")
     order.write_text("0007,0005,0000")
+    entries = tmp_path / "entries"
+    entries.write_text("Boot0007* cachyos\nBoot0009* rEFInd Boot Manager\n")
     stubs = {
         "grub-mkconfig": f'echo "grub-mkconfig $*" >> "{log}"',
         "plymouth-set-default-theme": f'if [ "$1" = -R ]; then printf "%s" "$2" > "{ply}"; echo "plymouth -R $2" >> "{log}"; else cat "{ply}"; echo; fi',
         "refind-install": (f'mkdir -p "{root}/boot/efi/EFI/refind" && echo efi > "{root}/boot/efi/EFI/refind/refind_x64.efi" '
                            f'&& echo "# sample" > "{root}/boot/efi/EFI/refind/refind.conf" && printf "%s" "0009,$(cat "{order}")" > "{order}" '
+                           f'&& (grep -q rEFInd "{entries}" || echo "Boot0009* rEFInd Boot Manager" >> "{entries}") '
                            f'&& echo "refind-install" >> "{log}"'),
         "efibootmgr": (f'if [ "$1" = -o ]; then printf "%s" "$2" > "{order}"; echo "efibootmgr -o $2" >> "{log}"; '
                        f'else echo "BootCurrent: 0007"; echo "BootOrder: $(cat "{order}")"; '
-                       f'echo "Boot0007* cachyos"; echo "Boot0009* rEFInd Boot Manager"; fi'),
+                       f'cat "{entries}"; fi'),
     }
     for name, body in stubs.items():
         (bindir / name).write_text("#!/bin/sh\n" + body + "\n")
@@ -130,7 +133,7 @@ def sysroot(tmp_path, out):
             assert r.returncode == 0, r.stderr
         return r
 
-    run.root, run.log, run.ply, run.order, run.bindir = root, log, ply, order, bindir
+    run.root, run.log, run.ply, run.order, run.bindir, run.entries = root, log, ply, order, bindir, entries
     return run
 
 
@@ -147,7 +150,7 @@ def test_boot_apply_puts_crate_refind_first_and_revert_puts_everything_back(sysr
     assert (sysroot.root / "boot/efi/EFI/refind/themes/crate/banner.png").is_file()
     assert sysroot.order.read_text().startswith("0009,")
     grub = (sysroot.root / "etc/default/grub").read_text()
-    assert "GRUB_TIMEOUT=0\n" in grub and "GRUB_TIMEOUT_STYLE=hidden\n" in grub
+    assert "GRUB_TIMEOUT=1\n" in grub and "GRUB_TIMEOUT_STYLE=hidden\n" in grub   # Esc/Shift: one second
     assert sysroot.ply.read_text() == "crate"
     st = sysroot("status").stdout
     assert re.search(r"rEFInd +first, Crate theme", st) and re.search(r"Plymouth +crate", st)
@@ -269,3 +272,65 @@ def test_refind_assets_are_drawn_for_hidpi_and_let_refind_scale(out):
         assert Image.open(t / f"icons/{name}.png").size == (96, 96), name
     assert Image.open(t / "selection_big.png").size == (288, 288)
     assert Image.open(t / "selection_small.png").size == (128, 128)
+
+
+# ---------- boot.sh: firmware entries and failures (review fixes) ----------
+
+def with_refind_on_esp(run):
+    d = run.root / "boot/efi/EFI/refind"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "refind_x64.efi").write_text("efi")
+
+
+def test_boot_reinstalls_refind_when_its_firmware_entry_is_gone(sysroot):
+    with_refind_on_esp(sysroot)
+    sysroot.entries.write_text("Boot0007* cachyos\n")         # a firmware update dropped it
+    sysroot("apply")
+    assert "refind-install" in sysroot.log.read_text()
+    assert sysroot.order.read_text().startswith("0009,")
+
+
+def test_boot_finds_an_inactive_refind_entry(sysroot):
+    with_refind_on_esp(sysroot)
+    sysroot.entries.write_text("Boot0007* cachyos\nBoot0009  rEFInd Boot Manager\n")
+    sysroot("apply")
+    assert "efibootmgr -o 0009,0007,0005,0000" in sysroot.log.read_text()
+
+
+def test_boot_prefers_the_entry_that_starts_refind_x64(sysroot):
+    with_refind_on_esp(sysroot)
+    sysroot.entries.write_text("Boot0003* rEFInd old\tHD(1,GPT)/File(\\EFI\\old\\loader.efi)\n"
+                               "Boot0009* rEFInd Boot Manager\tHD(1,GPT)/File(\\EFI\\refind\\refind_x64.efi)\n")
+    sysroot("apply")
+    assert sysroot.order.read_text().startswith("0009,")
+
+
+def test_boot_with_rEFInd_alone_in_the_order_still_applies(sysroot):
+    with_refind_on_esp(sysroot)
+    sysroot.order.write_text("0009")
+    r = sysroot("apply")
+    assert "Crate's boot is on" in r.stdout
+
+
+def test_boot_without_a_boot_order_stops_before_any_change(sysroot):
+    sysroot.order.write_text("")
+    r = sysroot("apply", ok=False)
+    assert r.returncode != 0 and "BootOrder" in r.stderr
+    assert (sysroot.root / "etc/default/grub").read_text() == GRUB_DEFAULT
+    assert not (sysroot.root / "var/lib/crate-for-ryoku/boot.env").exists()
+
+
+def test_boot_failing_theme_copy_says_how_to_finish(sysroot):
+    with_refind_on_esp(sysroot)
+    (sysroot.root / "boot/efi/EFI/refind/themes").write_text("not a folder")
+    r = sysroot("apply", ok=False)
+    assert r.returncode != 0 and "theme" in r.stderr and "boot revert" in r.stderr
+    assert (sysroot.root / "etc/default/grub").read_text() == GRUB_DEFAULT
+
+
+def test_docs_warn_about_bitlocker_and_how_to_reach_grub():
+    doc = open(os.path.join(ROOT, "docs/boot.md")).read()
+    assert "BitLocker" in doc and "recovery key" in doc
+    assert "Shift" in doc
+    design = open(os.path.join(ROOT, "docs/plans/2026-11-18-wave9d-boot-design.md")).read()
+    assert "big_icon_size 128" not in design

@@ -7,7 +7,8 @@
 #
 # apply installs rEFInd on the ESP (refind-install, the refind package) and themes it
 # like Ryoku's reload cover; its CachyOS entry starts the existing GRUB, whose menu
-# becomes hidden (Esc right after choosing CachyOS shows it, snapshots included);
+# becomes hidden for one second (tap Esc or hold Shift right after choosing CachyOS
+# to see it, snapshots included);
 # then `plymouth-set-default-theme -R crate` rebuilds the initramfs. Every command
 # is printed before it runs, and the firmware boot menu keeps GRUB as a fallback.
 set -euo pipefail
@@ -35,7 +36,14 @@ current_plymouth() {
   plymouth-set-default-theme 2>/dev/null || sed -n 's/^Theme=//p' "$R/etc/plymouth/plymouthd.conf" 2>/dev/null || true
 }
 boot_order() { efibootmgr 2>/dev/null | sed -n 's/^BootOrder: //p'; }
-refind_entry() { efibootmgr 2>/dev/null | sed -n 's/^Boot\([0-9A-Fa-f]\{4\}\)\*\{0,1\} \{0,1\}rEFInd.*/\1/p' | head -n 1; }
+# refind_entry: rEFInd's firmware entry, active or not; the one that starts
+# \EFI\refind\refind_x64.efi first when several carry the name
+refind_entry() {
+  local all
+  all=$(efibootmgr 2>/dev/null | grep -E '^Boot[0-9A-Fa-f]{4}\*? +rEFInd' || true)
+  { printf '%s\n' "$all" | grep -i 'refind_x64\.efi' || printf '%s\n' "$all"; } \
+    | awk 'match($0, /^Boot[0-9A-Fa-f]{4}/) { print substr($0, 5, 4); exit }'
+}
 grub_line() { grep -m1 -E "^$1=" "$GRUB_DEFAULT" 2>/dev/null || true; }
 
 # set_grub_line NAME LINE: the first NAME= line becomes LINE (added when there is
@@ -82,11 +90,16 @@ write_refind_conf() {
   } > "$RF/refind.conf"
 }
 
+# install_refind_theme: the new theme in place, or the previous one kept (returns 1)
 install_refind_theme() {
   local dest=$RF/themes/crate
-  if [ -d "$dest" ]; then mv -- "$dest" "$dest.old-$$"; fi
-  mkdir -p "$RF/themes"
-  cp -a "$THEMES/refind/crate" "$dest"
+  mkdir -p "$RF/themes" || return 1
+  if [ -d "$dest" ]; then mv -- "$dest" "$dest.old-$$" || return 1; fi
+  if ! cp -a "$THEMES/refind/crate" "$dest"; then
+    if [ -e "$dest" ]; then rm -r -- "$dest"; fi
+    if [ -d "$dest.old-$$" ]; then mv -- "$dest.old-$$" "$dest"; fi
+    return 1
+  fi
   if [ -d "$dest.old-$$" ]; then rm -r -- "$dest.old-$$"; fi
 }
 
@@ -98,6 +111,7 @@ apply() {
   [ -f "$GRUB_DEFAULT" ] && [ -f "$GRUB_CFG" ] || die "no GRUB at /etc/default/grub and /boot/grub/grub.cfg"
   [ -f "$ESP/EFI/cachyos/grubx64.efi" ] || die "no \\EFI\\cachyos\\grubx64.efi on the ESP for rEFInd to start"
   [ -d "$THEMES/refind/crate" ] && [ -d "$THEMES/plymouth/crate" ] || die "no boot themes in $THEMES"
+  [ -n "$(boot_order)" ] || die "efibootmgr shows no BootOrder (are the EFI variables there?); nothing was changed"
   mkdir -p "$STATE"
   if [ ! -f "$STATE/boot.env" ]; then
     cp -p "$GRUB_DEFAULT" "$STATE/grub.default.before-crate"
@@ -111,25 +125,26 @@ apply() {
     } > "$STATE/boot.env"
     say "recorded your boot in $STATE/boot.env"
   fi
-  if [ ! -f "$RF/refind_x64.efi" ]; then
-    run refind-install || die "refind-install failed; nothing else was changed (sudo crate-for-ryoku boot revert cleans up)"
+  local entry rest
+  entry=$(refind_entry)
+  if [ ! -f "$RF/refind_x64.efi" ] || [ -z "$entry" ]; then
+    # not on the ESP, or its firmware entry is gone (firmware updates drop them)
+    run refind-install || die "refind-install failed; GRUB was not changed (sudo crate-for-ryoku boot revert cleans up)"
     if [ ! -f "$STATE/refind.conf.before-crate" ] && [ -f "$RF/refind.conf" ]; then
       cp -p "$RF/refind.conf" "$STATE/refind.conf.before-crate"
     fi
-  else
-    local entry rest
     entry=$(refind_entry)
-    if [ -n "$entry" ]; then
-      rest=$(boot_order | tr ',' '\n' | grep -v -x -i "$entry" | paste -sd, -)
-      run efibootmgr -o "$entry${rest:+,$rest}" >/dev/null || die "could not put rEFInd first"
-    fi
+    [ -n "$entry" ] || die "rEFInd has no firmware boot entry even after refind-install; GRUB was not changed (sudo crate-for-ryoku boot revert cleans up)"
   fi
-  install_refind_theme
-  write_refind_conf
+  rest=$(boot_order | tr ',' '\n' | { grep -v -x -i "$entry" || true; } | paste -sd, -)
+  run efibootmgr -o "$entry${rest:+,$rest}" >/dev/null || die "could not put rEFInd first; GRUB was not changed (sudo crate-for-ryoku boot revert cleans up)"
+  install_refind_theme || die "could not copy the rEFInd theme to $RF/themes/crate; GRUB was not changed (sudo crate-for-ryoku boot revert cleans up)"
+  write_refind_conf || die "could not write $RF/refind.conf; GRUB was not changed (sudo crate-for-ryoku boot revert cleans up)"
   say "rEFInd themed: $RF/themes/crate and refind.conf"
-  set_grub_line GRUB_TIMEOUT "GRUB_TIMEOUT=0"
-  set_grub_line GRUB_TIMEOUT_STYLE "GRUB_TIMEOUT_STYLE=hidden"
-  say "GRUB's menu hidden (Esc right after choosing CachyOS shows it)"
+  # one hidden second, not zero: with a zero timeout GRUB looks for a key only once
+  { set_grub_line GRUB_TIMEOUT "GRUB_TIMEOUT=1" && set_grub_line GRUB_TIMEOUT_STYLE "GRUB_TIMEOUT_STYLE=hidden"; } \
+    || die "could not edit /etc/default/grub (rEFInd is already set); sudo crate-for-ryoku boot revert puts it back"
+  say "GRUB's menu hidden (tap Esc or hold Shift right after choosing CachyOS to see it)"
   run_quiet grub-mkconfig -o "$GRUB_CFG" \
     || die "grub-mkconfig failed: /etc/default/grub already hides the menu; run grub-mkconfig -o /boot/grub/grub.cfg by hand, or sudo crate-for-ryoku boot revert"
   if [ ! -d "$R/usr/share/plymouth/themes/crate" ]; then
@@ -151,6 +166,8 @@ revert() {
   sline=$(sed -n 's/^PREV_GRUB_TIMEOUT_STYLE=//p' "$STATE/boot.env")
   if [ -n "$order" ]; then
     run efibootmgr -o "$order" >/dev/null || die "could not restore the boot order $order; run efibootmgr -o $order by hand"
+  else
+    printf '\033[33m!!\033[0m %s\n' "no boot order was recorded: check efibootmgr and put your system first with efibootmgr -o" >&2
   fi
   if [ -f "$STATE/refind.conf.before-crate" ]; then
     cp -p "$STATE/refind.conf.before-crate" "$RF/refind.conf"

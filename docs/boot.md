@@ -12,8 +12,8 @@
   greeter after it, the Crate mark, and a hairline beam whose cyan fill follows the boot. A bullet
   prompt is there for encrypted disks.
 
-rEFInd's CachyOS entry starts the GRUB you already have, with its menu hidden: rEFInd needs no kernel,
-initramfs or btrfs setup of its own, and GRUB keeps the snapshot entries one key away.
+rEFInd's CachyOS entry starts the GRUB you already have, with its menu hidden for one second: rEFInd
+needs no kernel, initramfs or btrfs setup of its own, and GRUB keeps the snapshot entries one key away.
 
 ## Turning it on and off
 
@@ -28,15 +28,15 @@ sudo crate-for-ryoku boot revert    # puts the recorded boot back
 (`efibootmgr`), the Plymouth theme and the `GRUB_TIMEOUT`/`GRUB_TIMEOUT_STYLE` lines; it keeps copies of
 `/etc/default/grub`, `/boot/grub/grub.cfg` and any existing rEFInd `refind.conf` there too. Then it:
 
-1. runs `refind-install` when rEFInd is not yet on the ESP (that puts rEFInd first in the boot order;
-   when it is already there, `apply` moves its entry first with `efibootmgr -o`);
+1. runs `refind-install` when rEFInd is not yet on the ESP or its firmware boot entry is gone (firmware
+   updates sometimes drop it), then puts rEFInd's entry first with `efibootmgr -o`;
 2. copies the theme to `/boot/efi/EFI/refind/themes/crate` and writes `refind.conf` with a `CachyOS`
    entry (`\EFI\cachyos\grubx64.efi`) and, when Windows is installed, a `Windows` entry;
-3. sets `GRUB_TIMEOUT=0` and `GRUB_TIMEOUT_STYLE=hidden` and runs `grub-mkconfig -o /boot/grub/grub.cfg`;
+3. sets `GRUB_TIMEOUT=1` and `GRUB_TIMEOUT_STYLE=hidden` and runs `grub-mkconfig -o /boot/grub/grub.cfg`;
 4. runs `plymouth-set-default-theme -R crate`, which rebuilds the initramfs.
 
 Each command is printed before it runs; if one fails, the command stops and says how to finish by hand
-or revert. `revert` restores the boot order, the previous `refind.conf`, the GRUB lines (and runs
+or revert. It stops before changing anything when `efibootmgr` shows no boot order. `revert` restores the boot order, the previous `refind.conf`, the GRUB lines (and runs
 `grub-mkconfig`) and the splash; rEFInd's files stay on the ESP, no longer first.
 `crate-for-ryoku uninstall` reminds you to revert while the boot is still Crate's.
 
@@ -44,9 +44,14 @@ or revert. `revert` restores the boot order, the previous `refind.conf`, the GRU
 
 - **rEFInd does not show**: open the firmware boot menu (F12 on most laptops), which still lists
   CachyOS (GRUB) and Windows Boot Manager; boot one and run `sudo crate-for-ryoku boot revert`.
-- **GRUB's menu** (snapshots, another kernel): choose CachyOS in rEFInd and press Esc right away.
+- **GRUB's menu** (snapshots, another kernel): choose CachyOS in rEFInd, then tap Esc repeatedly or hold
+  Shift; GRUB waits one hidden second for it.
 - **A blank or text splash**: press Esc to see the boot log. For a boot without the splash, open GRUB's
   menu with Esc, press `e` on the entry, add `plymouth.enable=0` to the `linux` line and press Ctrl+X.
+- **Windows asks for its BitLocker recovery key**: with BitLocker or Device Encryption on, Windows can
+  notice that a different boot manager started it. Have the recovery key at hand
+  (account.microsoft.com/devices/recoverykey) the first time you start Windows from rEFInd; the firmware
+  boot menu's Windows Boot Manager entry starts it the usual way.
 - The untouched `/etc/default/grub` is at `/var/lib/crate-for-ryoku/grub.default.before-crate`.
 
 Neither theme can stop a machine from booting: GRUB stays in the firmware boot menu, and Plymouth falls

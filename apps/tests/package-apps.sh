@@ -82,9 +82,9 @@ fake() { # $1: srcdir, $2: 1 to include the Chrome theme
         cp "$out/crate-theme.crx" "$d/dist/crate-for-ryoku-$ver/chrome/"
         cp "$out/$want.json" "$d/dist/crate-for-ryoku-$ver/chrome/$real_id.json"
     fi
-    mkdir -p "$d/dist/crate-for-ryoku-$ver/boot/plymouth/crate" "$d/dist/crate-for-ryoku-$ver/boot/grub/crate"
+    mkdir -p "$d/dist/crate-for-ryoku-$ver/boot/plymouth/crate" "$d/dist/crate-for-ryoku-$ver/boot/refind/crate"
     : > "$d/dist/crate-for-ryoku-$ver/boot/plymouth/crate/crate.plymouth"
-    : > "$d/dist/crate-for-ryoku-$ver/boot/grub/crate/theme.txt"
+    : > "$d/dist/crate-for-ryoku-$ver/boot/refind/crate/theme.conf"
 }
 fake "$tmp/src1" 1
 run_package "$tmp/src1" "$tmp/pkg1" || fail "package() failed with the Chrome theme"
@@ -92,7 +92,7 @@ for f in usr/share/crate-for-ryoku/chrome/crate-theme.crx "usr/share/google-chro
          "usr/share/chromium/extensions/$real_id.json"; do
     [ -s "$tmp/pkg1/$f" ] || fail "package() did not install /$f"
 done
-for f in usr/share/plymouth/themes/crate/crate.plymouth usr/share/grub/themes/crate/theme.txt; do
+for f in usr/share/plymouth/themes/crate/crate.plymouth usr/share/crate-for-ryoku/boot/refind/crate/theme.conf; do
     [ -e "$tmp/pkg1/$f" ] || fail "package() did not install the boot theme /$f"
 done
 crx=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["external_crx"])' \

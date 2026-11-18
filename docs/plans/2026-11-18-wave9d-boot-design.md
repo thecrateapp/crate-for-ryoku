@@ -31,7 +31,7 @@ order, GRUB's menu and the Ryoku splash back; nothing on the way can stop the ma
 
 ## Decisions (Diego, 2026-11-18)
 
-- rEFInd starts CachyOS by chainloading the existing GRUB, whose menu becomes hidden with no timeout:
+- rEFInd starts CachyOS by chainloading the existing GRUB, whose menu becomes hidden with a one-second timeout (with zero GRUB checks for a key only once):
   rEFInd needs no kernel, initramfs or btrfs setup, the snapshots stay one Esc away in GRUB, and GRUB stays
   in the firmware boot menu as the fallback.
 - The systems show as their own marks in Crate's colours (the crate-icons rule for brand apps): CachyOS
@@ -46,7 +46,8 @@ order, GRUB's menu and the Ryoku splash back; nothing on the way can stop the ma
 
 - `theme.conf` (included by refind.conf): `banner themes/crate/banner.png`, `banner_scale fillscreen`,
   `selection_big`, `selection_small`, `font themes/crate/font.png`, `icons_dir themes/crate/icons`,
-  `big_icon_size 128`, `small_icon_size 48`, `hideui hints,arrows,badges,label` (no label text and no
+  no `big_icon_size`/`small_icon_size` (rEFInd doubles icons on screens wider than 1920 only while they
+  are unset; icons are drawn at 256/96 and selection tiles at 288/128), `hideui hints,arrows,badges,label` (no label text and no
   countdown line), no `showtools` (rEFInd appends its defaults to any list, so its default row stays and
   every default tool, `func_*` and scanned `tool_*`, gets a Crate line icon), `use_graphics_for windows,grub`.
 - Rendered at build: `banner.png` at 3840x2400 (canvas, the cover mark with its glow in the upper third,
@@ -66,7 +67,7 @@ order, GRUB's menu and the Ryoku splash back; nothing on the way can stop the ma
   `<ESP>/EFI/refind/refind.conf`. Runs `refind-install` when rEFInd is not on the ESP; copies the theme to
   `<ESP>/EFI/refind/themes/crate`; writes `refind.conf` (`include themes/crate/theme.conf`, `scanfor
   manual`, a `CachyOS` stanza loading `\EFI\cachyos\grubx64.efi` and, when present, a `Windows` stanza
-  loading `\EFI\Microsoft\Boot\bootmgfw.efi`); sets `GRUB_TIMEOUT=0` and `GRUB_TIMEOUT_STYLE=hidden` and
+  loading `\EFI\Microsoft\Boot\bootmgfw.efi`); sets `GRUB_TIMEOUT=1` and `GRUB_TIMEOUT_STYLE=hidden` and
   runs `grub-mkconfig`; runs `plymouth-set-default-theme -R crate`. Every command is printed first; a
   failing step stops with how to finish or revert.
 - `revert` (root): `efibootmgr -o <recorded order>`, the GRUB lines back and `grub-mkconfig`, the recorded
@@ -85,7 +86,7 @@ leaves makedepends. `crate-for-ryoku uninstall` reminds of `boot revert` while `
 
 - rEFInd does not show: the firmware boot menu (F12 on most laptops) still lists CachyOS (GRUB) and
   Windows; boot one and run `sudo crate-for-ryoku boot revert`.
-- GRUB's menu (snapshots, the LTS kernel): press Esc right after choosing CachyOS in rEFInd.
+- GRUB's menu (snapshots, the LTS kernel): tap Esc or hold Shift right after choosing CachyOS in rEFInd.
 - A blank splash: the boot continues to the lock screen; for a boot without it, open GRUB's menu with Esc,
   press `e` and add `plymouth.enable=0`.
 
