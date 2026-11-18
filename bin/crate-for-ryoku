@@ -35,6 +35,8 @@ usage: crate-for-ryoku <command> [options]
   status            what is installed, piece by piece
   icons             redraw the app icons (after installing apps by hand)
   version           the packaged and the installed versions
+  boot apply|revert|status
+                    the Crate rEFInd boot screen and Plymouth splash (apply and revert need sudo)
 
 GUI: Ryoku Settings > Appearance > Rices, QS Bar Settings > Community > Crate
 EOF
@@ -47,6 +49,7 @@ case $cmd in
   install) exec bash "$HOME_DIR/install.sh" "$@" ;;
   uninstall) exec bash "$HOME_DIR/uninstall.sh" "$@" ;;
   icons) exec python3 "$DATA/crate-for-ryoku/crateize.py" "$@" ;;
+  boot) exec bash "$HOME_DIR/boot.sh" "$@" ;;
   version)
     echo "packaged  $(cat "$HOME_DIR/$VERSION_FILE")"
     echo "installed $(cat "$STATE/version" 2>/dev/null || echo none)"

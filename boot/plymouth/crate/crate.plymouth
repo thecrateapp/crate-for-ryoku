@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Crate
+Description=Crate for Ryoku: the Crate mark on black, a cyan beam for the boot progress
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/crate
+ScriptFile=/usr/share/plymouth/themes/crate/crate.script
