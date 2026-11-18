@@ -94,9 +94,33 @@ def padded(svg_text, path, box=128, inner=logo):
     im = Image.open(path).convert("RGBA"); c = Image.new("RGBA", (box, box), (0, 0, 0, 0))
     c.alpha_composite(im, ((box - inner) // 2, (box - inner) // 2)); c.save(path)
 padded(svg, f"{out}/icons/os_cachyos.png")
+# the bubbles in Crate's cyan: the loose small pieces of the mark (connected
+# components well under the C's size) are recoloured, the C stays grey
+def accent_small_parts(path, colour, share=0.12):
+    im = Image.open(path).convert("RGBA"); px = im.load(); w, h = im.size
+    seen, parts = set(), []
+    for y in range(h):
+        for x in range(w):
+            if px[x, y][3] > 0 and (x, y) not in seen:
+                stack, comp = [(x, y)], []
+                seen.add((x, y))
+                while stack:
+                    cx, cy = stack.pop(); comp.append((cx, cy))
+                    for nx, ny in ((cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)):
+                        if 0 <= nx < w and 0 <= ny < h and (nx, ny) not in seen and px[nx, ny][3] > 0:
+                            seen.add((nx, ny)); stack.append((nx, ny))
+                parts.append(comp)
+    biggest = max(len(c) for c in parts)
+    for comp in parts:
+        if len(comp) < biggest * share:
+            for cx, cy in comp:
+                px[cx, cy] = (*colour, px[cx, cy][3])
+    im.save(path)
+accent_small_parts(f"{out}/icons/os_cachyos.png", CYAN)
 win = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#999ca0">'
        '<rect x="3" y="3" width="8.5" height="8.5" rx="0.8"/><rect x="12.5" y="3" width="8.5" height="8.5" rx="0.8"/>'
-       '<rect x="3" y="12.5" width="8.5" height="8.5" rx="0.8"/><rect x="12.5" y="12.5" width="8.5" height="8.5" rx="0.8"/></svg>')
+       '<rect x="3" y="12.5" width="8.5" height="8.5" rx="0.8"/>'
+       '<rect x="13.1" y="13.1" width="7.3" height="7.3" rx="0.6" fill="none" stroke="#06b6d4" stroke-width="1.2"/></svg>')
 padded(win, f"{out}/icons/os_win.png", inner=96)
 
 # ---- tools: Solar line duotone glyphs (and every default rEFInd may add) ----

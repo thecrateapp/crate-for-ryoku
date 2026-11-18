@@ -198,3 +198,23 @@ def test_boot_status_needs_no_writes(sysroot):
 def test_the_package_build_renders_the_boot_themes():
     build = open(os.path.join(ROOT, "package", "build.sh")).read()
     assert 'bash "$SRC/package/build-boot.sh" "$OUT"' in build
+
+
+def test_refind_logos_carry_the_cyan_accent(out):
+    from PIL import Image
+    icons = out / "boot/refind/crate/icons"
+    cyan = (6, 182, 212)
+
+    def near(px, c):
+        return px[3] > 200 and all(abs(a - b) < 40 for a, b in zip(px[:3], c))
+
+    cachy = Image.open(icons / "os_cachyos.png").convert("RGBA")
+    assert any(near(p, cyan) for p in cachy.getdata())                  # the bubbles
+    assert any(near(p, (153, 156, 160)) for p in cachy.getdata())       # the C stays grey
+    win = Image.open(icons / "os_win.png").convert("RGBA")
+    w, h = win.size
+    br = win.crop((w // 2, h // 2, w, h))
+    assert any(near(p, cyan) for p in br.getdata())                     # bottom-right outline
+    assert br.getpixel((br.width // 2 - 4, br.height // 2 - 4))[3] < 40   # hollow inside
+    tl = win.crop((0, 0, w // 2, h // 2))
+    assert not any(near(p, cyan) for p in tl.getdata())                 # the others grey
