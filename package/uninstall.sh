@@ -121,3 +121,6 @@ fi
 ryoku-shell reload >/dev/null || true
 if [ "$KEEP" = 0 ] && [ -f "$STATE/previous.env" ]; then mv "$STATE/previous.env" "$STATE/previous.env.done"; fi
 say "done"
+if grep -q "^GRUB_THEME='/usr/share/grub/themes/crate/theme.txt'" /etc/default/grub 2>/dev/null; then
+  echo ":: the boot still uses Crate's GRUB menu and splash: sudo crate-for-ryoku boot revert puts yours back"
+fi
