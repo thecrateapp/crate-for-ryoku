@@ -109,11 +109,19 @@ tools = {
     "func_firmware": sol["cpu"].replace("currentColor", "#999ca0"),
     "func_about": sol["info-circle"].replace("currentColor", "#999ca0"),
     "func_hidden": sol["eye"].replace("currentColor", "#999ca0"),
-    "func_shell": sol["code-square"].replace("currentColor", "#999ca0"),
-    "func_memtest": sol["cpu-bolt"].replace("currentColor", "#999ca0"),
-    "func_gdisk": sol["database"].replace("currentColor", "#999ca0"),
-    "func_mok_tool": sol["key"].replace("currentColor", "#999ca0"),
     "func_bootorder": sol["layers"].replace("currentColor", "#999ca0"),
+    "func_install": sol["download"].replace("currentColor", "#999ca0"),
+    "func_csr_rotate": sol["shield"].replace("currentColor", "#999ca0"),
+    # rEFInd names its scanned tools tool_*
+    "tool_shell": sol["code-square"].replace("currentColor", "#999ca0"),
+    "tool_memtest": sol["cpu-bolt"].replace("currentColor", "#999ca0"),
+    "tool_part": sol["database"].replace("currentColor", "#999ca0"),
+    "tool_mok_tool": sol["key"].replace("currentColor", "#999ca0"),
+    "tool_netboot": sol["global"].replace("currentColor", "#999ca0"),
+    "tool_fwupdate": sol["download"].replace("currentColor", "#999ca0"),
+    "tool_rescue": sol["shield-keyhole"].replace("currentColor", "#999ca0"),
+    "tool_windows_rescue": sol["shield-keyhole"].replace("currentColor", "#999ca0"),
+    "tool_apple_rescue": sol["shield-keyhole"].replace("currentColor", "#999ca0"),
 }
 for name, s in tools.items():
     svg_png(s, 48, 48, f"{out}/icons/{name}.png")

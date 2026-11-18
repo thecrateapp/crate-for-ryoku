@@ -52,7 +52,9 @@ def test_refind_theme_is_complete(out):
         assert (t / name).is_file(), name
     # rEFInd's default tools (any showtools line gets them appended): each has a Crate icon
     for icon in ("os_cachyos", "os_win", "func_shutdown", "func_reset", "func_firmware", "func_about", "func_exit",
-                 "func_hidden", "func_shell", "func_memtest", "func_gdisk", "func_mok_tool", "func_bootorder"):
+                 "func_hidden", "func_bootorder", "func_install", "func_csr_rotate", "tool_shell", "tool_memtest",
+                 "tool_part", "tool_mok_tool", "tool_netboot", "tool_fwupdate", "tool_rescue", "tool_windows_rescue",
+                 "tool_apple_rescue"):
         assert (t / f"icons/{icon}.png").is_file(), icon
     conf = (t / "theme.conf").read_text()
     for line in ("banner themes/crate/banner.png", "banner_scale fillscreen", "font themes/crate/font.png",
