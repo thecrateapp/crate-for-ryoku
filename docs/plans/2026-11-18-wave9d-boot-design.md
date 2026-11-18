@@ -53,8 +53,9 @@ the machine from booting.
 - `theme.txt`: `desktop-image: "background.png"`, `desktop-image-scale-method: "crop"`; a
   `boot_menu` in the left third with `item_font`/`selected_item_font` JetBrains Mono, `item_color`
   `#999ca0`, `selected_item_color` `#06b6d4`, `selected_item_pixmap_style "select_*.png"` (a 2 px cyan
-  mark on the west edge only), no item boxes; a `progress_bar` `__timeout__` 2 px tall, track
-  `#212226`, fill `#06b6d4`; a small caps label above the menu (`CRATE`) in the secondary text tone.
+  mark on the west edge only), no item boxes; the countdown as a `__timeout__` label `BOOT IN %dS` in
+  the secondary tone (found in QEMU: GRUB draws no progress bar thinner than about 24 px, whatever
+  its height, styles or font); a small caps label above the menu (`CRATE`) in the same tone.
 - Build: `background.png` from `build/wallpapers/crate-groove-3840x2160.webp` scaled to 1920x1080;
   `jetbrains-mono-16.pf2` and `-24.pf2` with `grub-mkfont` from `apps/fonts/jetbrains-mono-latin-400-normal.woff2`;
   `select_w.png` (2 x 1 px cyan) and empty `select_c.png`.

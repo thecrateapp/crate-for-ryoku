@@ -26,3 +26,28 @@ ImageDraw.Draw(e).rounded_rectangle((0, 0, 239, 31), radius=6, outline=(241, 245
 e.save(f"{d}/entry.png")
 PY
 echo "boot: plymouth theme in $P"
+
+G=$out/boot/grub/crate
+mkdir -p "$G"
+cp "$repo/boot/grub/crate/theme.txt" "$G/"
+font=$repo/apps/fonts/jetbrains-mono-latin-400-normal.woff2
+for size in 16 24; do
+  grub-mkfont -s "$size" -n "JetBrains Mono Regular $size" -o "$G/jetbrains-mono-$size.pf2" "$font"
+done
+# the Groove wallpaper (render.sh writes it into build/); a canvas when it is not built
+wall=${CRATE_BOOT_WALLPAPER:-$repo/build/wallpapers/crate-groove-3840x2160.webp}
+python3 - "$G" "$wall" <<'PY'
+import os, sys
+from PIL import Image
+d, wall = sys.argv[1], sys.argv[2]
+if os.path.isfile(wall):
+    Image.open(wall).convert("RGB").resize((1920, 1080), Image.LANCZOS).save(f"{d}/background.png", optimize=True)
+else:
+    print(f"build-boot: {wall} not built; a plain canvas background", file=sys.stderr)
+    Image.new("RGB", (1920, 1080), (10, 10, 15)).save(f"{d}/background.png")
+clear = Image.new("RGBA", (1, 1), (0, 0, 0, 0))
+for part in ("n", "ne", "e", "se", "s", "sw", "nw", "c"):
+    clear.save(f"{d}/select_{part}.png")
+Image.new("RGBA", (2, 1), (6, 182, 212, 255)).save(f"{d}/select_w.png")   # the cyan mark
+PY
+echo "boot: grub theme in $G"
