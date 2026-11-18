@@ -1078,9 +1078,76 @@ def test_no_gtksourceview_leaves_it_alone(home):
     assert not (h / ".local/share/gtksourceview-5").exists() and state.read_text() == "'Adwaita'"
 
 
+# ---------- Thunderbird ----------
+
+def make_thunderbird(h, chrome=None):
+    base = h / ".thunderbird"
+    prof = base / "b2ql07ry.default-release"
+    prof.mkdir(parents=True)
+    (base / "profiles.ini").write_text(
+        "[Install4F96D1932A9F858E]\nDefault=b2ql07ry.default-release\nLocked=1\n\n"
+        "[Profile0]\nName=default-release\nIsRelative=1\nPath=b2ql07ry.default-release\nDefault=1\n\n"
+        "[General]\nStartWithLastProfile=1\nVersion=2\n")
+    if chrome == "symlink":
+        mine = base / "my-chrome"
+        mine.mkdir()
+        (mine / "userChrome.css").write_text("/* mine */\n")
+        (prof / "chrome").symlink_to(mine)
+    return prof
+
+
+def test_thunderbird_gets_crate_chrome_and_the_pref_and_loses_both(home, out):
+    h, run = home
+    stub(run, "thunderbird")
+    prof = make_thunderbird(h)
+    run("install")
+    assert (prof / "chrome/userChrome.css").read_bytes() == (out / "thunderbird/chrome/userChrome.css").read_bytes()
+    assert '"toolkit.legacyUserProfileCustomizations.stylesheets", true' in (prof / "user.js").read_text()
+    assert re.search(r"Thunderbird +installed; Crate userChrome in 1 of 1 profile", run("status"))
+    run("uninstall")
+    assert not (prof / "chrome").exists()
+    assert "legacyUserProfileCustomizations" not in (prof / "user.js").read_text()
+
+
+def test_thunderbird_own_chrome_symlink_comes_back(home):
+    h, run = home
+    stub(run, "thunderbird")
+    prof = make_thunderbird(h, chrome="symlink")
+    run("install")
+    assert (prof / "chrome.before-crate").is_symlink()
+    run("uninstall")
+    assert (prof / "chrome").is_symlink() and (prof / "chrome/userChrome.css").read_text() == "/* mine */\n"
+
+
+def test_thunderbird_edited_chrome_is_kept_aside(home):
+    h, run = home
+    stub(run, "thunderbird")
+    prof = make_thunderbird(h)
+    run("install")
+    (prof / "chrome/userChrome.css").write_text("/* edited */\n")
+    run("uninstall")
+    assert [p.name for p in prof.iterdir() if p.name.startswith("chrome.crate-edited-")]
+
+
+def test_thunderbird_without_a_profile_is_one_line(home):
+    h, run = home
+    stub(run, "thunderbird")
+    log = run("install")
+    assert "Thunderbird: no profile yet" in log
+    assert re.search(r"Thunderbird +installed; no profile", run("status"))
+
+
+def test_no_thunderbird_leaves_it_alone(home):
+    h, run = home
+    stub(run, "thunderbird")
+    prof = make_thunderbird(h)
+    run("install", "--no-thunderbird")
+    assert not (prof / "chrome").exists()
+
+
 def test_install_sh_passes_the_app_options_through():
     text = open(os.path.join(ROOT, "package/install.sh")).read()
-    assert '--no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--no-gtk|--no-gtksourceview|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
+    assert '--no-obsidian|--no-firefox|--no-zed|--no-lazygit|--no-nvim|--no-gtk|--no-gtksourceview|--no-thunderbird|--no-cursor|--firefox-chrome|--firefox-theme|--firefox-profile=*) APP_OPTS+=("$a")' in text
     assert 'bash "$HERE/apps.sh" install' in text
     uninstall = open(os.path.join(ROOT, "package/uninstall.sh")).read()
     assert 'bash "$HERE/apps.sh" uninstall ||' in uninstall

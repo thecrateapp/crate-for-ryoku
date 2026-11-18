@@ -52,6 +52,7 @@ usage() {
   cat <<EOF
 usage: apps.sh install [--no-obsidian] [--no-firefox] [--no-zed] [--no-lazygit] [--no-nvim]
                        [--no-gtk] [--no-gtksourceview]
+                       [--no-thunderbird] [--no-cursor]
                        [--firefox-theme]
                        [--firefox-profile DIR]...
        apps.sh uninstall [--look-only]
@@ -62,6 +63,8 @@ usage: apps.sh install [--no-obsidian] [--no-firefox] [--no-zed] [--no-lazygit] 
   --no-nvim            leave Neovim's plugins folder alone
   --no-gtk             leave GTK's user.css alone
   --no-gtksourceview   leave GtkSourceView and Text Editor's scheme alone
+  --no-thunderbird     leave Thunderbird's profiles alone
+  --no-cursor          keep the cursor theme you use
   --no-firefox         leave your Firefox profiles alone (by default each
                        profile's chrome/ folder gets Crate's userChrome.css;
                        the old one is kept and restored by uninstall)
@@ -530,9 +533,13 @@ firefox_present() { command -v firefox >/dev/null || [ -f "$CFG/mozilla/firefox/
 
 # firefox_profiles: the profile each Firefox install starts with ([Install*]
 # Default=), else the default profile, else every profile
-firefox_profiles() {
+firefox_profiles() { mozilla_profiles "$CFG/mozilla/firefox/profiles.ini" "$HOME/.mozilla/firefox/profiles.ini"; }
+
+# mozilla_profiles INI...: the profile each install of a Mozilla app starts with
+# (else the default profile, else every profile), one folder per line
+mozilla_profiles() {
   local ini
-  for ini in "$CFG/mozilla/firefox/profiles.ini" "$HOME/.mozilla/firefox/profiles.ini"; do
+  for ini in "$@"; do
     [ -f "$ini" ] || continue
     python3 - "$ini" <<'PY'
 import configparser, os, sys
@@ -681,6 +688,27 @@ firefox_chrome_install() {
 }
 
 firefox_chrome_uninstall() { mozilla_chrome_uninstall Firefox firefox-chrome.list; }
+
+# ---------- Thunderbird ----------
+# Thunderbird (~/.thunderbird/profiles.ini): Crate's userChrome.css through the
+#   same chrome/ handling as Firefox (yours moved aside to chrome.before-crate and
+#   back, the stylesheets pref in user.js, marked). Restart Thunderbird to see it.
+thunderbird_present() { command -v thunderbird >/dev/null || [ -f "$HOME/.thunderbird/profiles.ini" ]; }
+thunderbird_profiles() { mozilla_profiles "$HOME/.thunderbird/profiles.ini"; }
+
+thunderbird_chrome_install() {
+  local profiles=()
+  [ -f "$APPS/thunderbird/chrome/userChrome.css" ] || { warn "no Thunderbird userChrome.css in $APPS/thunderbird/chrome"; return 0; }
+  thunderbird_present || return 0
+  mapfile -t profiles < <(thunderbird_profiles)
+  if [ ${#profiles[@]} -eq 0 ]; then
+    say "Thunderbird: no profile yet (start Thunderbird once, then install again); skipped"
+    return 0
+  fi
+  mozilla_chrome_install Thunderbird "$APPS/thunderbird/chrome" thunderbird-chrome.list "${profiles[@]}"
+}
+
+thunderbird_chrome_uninstall() { mozilla_chrome_uninstall Thunderbird thunderbird-chrome.list; }
 
 firefox_theme_install() {
   local xpi
@@ -840,6 +868,22 @@ status() {
     line="not installed"
   fi
   printf '  %-22s %s\n' "Firefox" "$line"
+
+  local tb=0 tbtotal=0
+  if thunderbird_present; then
+    while IFS= read -r prof; do
+      tbtotal=$((tbtotal + 1))
+      [ -f "$prof/chrome/.crate-for-ryoku" ] && tb=$((tb + 1))
+    done < <(thunderbird_profiles)
+    if [ "$tbtotal" -gt 0 ]; then
+      line="installed; Crate userChrome in $tb of $tbtotal profile(s)"
+    else
+      line="installed; no profile"
+    fi
+  else
+    line="not installed"
+  fi
+  printf '  %-22s %s\n' "Thunderbird" "$line"
   if firefox_present; then
     line=$(firefox_has_addon "$FIREFOX_ID" && echo yes || echo no)
     # Ryoku's own browser extension recolours Firefox live over any static theme
@@ -868,7 +912,7 @@ status() {
 cmd=${1:-help}; shift || true
 case $cmd in
   install)
-    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 ZED=1 LAZYGIT=1 NVIM=1 GTK=1 SOURCE=1 PROFILES=()
+    OBSIDIAN=1 FIREFOX=1 FFTHEME=0 ZED=1 LAZYGIT=1 NVIM=1 GTK=1 SOURCE=1 TBIRD=1 CURSOR=1 PROFILES=()
     while [ $# -gt 0 ]; do
       case $1 in
         --no-obsidian) OBSIDIAN=0 ;;
@@ -878,6 +922,8 @@ case $cmd in
         --no-nvim) NVIM=0 ;;
         --no-gtk) GTK=0 ;;
         --no-gtksourceview) SOURCE=0 ;;
+        --no-thunderbird) TBIRD=0 ;;
+        --no-cursor) CURSOR=0 ;;
         --firefox-chrome) ;;  # the default since 0.7; kept so older command lines still work
         --firefox-theme) FFTHEME=1 ;;
         --firefox-profile) shift; PROFILES+=("${1:?--firefox-profile needs a folder}") ;;
@@ -895,6 +941,7 @@ case $cmd in
     [ "$NVIM" = 1 ] && nvim_install
     [ "$GTK" = 1 ] && gtk_install
     [ "$SOURCE" = 1 ] && gtksourceview_install
+    [ "$TBIRD" = 1 ] && thunderbird_chrome_install
     exit 0 ;;
   uninstall)
     LOOK=0
@@ -914,6 +961,7 @@ case $cmd in
     nvim_uninstall
     gtk_uninstall
     gtksourceview_uninstall
+    thunderbird_chrome_uninstall
     exit 0 ;;
   status) status ;;
   -h|--help|help) usage ;;
