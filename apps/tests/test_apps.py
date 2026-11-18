@@ -249,7 +249,8 @@ def test_thunderbird_chrome_is_crate(out):
     assert {c.replace(" ", "") for c in re.findall(r"rgba\([^)]*\)", css)} <= rgba
     for decl in ("--layout-background-0: #0a0a0f !important;", "--layout-background-1: #0d0e14 !important;",
                  "--selected-item-color: #06b6d4 !important;", "--color-primary-default: #06b6d4 !important;",
-                 "--layout-border-0: rgba(241, 245, 249, 0.1) !important;", "--button-border-radius: 6px !important;"):
+                 "--layout-border-0: rgba(241, 245, 249, 0.1) !important;", "--button-border-radius: 6px !important;",
+                 "--mmBoxBackground: #0f1016 !important;", "--viewDayBoxSelectedBackground: #15161d !important;"):
         assert decl in css, decl
 
 

@@ -44,6 +44,17 @@
   --button-border-radius: 6px !important;
   --button-link-text-color: #67e8f9 !important;
   --button-destructive-background-color: #ef4444 !important;
+
+  /* calendar: the minimonth on Crate's surfaces, a quiet selected day */
+  --mmBoxBackground: #0f1016 !important;
+  --mmBoxBorderColor: rgba(241, 245, 249, 0.1) !important;
+  --mmBoxItemColor: rgba(241, 245, 249, 0.62) !important;
+  --mmDayBorderRadius: 6px !important;
+  --viewDayBoxSelectedBackground: #15161d !important;
+  --viewDayBoxOffSelectedBackground: #15161d !important;
+  --viewHeaderSelectedBackground: #15161d !important;
+  --viewTodayBackground: #0f1016 !important;
+  --viewWeekendBackground: #0d0e14 !important;
 }
 
 /* 6 px corners on the floating surfaces */
