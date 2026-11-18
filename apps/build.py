@@ -151,6 +151,13 @@ def build_gtksourceview(out):
     return dest
 
 
+def build_thunderbird(out):
+    dest = os.path.join(out, "thunderbird", "chrome")
+    os.makedirs(dest, exist_ok=True)
+    shutil.copyfile(os.path.join(APPS, "thunderbird/chrome/userChrome.css"), os.path.join(dest, "userChrome.css"))
+    return dest
+
+
 def build_chrome(out):
     src = os.path.join(APPS, "chrome/theme")
     manifest = json.loads(read(os.path.join(src, "manifest.json")))
@@ -360,6 +367,7 @@ def main(argv):
     print("nvim    ", build_nvim(out))
     print("gtk     ", build_gtk(out))
     print("source  ", build_gtksourceview(out))
+    print("tbird   ", build_thunderbird(out))
     unpacked, webstore = build_chrome(out)
     key = json.loads(read(os.path.join(unpacked, "manifest.json")))["key"]
     print("chrome  ", unpacked, f"(id {chrome_id(key)})")

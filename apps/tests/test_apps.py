@@ -241,6 +241,18 @@ def test_gtk_css_leaves_buttons_entries_and_osd_to_libadwaita(out):
                 assert not re.search(r"\b(button|entry|spinbutton)\b|\.osd", sel), (name, sel.strip())
 
 
+def test_thunderbird_chrome_is_crate(out):
+    css = (out / "thunderbird/chrome/userChrome.css").read_text()
+    allowed = {v.lower() for v in TOKENS.values() if isinstance(v, str) and v.startswith("#")}
+    assert {c.lower() for c in re.findall(r"#[0-9a-fA-F]{6}\b", css)} <= allowed
+    rgba = {v.replace(" ", "") for v in TOKENS.values() if isinstance(v, str) and v.startswith("rgba(")}
+    assert {c.replace(" ", "") for c in re.findall(r"rgba\([^)]*\)", css)} <= rgba
+    for decl in ("--layout-background-0: #0a0a0f !important;", "--layout-background-1: #0d0e14 !important;",
+                 "--selected-item-color: #06b6d4 !important;", "--color-primary-default: #06b6d4 !important;",
+                 "--layout-border-0: rgba(241, 245, 249, 0.1) !important;", "--button-border-radius: 6px !important;"):
+        assert decl in css, decl
+
+
 def test_lazygit_hides_the_amber_random_tip(out):
     # the tip draws in ANSI yellow: amber that is no status (Diego, 2026-11-17)
     assert "\n  showRandomTip: false\n" in (out / "lazygit/config.yml").read_text()

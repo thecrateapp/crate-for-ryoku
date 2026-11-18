@@ -1,0 +1,54 @@
+/* Crate for Ryoku: Crate's look for Thunderbird.
+   Thunderbird 160 paints its window from a small ladder of layout variables
+   (backgrounds 0-4, colours 0-3, borders 0-2) and a selected-item colour; this
+   sheet sets them to Crate's tokens: the canvas, object, raised and popover
+   surfaces, text at full, 62 % and 42 %, hairlines, and the cyan mark. Laid down
+   by `crate-for-ryoku install` (with the stylesheets pref in user.js), removed by
+   uninstall; restart Thunderbird to see it. */
+
+:root {
+  --layout-background-0: #0a0a0f !important;
+  --layout-background-1: #0d0e14 !important;
+  --layout-background-2: #0f1016 !important;
+  --layout-background-3: #111218 !important;
+  --layout-background-4: #15161d !important;
+
+  --layout-color-0: #f1f5f9 !important;
+  --layout-color-1: #f1f5f9 !important;
+  --layout-color-2: rgba(241, 245, 249, 0.62) !important;
+  --layout-color-3: rgba(241, 245, 249, 0.42) !important;
+
+  --layout-border-0: rgba(241, 245, 249, 0.1) !important;
+  --layout-border-1: rgba(241, 245, 249, 0.1) !important;
+  --layout-border-2: rgba(241, 245, 249, 0.1) !important;
+
+  --color-primary-default: #06b6d4 !important;
+  --color-primary-hover: #67e8f9 !important;
+  --color-primary-pressed: #06b6d4 !important;
+  --color-surface-base: #0a0a0f !important;
+  --color-surface-subtle: #0d0e14 !important;
+  --color-surface-raised: #0f1016 !important;
+  --color-surface-lower: #0a0a0f !important;
+  --color-surface-deep: #0a0a0f !important;
+  --color-surface-border: rgba(241, 245, 249, 0.1) !important;
+  --color-surface-border-intense: rgba(241, 245, 249, 0.1) !important;
+
+  --selected-item-color: #06b6d4 !important;
+  --selected-item-text-color: #0a0a0f !important;
+  --sidebar-highlight-background-color: #06b6d4 !important;
+  --sidebar-highlight-text-color: #0a0a0f !important;
+
+  --toolbar-field-background-color: #0a0a0f !important;
+  --toolbar-field-focus-border-color: #67e8f9 !important;
+  --search-bar-border-color: rgba(241, 245, 249, 0.1) !important;
+  --button-border-radius: 6px !important;
+  --button-link-text-color: #67e8f9 !important;
+  --button-destructive-background-color: #ef4444 !important;
+}
+
+/* 6 px corners on the floating surfaces */
+menupopup,
+panel,
+.popup-panel {
+  --panel-border-radius: 6px !important;
+}
