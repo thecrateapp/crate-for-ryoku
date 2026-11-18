@@ -574,17 +574,16 @@ chrome_is_ours_unchanged() {
   [ "$now" = "$(cat "$1/chrome/.crate-for-ryoku")" ]
 }
 
-firefox_chrome_install() {
-  local src=$APPS/firefox/chrome prof added n=0
-  [ -f "$src/userChrome.css" ] || { warn "no Firefox userChrome.css in $src"; return 0; }
+# mozilla_chrome_install LABEL SRC RECORD PROFILE...: Crate's chrome/ into each
+# profile of a Mozilla app (Firefox, Thunderbird); the old chrome/ moves aside to
+# chrome.before-crate, the stylesheets pref goes into user.js, marked
+mozilla_chrome_install() {
+  local label=$1 src=$2 record=$3 prof added n=0
+  shift 3
+  [ -f "$src/userChrome.css" ] || { warn "no $label userChrome.css in $src"; return 0; }
   local profiles=("$@")
-  if [ ${#profiles[@]} -eq 0 ]; then mapfile -t profiles < <(firefox_profiles); fi
-  if [ ${#profiles[@]} -eq 0 ]; then
-    firefox_present && say "Firefox: no profile yet (start Firefox once, then install again); skipped"
-    return 0
-  fi
   mkdir -p "$REC"
-  touch "$REC/firefox-chrome.list"
+  touch "$REC/$record"
   for prof in "${profiles[@]}"; do
     prof=$(cd "$prof" && pwd) || continue
     if [ -f "$prof/chrome/.crate-for-ryoku" ]; then
@@ -592,21 +591,21 @@ firefox_chrome_install() {
       if chrome_is_ours_unchanged "$prof"; then
         cp -a "$src/." "$prof/chrome/"
         write_chrome_marker "$prof"
-        say "Firefox: Crate userChrome.css refreshed in $prof"
+        say "$label: Crate userChrome.css refreshed in $prof"
         n=$((n + 1))
       else
-        warn "Firefox: $prof/chrome has your edits; left as it is"
+        warn "$label: $prof/chrome has your edits; left as it is"
       fi
       continue
     fi
     if [ -e "$prof/chrome.before-crate" ] || [ -L "$prof/chrome.before-crate" ]; then
-      warn "Firefox: $prof/chrome.before-crate already exists; skipping this profile"
+      warn "$label: $prof/chrome.before-crate already exists; skipping this profile"
       continue
     fi
     if [ -e "$prof/chrome" ] || [ -L "$prof/chrome" ]; then
       # a symlink moves as a link: the folder it points to is never touched
       mv -- "$prof/chrome" "$prof/chrome.before-crate"
-      say "Firefox: your chrome/ is kept as $prof/chrome.before-crate"
+      say "$label: your chrome/ is kept as $prof/chrome.before-crate"
     fi
     mkdir -p "$prof/chrome"
     cp -a "$src/." "$prof/chrome/"
@@ -616,18 +615,18 @@ firefox_chrome_install() {
       printf '%s\nuser_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);\n' "$MARK" >> "$prof/user.js"
       added=1
     fi
-    grep -v -F "$prof	" "$REC/firefox-chrome.list" > "$REC/firefox-chrome.list.tmp" || true
-    printf '%s\t%s\n' "$prof" "$added" >> "$REC/firefox-chrome.list.tmp"
-    mv "$REC/firefox-chrome.list.tmp" "$REC/firefox-chrome.list"
-    say "Firefox: Crate userChrome.css in $prof"
+    grep -v -F "$prof	" "$REC/$record" > "$REC/$record.tmp" || true
+    printf '%s\t%s\n' "$prof" "$added" >> "$REC/$record.tmp"
+    mv "$REC/$record.tmp" "$REC/$record"
+    say "$label: Crate userChrome.css in $prof"
     n=$((n + 1))
   done
-  if [ "$n" -gt 0 ]; then say "Firefox: restart Firefox to see Crate's look"; fi
+  if [ "$n" -gt 0 ]; then say "$label: restart $label to see Crate's look"; fi
 }
 
-firefox_chrome_uninstall() {
-  [ -f "$REC/firefox-chrome.list" ] || return 0
-  local prof added
+mozilla_chrome_uninstall() {
+  local label=$1 record=$2 prof added
+  [ -f "$REC/$record" ] || return 0
   while IFS=$'\t' read -r prof added; do
     [ -n "$prof" ] && [ -d "$prof" ] || continue
     if [ -f "$prof/chrome/.crate-for-ryoku" ]; then
@@ -637,15 +636,15 @@ firefox_chrome_uninstall() {
         local aside
         aside=$prof/chrome.crate-edited-$(date +%Y%m%d-%H%M%S)
         mv -- "$prof/chrome" "$aside"
-        warn "Firefox: Crate's chrome/ had edits; kept as $aside"
+        warn "$label: Crate's chrome/ had edits; kept as $aside"
       fi
     fi
     if [ -e "$prof/chrome.before-crate" ] || [ -L "$prof/chrome.before-crate" ]; then
       if [ -e "$prof/chrome" ] || [ -L "$prof/chrome" ]; then
-        warn "Firefox: $prof/chrome exists; your old one stays at chrome.before-crate"
+        warn "$label: $prof/chrome exists; your old one stays at chrome.before-crate"
       else
         mv -- "$prof/chrome.before-crate" "$prof/chrome"
-        say "Firefox: restored your chrome/ in $prof"
+        say "$label: restored your chrome/ in $prof"
       fi
     fi
     if [ "$added" = 1 ] && [ -f "$prof/user.js" ]; then
@@ -666,9 +665,22 @@ for line in lines:
 open(path, "w").write("\n".join(out))
 PY
     fi
-  done < "$REC/firefox-chrome.list"
-  rm -f -- "$REC/firefox-chrome.list"
+  done < "$REC/$record"
+  rm -f -- "$REC/$record"
 }
+
+firefox_chrome_install() {
+  local profiles=("$@")
+  [ -f "$APPS/firefox/chrome/userChrome.css" ] || { warn "no Firefox userChrome.css in $APPS/firefox/chrome"; return 0; }
+  if [ ${#profiles[@]} -eq 0 ]; then mapfile -t profiles < <(firefox_profiles); fi
+  if [ ${#profiles[@]} -eq 0 ]; then
+    firefox_present && say "Firefox: no profile yet (start Firefox once, then install again); skipped"
+    return 0
+  fi
+  mozilla_chrome_install Firefox "$APPS/firefox/chrome" firefox-chrome.list "${profiles[@]}"
+}
+
+firefox_chrome_uninstall() { mozilla_chrome_uninstall Firefox firefox-chrome.list; }
 
 firefox_theme_install() {
   local xpi
